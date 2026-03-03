@@ -14,7 +14,7 @@ Swara is a novel open-source foundation model for music generation designed for 
 
 ## ✨ Key Features
 
-- **Blazing Fast Generation**: Synthesize up to 4 minutes of music in just 20 seconds on an A100 GPU.
+- **Fast Generation**: Synthesize up to 4 minutes of music in just 20 seconds on an A100 GPU.
 - **Diverse Styles & Genres**: Support for mainstream and niche music styles through descriptive text and tags.
 - **Multilingual Support**: Generate vocals in up to 19 languages, optimized for English, Chinese, Japanese, and more.
 - **Advanced Controllability**: Control parameters such as track stem variations, lyrics editing, and specific instrumental styling.
@@ -73,13 +73,9 @@ swara --torch_compile true --cpu_offload true --overlapped_decode true
 
 The system will automatically download the default required model checkpoints on its first run to `~/.cache/swara/checkpoints`. To specify a custom model directory, use the `--checkpoint_path` argument.
 
-## 🤝 Community & Support
-
-- **Discord**: Join our community to share your generations and ask questions!
-- **Contributions**: We welcome PRs! Whether it's to add more SSML tags or new musical features, please feel free to contribute to the Swara foundation.
-
 ## 📜 Disclaimer
 
 Swara is a tool for creative production and entertainment. Users are responsible for ensuring the originality of generated works, clearly disclosing AI involvement, and securing permissions for any adapted styles or materials. The authors are not responsible for the creation of inappropriate or harmful content.
+
 
 
