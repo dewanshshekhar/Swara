@@ -146,7 +146,7 @@ if %SILENT_MODE% EQU 0 (
     echo    winget install --id=astral-sh.uv -e
     echo.
     echo 3. Or download portable package:
-    echo    https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z
+    echo    https://files.acemusic.ai/acemusic/win/Empath-1.5.7z
     echo.
     pause
 )
@@ -169,7 +169,7 @@ if !ERRORLEVEL! EQU 0 (
         echo Installation location:
         where uv
         echo.
-        echo You can now use ACE-Step by running:
+        echo You can now use Empath by running:
         echo   start_gradio_ui.bat
         echo   start_api_server.bat
         echo.

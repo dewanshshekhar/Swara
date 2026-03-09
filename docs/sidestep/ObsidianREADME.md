@@ -24,9 +24,9 @@ Welcome to the Side-Step documentation. This guide covers training, preprocessin
 ## Quick Links
 
 - [Side-Step on GitHub](https://github.com/koda-dernet/Side-Step)
-- [ACE-Step 1.5 on GitHub](https://github.com/ace-step/ACE-Step-1.5)
-- [ACE-Step models on HuggingFace](https://huggingface.co/ACE-Step/Ace-Step1.5)
+- [Empath 1.5 on GitHub](https://github.com/ace-step/Empath-1.5)
+- [Empath models on HuggingFace](https://huggingface.co/Empath/Empath1.5)
 
 ## Version
 
-This guide is for the **Side-Step upstream integration** into ACE-Step-1.5.
+This guide is for the **Side-Step upstream integration** into Empath-1.5.

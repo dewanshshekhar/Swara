@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ACE-Step Studio (Pro)</title>
+    <title>Empath Studio (Pro)</title>
     
     <script src="https://unpkg.com/wavesurfer.js@7"></script>
     <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
@@ -265,7 +265,7 @@
 <body>
 
 <header>
-    <h1>ACE-Step Studio <span class="badge">PRO</span></h1>
+    <h1>Empath Studio <span class="badge">PRO</span></h1>
     <div class="connection-bar">
         <input type="url" id="apiBase" value="http://localhost:8001" placeholder="API URL (e.g. http://localhost:8001)">
     </div>
@@ -388,7 +388,7 @@
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="log-console" id="logConsole">
-                <div>Welcome to ACE-Step Studio. Ready.</div>
+                <div>Welcome to Empath Studio. Ready.</div>
             </div>
         </div>
 
@@ -440,7 +440,7 @@
     let activeRegion = null;
     let uploadedFile = null;
     const DEFAULT_AUDIO_VOLUME = 0.5;
-    const AUDIO_VOLUME_STORAGE_KEY = "acestep.studio.audio.volume";
+    const AUDIO_VOLUME_STORAGE_KEY = "empath.studio.audio.volume";
     const AUDIO_EPSILON = 0.001;
     const managedAudioElements = new WeakSet();
     let preferredAudioVolume = null;

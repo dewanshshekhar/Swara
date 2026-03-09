@@ -10,12 +10,12 @@ Side-Step supports two adapter types and two training modes:
 **Corrected mode** (the default and recommended path) uses:
 - Continuous logit-normal timestep sampling (matches how base/SFT were trained)
 - 15% CFG dropout (teaches the model to handle prompted and unprompted generation)
-- Standalone -- no base ACE-Step installation needed
+- Standalone -- no base Empath installation needed
 
-**Vanilla mode** reproduces the original ACE-Step training behavior:
+**Vanilla mode** reproduces the original Empath training behavior:
 - Discrete 8-step timestep schedule
 - No CFG dropout
-- Requires base ACE-Step installed alongside
+- Requires base Empath installed alongside
 
 ---
 
@@ -55,7 +55,7 @@ Convert raw audio to training tensors:
 ```bash
 # With a dataset JSON (lyrics, genre, BPM metadata)
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --preprocess \
     --dataset-json ./my_dataset.json \
@@ -64,7 +64,7 @@ uv run python train.py fixed \
 
 # Without metadata (all tracks treated as instrumentals)
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --preprocess \
     --audio-dir ./my_audio \
@@ -80,7 +80,7 @@ Preprocessing runs in two passes to minimize VRAM:
 ```bash
 # LoRA (stable, recommended)
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --dataset-dir ./my_tensors \
     --output-dir ./output/my_lora \
@@ -89,7 +89,7 @@ uv run python train.py fixed \
 
 # LoKR (experimental)
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --adapter-type lokr \
     --dataset-dir ./my_tensors \
@@ -98,7 +98,7 @@ uv run python train.py fixed \
 
 # Training on a fine-tune
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant my-custom-finetune \
     --base-model base \
     --dataset-dir ./my_tensors \
@@ -166,7 +166,7 @@ Side-Step applies several optimizations automatically and exposes others as opti
 
 **Automatic (no user action needed):**
 
-1. **Gradient checkpointing** (ON by default) -- recomputes activations during backward pass, saves ~40-60% activation VRAM (~10-30% slower). Matches what the original ACE-Step trainer always did.
+1. **Gradient checkpointing** (ON by default) -- recomputes activations during backward pass, saves ~40-60% activation VRAM (~10-30% slower). Matches what the original Empath trainer always did.
 2. **Flash Attention 2** (auto-installed) -- fused attention kernels for better GPU utilization. Requires Ampere+ GPU (RTX 30xx or newer). Falls back to SDPA on older hardware.
 
 **User-configurable (from least to most aggressive):**
@@ -208,7 +208,7 @@ If training is interrupted, resume from a checkpoint:
 
 ```bash
 uv run python train.py fixed \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --dataset-dir ./my_tensors \
     --output-dir ./output/my_lora \
@@ -225,7 +225,7 @@ Before training, you can analyze which attention modules are most sensitive to y
 
 ```bash
 uv run python train.py estimate \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --dataset-dir ./my_tensors \
     --estimate-batches 5 \

@@ -1,6 +1,6 @@
-# ACE-Step 1.5 - Intel XPU Setup Guide
+# Empath 1.5 - Intel XPU Setup Guide
 
-Quick start guide for running ACE-Step on Intel Arc GPUs and integrated graphics.
+Quick start guide for running Empath on Intel Arc GPUs and integrated graphics.
 
 ## 🎯 What You Need
 
@@ -60,8 +60,8 @@ Quick start guide for running ACE-Step on Intel Arc GPUs and integrated graphics
 Models should be placed in the `checkpoints` folder. If you already have models from a previous installation, they will be automatically detected.
 
 ### Default Models
-- **DiT Model**: `acestep-v15-turbo` (fast generation)
-- **LM Model**: `acestep-5Hz-lm-4B` (best quality, uses CPU offload)
+- **DiT Model**: `empath-v15-turbo` (fast generation)
+- **LM Model**: `empath-5Hz-lm-4B` (best quality, uses CPU offload)
 
 ### Launch Options
 
@@ -104,12 +104,12 @@ SERVER_NAME=127.0.0.1
 LANGUAGE=en
 
 # Model Settings
-ACESTEP_CONFIG_PATH=acestep-v15-turbo
-ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-4B
-ACESTEP_OFFLOAD_TO_CPU=true
+EMPATH_CONFIG_PATH=empath-v15-turbo
+EMPATH_LM_MODEL_PATH=empath-5Hz-lm-4B
+EMPATH_OFFLOAD_TO_CPU=true
 
 # API Settings
-ACESTEP_API_KEY=your-secret-key
+EMPATH_API_KEY=your-secret-key
 ```
 
 ## 🛠️ Troubleshooting
@@ -180,4 +180,4 @@ Once setup is complete, simply run:
 start_gradio_ui_xpu.bat
 ```
 
-And start creating music with ACE-Step on your Intel GPU!
+And start creating music with Empath on your Intel GPU!

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Quick Environment Test - Linux/macOS
-# This script tests the environment for ACE-Step
+# This script tests the environment for Empath
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -112,7 +112,7 @@ if [[ -f "$SCRIPT_DIR/pyproject.toml" ]]; then
     echo "[PASS] pyproject.toml found"
     echo
     echo "Available scripts:"
-    grep -E "^(acestep|acestep-api|acestep-download) = " "$SCRIPT_DIR/pyproject.toml" 2>/dev/null || echo "  (scripts section not found)"
+    grep -E "^(empath|empath-api|empath-download) = " "$SCRIPT_DIR/pyproject.toml" 2>/dev/null || echo "  (scripts section not found)"
 else
     echo "[FAIL] pyproject.toml not found"
 fi

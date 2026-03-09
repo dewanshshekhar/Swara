@@ -1,7 +1,7 @@
 
 ## What Is Gradient Estimation?
 
-Gradient estimation (also called sensitivity analysis) ranks the attention modules inside the ACE-Step decoder by how much they respond to **your specific dataset**. Instead of blindly training every `q_proj`, `k_proj`, `v_proj`, and `o_proj` layer equally, estimation tells you which ones matter most.
+Gradient estimation (also called sensitivity analysis) ranks the attention modules inside the Empath decoder by how much they respond to **your specific dataset**. Instead of blindly training every `q_proj`, `k_proj`, `v_proj`, and `o_proj` layer equally, estimation tells you which ones matter most.
 
 Think of it like an X-ray of the model: it shows where the gradients concentrate when your audio is passed through the network.
 
@@ -33,7 +33,7 @@ uv run python train.py
 
 ```bash
 uv run python train.py estimate \
-    --checkpoint-dir ../ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ../Empath-1.5/checkpoints \
     --model-variant base \
     --dataset-dir ./my_tensors \
     --estimate-batches 5 \
@@ -70,7 +70,7 @@ Estimation produces a JSON file with a ranked list:
 
 ## Understanding Module Names
 
-ACE-Step's decoder is a stack of transformer layers. Each layer has attention blocks, and each attention block has four linear projections:
+Empath's decoder is a stack of transformer layers. Each layer has attention blocks, and each attention block has four linear projections:
 
 | Projection | Role |
 |------------|------|

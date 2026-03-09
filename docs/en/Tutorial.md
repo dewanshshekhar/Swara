@@ -1,10 +1,10 @@
-# ACE-Step 1.5 Ultimate Guide (Must Read)
+# Empath 1.5 Ultimate Guide (Must Read)
 
 **Language / 语言 / 言語:** [English](Tutorial.md) | [中文](../zh/Tutorial.md) | [日本語](../ja/Tutorial.md)
 
 ---
 
-Hello everyone, I'm Gong Junmin, the developer of ACE-Step. Through this tutorial, I'll guide you through the design philosophy and usage of ACE-Step 1.5.
+Hello everyone, I'm Gong Junmin, the developer of Empath. Through this tutorial, I'll guide you through the design philosophy and usage of Empath 1.5.
 
 ## Mental Models
 
@@ -56,7 +56,7 @@ Human time is precious, but more importantly—**slow generation breaks flow sta
 
 The core of human-centered workflow is the rapid cycle of "try, listen, adjust." If each generation takes minutes, your inspiration dissipates while waiting, and the "play" experience degrades into the "wait" ordeal.
 
-Therefore, we specifically optimized ACE-Step for this: while ensuring quality, we made generation fast enough to support a smooth human-machine dialogue rhythm.
+Therefore, we specifically optimized Empath for this: while ensuring quality, we made generation fast enough to support a smooth human-machine dialogue rhythm.
 
 ### Finite Game vs Infinite Game
 
@@ -64,7 +64,7 @@ One-click generation is a **finite game**—clear goals, result-oriented, ends a
 
 Human-centered generation is an **infinite game**—because the fun lies in the process, and the process never ends.
 
-Our vision is to democratize AI music generation. Let ACE-Step become a big toy in your pocket, let music return to **Play** itself—the creative "play," not just clicking play.
+Our vision is to democratize AI music generation. Let Empath become a big toy in your pocket, let music return to **Play** itself—the creative "play," not just clicking play.
 
 ---
 
@@ -120,7 +120,7 @@ Now you understand the "elephant" metaphor. But actually—
 
 ### Architecture Principles: Two Brains
 
-ACE-Step 1.5 uses a **hybrid architecture** with two core components working together:
+Empath 1.5 uses a **hybrid architecture** with two core components working together:
 
 ```
 User Input → [5Hz LM] → Semantic Blueprint → [DiT] → Audio
@@ -156,7 +156,7 @@ DiT is the "audio craftsman," responsible for turning plans into reality:
 
 **Why this design?**
 
-Traditional methods let diffusion models generate audio directly from text, but text-to-audio mapping is too vague. ACE-Step introduces LM as an intermediate layer:
+Traditional methods let diffusion models generate audio directly from text, but text-to-audio mapping is too vague. Empath introduces LM as an intermediate layer:
 - LM excels at understanding semantics and planning
 - DiT excels at generating high-fidelity audio
 - They work together, each doing their part
@@ -186,7 +186,7 @@ Based on your hardware:
 
 ### Choosing the Executor: DiT Models
 
-With a planning scheme, you still need to choose an executor. DiT is the core of ACE-Step 1.5—it handles various tasks and decides how to interpret LM-generated codes.
+With a planning scheme, you still need to choose an executor. DiT is the core of Empath 1.5—it handles various tasks and decides how to interpret LM-generated codes.
 
 We've open-sourced **4 Turbo models**, **1 SFT model**, and **1 Base model**.
 
@@ -275,17 +275,17 @@ Default configuration is **turbo + 1.7B LM**, suitable for most scenarios.
 
 ```bash
 # Download default models (turbo + 1.7B LM)
-uv run acestep-download
+uv run empath-download
 
 # Download all models
-uv run acestep-download --all
+uv run empath-download --all
 
 # Download specific model
-uv run acestep-download --model acestep-v15-base
-uv run acestep-download --model acestep-5Hz-lm-0.6B
+uv run empath-download --model empath-v15-base
+uv run empath-download --model empath-5Hz-lm-0.6B
 
 # List available models
-uv run acestep-download --list
+uv run empath-download --list
 ```
 
 You need to download models into a `checkpoints` folder for easy identification.
@@ -943,7 +943,7 @@ This fully utilizes randomness to explore creative space while improving efficie
 
 ## Conclusion
 
-This tutorial currently covers ACE-Step 1.5's core concepts and usage methods:
+This tutorial currently covers Empath 1.5's core concepts and usage methods:
 
 - **Mental Models**: Understanding human-centered generation design philosophy
 - **Model Architecture**: Understanding how LM and DiT work together
@@ -959,7 +959,7 @@ This is just the beginning. There's much more content we want to share with you:
 - Common issues and solutions
 - Performance optimization suggestions
 
-**This tutorial will continue to be updated and improved.** If you have any questions or suggestions during use, feedback is welcome. Let's make ACE-Step your creative partner in your pocket together.
+**This tutorial will continue to be updated and improved.** If you have any questions or suggestions during use, feedback is welcome. Let's make Empath your creative partner in your pocket together.
 
 ---
 

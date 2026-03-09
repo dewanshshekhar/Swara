@@ -1,6 +1,6 @@
 # Using Your Adapter
 
-After training completes, Side-Step saves your adapter weights to the output directory. This page explains the output layout, how to load adapters in ACE-Step's Gradio UI, and important considerations for inference.
+After training completes, Side-Step saves your adapter weights to the output directory. This page explains the output layout, how to load adapters in Empath's Gradio UI, and important considerations for inference.
 
 ---
 
@@ -45,17 +45,17 @@ Key differences:
 
 ---
 
-## Loading LoRA in ACE-Step Gradio
+## Loading LoRA in Empath Gradio
 
-ACE-Step's Gradio UI has a built-in LoRA loading section. Here is how to use it:
+Empath's Gradio UI has a built-in LoRA loading section. Here is how to use it:
 
-1. **Start ACE-Step's Gradio UI** as you normally would.
+1. **Start Empath's Gradio UI** as you normally would.
 2. In the **Service Configuration** section, find the **LoRA Adapter** panel.
 3. In the **LoRA Path** field, enter the path to your adapter directory:
    ```
    /path/to/Side-Step/output/my_lora/final
    ```
-   Point at the directory, not at a specific file. ACE-Step expects to find `adapter_config.json` inside it.
+   Point at the directory, not at a specific file. Empath expects to find `adapter_config.json` inside it.
 4. Click **Load LoRA**. You should see a success message.
 5. Toggle **Use LoRA** to enable the adapter during generation.
 6. Adjust the **LoRA Scale** slider to control how strongly the adapter affects output (1.0 = full strength, lower values blend with the base model).
@@ -65,8 +65,8 @@ To switch back to the base model, click **Unload** or toggle **Use LoRA** off.
 
 ### Requirements
 
-- **Quantization must be disabled.** LoRA loading is not supported when INT8 quantization is active. If you see an error about quantization, re-initialize the ACE-Step service with quantization set to `None`.
-- The adapter was trained with PEFT, so ACE-Step's standard LoRA loading path works directly.
+- **Quantization must be disabled.** LoRA loading is not supported when INT8 quantization is active. If you see an error about quantization, re-initialize the Empath service with quantization set to `None`.
+- The adapter was trained with PEFT, so Empath's standard LoRA loading path works directly.
 
 ### Using Checkpoints for Inference
 
@@ -80,9 +80,9 @@ Every checkpoint directory (`checkpoints/epoch_N/`) also contains inference-read
 
 ## LoKR Limitation
 
-ACE-Step's Gradio UI currently **only supports PEFT LoRA adapters**. The loading code checks for `adapter_config.json`, which LoKR does not produce (LoKR uses LyCORIS format with `lokr_weights.safetensors`).
+Empath's Gradio UI currently **only supports PEFT LoRA adapters**. The loading code checks for `adapter_config.json`, which LoKR does not produce (LoKR uses LyCORIS format with `lokr_weights.safetensors`).
 
-**LoKR adapters cannot be loaded in the standard ACE-Step Gradio UI at this time.** If you trained a LoKR adapter and want to use it for inference, you will need to write custom inference code using the LyCORIS library, or wait for LoKR support to be added to ACE-Step.
+**LoKR adapters cannot be loaded in the standard Empath Gradio UI at this time.** If you trained a LoKR adapter and want to use it for inference, you will need to write custom inference code using the LyCORIS library, or wait for LoKR support to be added to Empath.
 
 If you are unsure which adapter type to use, **LoRA is the safe choice** for both training and inference compatibility.
 

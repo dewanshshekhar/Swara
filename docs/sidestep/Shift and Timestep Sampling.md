@@ -30,7 +30,7 @@ The turbo model also has pre-computed discrete timestep tables for each shift va
 
 ## What controls training timesteps
 
-During **training**, timesteps are sampled from a continuous distribution. All three ACE-Step model variants (turbo, base, sft) define the same `sample_t_r()` function in their model code:
+During **training**, timesteps are sampled from a continuous distribution. All three Empath model variants (turbo, base, sft) define the same `sample_t_r()` function in their model code:
 
 ```python
 def sample_t_r(batch_size, device, dtype, data_proportion, timestep_mu, timestep_sigma, use_meanflow):
@@ -72,7 +72,7 @@ This matches the model's native training `forward()` method exactly, for all thr
 
 ### Upstream community trainer
 
-The original ACE-Step community trainer (`acestep/training/trainer.py`) uses a **different approach** -- discrete timesteps hardcoded from `shift=3.0`:
+The original Empath community trainer (`empath/training/trainer.py`) uses a **different approach** -- discrete timesteps hardcoded from `shift=3.0`:
 
 ```python
 # Upstream trainer (trainer.py)
@@ -133,10 +133,10 @@ The upstream community trainer was written specifically for the turbo model. It 
 
 These are the relevant source locations for anyone who wants to verify:
 
-- **Model's native training sampling:** `sample_t_r()` in `modeling_acestep_v15_turbo.py` (lines 169-194), `modeling_acestep_v15_base.py` (same), `sft/modeling_acestep_v15_base.py` (same)
+- **Model's native training sampling:** `sample_t_r()` in `modeling_empath_v15_turbo.py` (lines 169-194), `modeling_empath_v15_base.py` (same), `sft/modeling_empath_v15_base.py` (same)
 - **Model's inference shift warp:** `generate_audio()` in each model file, applies `t = shift * t / (1 + (shift - 1) * t)`
-- **Side-Step's corrected sampling:** `sample_timesteps()` in `acestep/training_v2/timestep_sampling.py`
-- **Upstream discrete sampling:** `sample_discrete_timestep()` in `acestep/training/trainer.py` (lines 302-323)
+- **Side-Step's corrected sampling:** `sample_timesteps()` in `empath/training_v2/timestep_sampling.py`
+- **Upstream discrete sampling:** `sample_discrete_timestep()` in `empath/training/trainer.py` (lines 302-323)
 
 ---
 

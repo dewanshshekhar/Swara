@@ -1,4 +1,4 @@
-# ACE-Step API Client Documentation
+# Empath API Client Documentation
 
 **Language / 语言 / 言語:** [English](API.md) | [中文](../zh/API.md) | [日本語](../ja/API.md)
 
@@ -63,10 +63,10 @@ Set via environment variable or command-line argument:
 
 ```bash
 # Environment variable
-export ACESTEP_API_KEY=your-secret-key
+export EMPATH_API_KEY=your-secret-key
 
 # Or command-line argument
-python -m acestep.api_server --api-key your-secret-key
+python -m empath.api_server --api-key your-secret-key
 ```
 
 ---
@@ -154,7 +154,7 @@ Suitable for passing only text parameters, or referencing audio file paths that 
 
 | Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `model` | string | null | Select which DiT model to use (e.g., `"acestep-v15-turbo"`, `"acestep-v15-turbo-shift3"`). Use `/v1/models` to list available models. If not specified, uses the default model. |
+| `model` | string | null | Select which DiT model to use (e.g., `"empath-v15-turbo"`, `"empath-v15-turbo-shift3"`). Use `/v1/models` to list available models. If not specified, uses the default model. |
 
 **thinking Semantics (Important)**:
 
@@ -218,7 +218,7 @@ These parameters control 5Hz LM sampling, used for metadata auto-completion and 
 
 | Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `lm_model_path` | string | null | 5Hz LM checkpoint dir name (e.g. `acestep-5Hz-lm-0.6B`) |
+| `lm_model_path` | string | null | 5Hz LM checkpoint dir name (e.g. `empath-5Hz-lm-0.6B`) |
 | `lm_backend` | string | `"vllm"` | `vllm` or `pt` |
 | `lm_temperature` | float | `0.85` | Sampling temperature |
 | `lm_cfg_scale` | float | `2.5` | CFG scale (>1 enables CFG) |
@@ -335,7 +335,7 @@ curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
     "prompt": "electronic dance music",
-    "model": "acestep-v15-turbo",
+    "model": "empath-v15-turbo",
     "thinking": true
   }'
 ```
@@ -385,7 +385,7 @@ curl -X POST http://localhost:8001/release_task \
     {
       "task_id": "550e8400-e29b-41d4-a716-446655440000",
       "status": 1,
-      "result": "[{\"file\": \"/v1/audio?path=...\", \"wave\": \"\", \"status\": 1, \"create_time\": 1700000000, \"env\": \"development\", \"prompt\": \"upbeat pop song\", \"lyrics\": \"Hello world\", \"metas\": {\"bpm\": 120, \"duration\": 30, \"genres\": \"\", \"keyscale\": \"C Major\", \"timesignature\": \"4\"}, \"generation_info\": \"...\", \"seed_value\": \"12345,67890\", \"lm_model\": \"acestep-5Hz-lm-0.6B\", \"dit_model\": \"acestep-v15-turbo\"}]"
+      "result": "[{\"file\": \"/v1/audio?path=...\", \"wave\": \"\", \"status\": 1, \"create_time\": 1700000000, \"env\": \"development\", \"prompt\": \"upbeat pop song\", \"lyrics\": \"Hello world\", \"metas\": {\"bpm\": 120, \"duration\": 30, \"genres\": \"\", \"keyscale\": \"C Major\", \"timesignature\": \"4\"}, \"generation_info\": \"...\", \"seed_value\": \"12345,67890\", \"lm_model\": \"empath-5Hz-lm-0.6B\", \"dit_model\": \"empath-v15-turbo\"}]"
     }
   ],
   "code": 200,
@@ -537,15 +537,15 @@ Returns a list of available DiT models loaded on the server.
   "data": {
     "models": [
       {
-        "name": "acestep-v15-turbo",
+        "name": "empath-v15-turbo",
         "is_default": true
       },
       {
-        "name": "acestep-v15-turbo-shift3",
+        "name": "empath-v15-turbo-shift3",
         "is_default": false
       }
     ],
-    "default_model": "acestep-v15-turbo"
+    "default_model": "empath-v15-turbo"
   },
   "code": 200,
   "error": null,
@@ -641,7 +641,7 @@ Returns service health status.
 {
   "data": {
     "status": "ok",
-    "service": "ACE-Step API",
+    "service": "Empath API",
     "version": "1.0"
   },
   "code": 200,
@@ -661,49 +661,49 @@ The API server can be configured using environment variables:
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_API_HOST` | `127.0.0.1` | Server bind host |
-| `ACESTEP_API_PORT` | `8001` | Server bind port |
-| `ACESTEP_API_KEY` | (empty) | API authentication key (empty disables auth) |
-| `ACESTEP_API_WORKERS` | `1` | API worker thread count |
+| `EMPATH_API_HOST` | `127.0.0.1` | Server bind host |
+| `EMPATH_API_PORT` | `8001` | Server bind port |
+| `EMPATH_API_KEY` | (empty) | API authentication key (empty disables auth) |
+| `EMPATH_API_WORKERS` | `1` | API worker thread count |
 
 ### Model Configuration
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_CONFIG_PATH` | `acestep-v15-turbo` | Primary DiT model path |
-| `ACESTEP_CONFIG_PATH2` | (empty) | Secondary DiT model path (optional) |
-| `ACESTEP_CONFIG_PATH3` | (empty) | Third DiT model path (optional) |
-| `ACESTEP_DEVICE` | `auto` | Device for model loading |
-| `ACESTEP_USE_FLASH_ATTENTION` | `true` | Enable flash attention |
-| `ACESTEP_OFFLOAD_TO_CPU` | `false` | Offload models to CPU when idle |
-| `ACESTEP_OFFLOAD_DIT_TO_CPU` | `false` | Offload DiT specifically to CPU |
+| `EMPATH_CONFIG_PATH` | `empath-v15-turbo` | Primary DiT model path |
+| `EMPATH_CONFIG_PATH2` | (empty) | Secondary DiT model path (optional) |
+| `EMPATH_CONFIG_PATH3` | (empty) | Third DiT model path (optional) |
+| `EMPATH_DEVICE` | `auto` | Device for model loading |
+| `EMPATH_USE_FLASH_ATTENTION` | `true` | Enable flash attention |
+| `EMPATH_OFFLOAD_TO_CPU` | `false` | Offload models to CPU when idle |
+| `EMPATH_OFFLOAD_DIT_TO_CPU` | `false` | Offload DiT specifically to CPU |
 
 ### LM Configuration
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_INIT_LLM` | auto | Whether to initialize LM at startup (auto determines based on GPU) |
-| `ACESTEP_LM_MODEL_PATH` | `acestep-5Hz-lm-0.6B` | Default 5Hz LM model |
-| `ACESTEP_LM_BACKEND` | `vllm` | LM backend (vllm or pt) |
-| `ACESTEP_LM_DEVICE` | (same as ACESTEP_DEVICE) | Device for LM |
-| `ACESTEP_LM_OFFLOAD_TO_CPU` | `false` | Offload LM to CPU |
+| `EMPATH_INIT_LLM` | auto | Whether to initialize LM at startup (auto determines based on GPU) |
+| `EMPATH_LM_MODEL_PATH` | `empath-5Hz-lm-0.6B` | Default 5Hz LM model |
+| `EMPATH_LM_BACKEND` | `vllm` | LM backend (vllm or pt) |
+| `EMPATH_LM_DEVICE` | (same as EMPATH_DEVICE) | Device for LM |
+| `EMPATH_LM_OFFLOAD_TO_CPU` | `false` | Offload LM to CPU |
 
 ### Queue Configuration
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_QUEUE_MAXSIZE` | `200` | Maximum queue size |
-| `ACESTEP_QUEUE_WORKERS` | `1` | Number of queue workers |
-| `ACESTEP_AVG_JOB_SECONDS` | `5.0` | Initial average job duration estimate |
-| `ACESTEP_AVG_WINDOW` | `50` | Window for averaging job duration |
+| `EMPATH_QUEUE_MAXSIZE` | `200` | Maximum queue size |
+| `EMPATH_QUEUE_WORKERS` | `1` | Number of queue workers |
+| `EMPATH_AVG_JOB_SECONDS` | `5.0` | Initial average job duration estimate |
+| `EMPATH_AVG_WINDOW` | `50` | Window for averaging job duration |
 
 ### Cache Configuration
 
 | Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_TMPDIR` | `.cache/acestep/tmp` | Temporary file directory |
-| `TRITON_CACHE_DIR` | `.cache/acestep/triton` | Triton cache directory |
-| `TORCHINDUCTOR_CACHE_DIR` | `.cache/acestep/torchinductor` | TorchInductor cache directory |
+| `EMPATH_TMPDIR` | `.cache/empath/tmp` | Temporary file directory |
+| `TRITON_CACHE_DIR` | `.cache/empath/triton` | Triton cache directory |
+| `TORCHINDUCTOR_CACHE_DIR` | `.cache/empath/torchinductor` | TorchInductor cache directory |
 
 ---
 
@@ -741,8 +741,8 @@ The API server can be configured using environment variables:
 
 5. **Check `/v1/stats`** to understand server load and average job time.
 
-6. **Use multi-model support** by setting `ACESTEP_CONFIG_PATH2` and `ACESTEP_CONFIG_PATH3` environment variables, then select with the `model` parameter.
+6. **Use multi-model support** by setting `EMPATH_CONFIG_PATH2` and `EMPATH_CONFIG_PATH3` environment variables, then select with the `model` parameter.
 
-7. **For production**, set `ACESTEP_API_KEY` to enable authentication and secure your API.
+7. **For production**, set `EMPATH_API_KEY` to enable authentication and secure your API.
 
-8. **For low VRAM environments**, enable `ACESTEP_OFFLOAD_TO_CPU=true` to support longer audio generation.
+8. **For low VRAM environments**, enable `EMPATH_OFFLOAD_TO_CPU=true` to support longer audio generation.

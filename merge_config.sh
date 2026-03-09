@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "========================================"
-echo "ACE-Step Backup Merge Helper"
+echo "Empath Backup Merge Helper"
 echo "========================================"
 echo
 
@@ -79,7 +79,7 @@ case "$CHOICE" in
         done
         echo
 
-        read -rp "Enter filename to compare (e.g., start_gradio_ui.sh or acestep/handler.py): " FILE_NAME
+        read -rp "Enter filename to compare (e.g., start_gradio_ui.sh or empath/handler.py): " FILE_NAME
 
         BACKUP_FILE="$SELECTED_BACKUP/$FILE_NAME"
         CURRENT_FILE="$SCRIPT_DIR/$FILE_NAME"
@@ -138,7 +138,7 @@ case "$CHOICE" in
         done
         echo
 
-        read -rp "Enter filename to restore (e.g., start_gradio_ui.sh or acestep/handler.py): " FILE_NAME
+        read -rp "Enter filename to restore (e.g., start_gradio_ui.sh or empath/handler.py): " FILE_NAME
 
         BACKUP_FILE="$SELECTED_BACKUP/$FILE_NAME"
         CURRENT_FILE="$SCRIPT_DIR/$FILE_NAME"

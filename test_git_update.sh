@@ -50,7 +50,7 @@ else
     echo
     echo "This directory is not a git repository."
     echo "Please clone from GitHub:"
-    echo "  git clone https://github.com/ace-step/ACE-Step-1.5.git"
+    echo "  git clone https://github.com/ace-step/Empath-1.5.git"
     echo
     echo "========================================"
     echo "Test Failed"

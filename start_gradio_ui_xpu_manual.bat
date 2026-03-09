@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step Gradio Web UI Launcher - Intel XPU (Manual Mode)
+REM Empath Gradio Web UI Launcher - Intel XPU (Manual Mode)
 REM For Intel Arc GPUs (A770, A750, A580, A380) and integrated graphics
 REM Requires: Python 3.11, PyTorch XPU nightly from download.pytorch.org/whl/xpu
 REM IMPORTANT: Uses torch.xpu backend with SYCL/Level Zero acceleration
@@ -145,7 +145,7 @@ echo.
 :SkipUpdateCheck
 
 echo ============================================
-echo   ACE-Step 1.5 - Intel XPU Edition
+echo   Empath 1.5 - Intel XPU Edition
 echo ============================================
 echo.
 
@@ -184,7 +184,7 @@ if !ERRORLEVEL! NEQ 0 (
 )
 echo.
 
-echo Starting ACE-Step Gradio Web UI...
+echo Starting Empath Gradio Web UI...
 echo Server will be available at: http://%SERVER_NAME%:%PORT%
 if defined CONFIG_PATH_DISPLAY echo DiT Model: %CONFIG_PATH_DISPLAY%
 if defined LM_MODEL_PATH_DISPLAY echo LM Model: %LM_MODEL_PATH_DISPLAY%
@@ -206,7 +206,7 @@ if not "%API_KEY%"=="" set "CMD=!CMD! %API_KEY%"
 if not "%AUTH_USERNAME%"=="" set "CMD=!CMD! %AUTH_USERNAME%"
 if not "%AUTH_PASSWORD%"=="" set "CMD=!CMD! %AUTH_PASSWORD%"
 
-python -u acestep\acestep_v15_pipeline.py !CMD!
+python -u empath\empath_v15_pipeline.py !CMD!
 
 pause
 endlocal
@@ -219,7 +219,7 @@ REM Interactive prompts for manual configuration
 color 0B
 echo.
 echo ======================================================
-echo             ACE-Step XPU Manual Launch Mode
+echo             Empath XPU Manual Launch Mode
 echo ======================================================
 echo.
 
@@ -278,43 +278,43 @@ echo.
 REM Scan checkpoints directory for available DiT models
 set MODEL_COUNT=0
 if exist "%~dp0checkpoints" (
-    for /d %%D in ("%~dp0checkpoints\acestep-v15-*") do (
+    for /d %%D in ("%~dp0checkpoints\empath-v15-*") do (
         set /a MODEL_COUNT+=1
     )
 )
 
 if %MODEL_COUNT% EQU 0 (
-    echo No acestep-v15 models found in checkpoints folder.
-    echo Using default: acestep-v15-turbo
-    set CONFIG_PATH=--config_path acestep-v15-turbo
-    set CONFIG_PATH_DISPLAY=acestep-v15-turbo ^(default^)
+    echo No empath-v15 models found in checkpoints folder.
+    echo Using default: empath-v15-turbo
+    set CONFIG_PATH=--config_path empath-v15-turbo
+    set CONFIG_PATH_DISPLAY=empath-v15-turbo ^(default^)
 ) else (
     echo Available DiT models:
-    echo 1^) acestep-v15-turbo  (Recommended - Fast generation^)
-    echo 2^) acestep-v15-base    (Base model^)
-    echo 3^) acestep-v15-sft     (Supervised fine-tuned^)
-    echo 4^) acestep-v15-turbo-rl  (RL optimized^)
+    echo 1^) empath-v15-turbo  (Recommended - Fast generation^)
+    echo 2^) empath-v15-base    (Base model^)
+    echo 3^) empath-v15-sft     (Supervised fine-tuned^)
+    echo 4^) empath-v15-turbo-rl  (RL optimized^)
     echo.
     :dit_choice_ask
         set /p DIT_CHOICE="Enter selection (1-4): "
         if "%DIT_CHOICE%"=="1" (
-            set CONFIG_PATH=--config_path acestep-v15-turbo
-            set CONFIG_PATH_DISPLAY=acestep-v15-turbo
+            set CONFIG_PATH=--config_path empath-v15-turbo
+            set CONFIG_PATH_DISPLAY=empath-v15-turbo
             goto dit_choice_done
         )
         if "%DIT_CHOICE%"=="2" (
-            set CONFIG_PATH=--config_path acestep-v15-base
-            set CONFIG_PATH_DISPLAY=acestep-v15-base
+            set CONFIG_PATH=--config_path empath-v15-base
+            set CONFIG_PATH_DISPLAY=empath-v15-base
             goto dit_choice_done
         )
         if "%DIT_CHOICE%"=="3" (
-            set CONFIG_PATH=--config_path acestep-v15-sft
-            set CONFIG_PATH_DISPLAY=acestep-v15-sft
+            set CONFIG_PATH=--config_path empath-v15-sft
+            set CONFIG_PATH_DISPLAY=empath-v15-sft
             goto dit_choice_done
         )
         if "%DIT_CHOICE%"=="4" (
-            set CONFIG_PATH=--config_path acestep-v15-turbo-rl
-            set CONFIG_PATH_DISPLAY=acestep-v15-turbo-rl
+            set CONFIG_PATH=--config_path empath-v15-turbo-rl
+            set CONFIG_PATH_DISPLAY=empath-v15-turbo-rl
             goto dit_choice_done
         )
         echo Invalid input. Please enter a number between 1 and 4.
@@ -324,28 +324,28 @@ if %MODEL_COUNT% EQU 0 (
 
 echo.
 echo -------------------- Select LM Model --------------------
-echo 1^) acestep-5Hz-lm-0.6B  (Recommended - Fast, low VRAM^)
-echo 2^) acestep-5Hz-lm-1.7B  (Balanced^)
-echo 3^) acestep-5Hz-lm-4B    (Best quality - requires CPU offload^)
+echo 1^) empath-5Hz-lm-0.6B  (Recommended - Fast, low VRAM^)
+echo 2^) empath-5Hz-lm-1.7B  (Balanced^)
+echo 3^) empath-5Hz-lm-4B    (Best quality - requires CPU offload^)
 echo 4^) Launch without LM Model ^(DiT-only mode^)
 echo.
 :lm_choice_ask
     set /p LM_CHOICE="Enter selection (1-4): "
     if "%LM_CHOICE%"=="1" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-0.6B
-        set LM_MODEL_PATH_DISPLAY=acestep-5Hz-lm-0.6B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-0.6B
+        set LM_MODEL_PATH_DISPLAY=empath-5Hz-lm-0.6B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="2" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-1.7B
-        set LM_MODEL_PATH_DISPLAY=acestep-5Hz-lm-1.7B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-1.7B
+        set LM_MODEL_PATH_DISPLAY=empath-5Hz-lm-1.7B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="3" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-4B
-        set LM_MODEL_PATH_DISPLAY=acestep-5Hz-lm-4B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-4B
+        set LM_MODEL_PATH_DISPLAY=empath-5Hz-lm-4B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
@@ -395,6 +395,6 @@ echo LM Model:     %LM_MODEL_PATH_DISPLAY%
 echo CPU Offload:  %OFFLOAD_DISPLAY%
 echo Update Check: %CHECK_UPDATE%
 echo.
-echo Starting ACE-Step with these settings...
+echo Starting Empath with these settings...
 echo.
 exit /b 0

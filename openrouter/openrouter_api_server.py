@@ -1,4 +1,4 @@
-"""OpenRouter-compatible API server for ACE-Step V1.5.
+"""OpenRouter-compatible API server for Empath V1.5.
 
 Provides OpenAI Chat Completions API format for text-to-music generation.
 
@@ -39,22 +39,22 @@ from fastapi import FastAPI, HTTPException, Depends, Header, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from acestep.handler import AceStepHandler
-from acestep.llm_inference import LLMHandler
-from acestep.inference import (
+from empath.handler import AceStepHandler
+from empath.llm_inference import LLMHandler
+from empath.inference import (
     GenerationParams,
     GenerationConfig,
     generate_music,
     format_sample,
 )
-from acestep.constants import TASK_INSTRUCTIONS
+from empath.constants import TASK_INSTRUCTIONS
 
 # =============================================================================
 # Constants
 # =============================================================================
 
-MODEL_ID = "acemusic/acestep-v15-turbo"
-MODEL_NAME = "ACE-Step"
+MODEL_ID = "acemusic/empath-v15-turbo"
+MODEL_NAME = "Empath"
 MODEL_CREATED = 1706688000  # Unix timestamp
 
 # Pricing (USD per token/unit) - adjust as needed
@@ -123,7 +123,7 @@ class ChatCompletionRequest(BaseModel):
     top_p: float = 0.9
     max_tokens: Optional[int] = None
     seed: Optional[Union[int, str]] = Field(default=None, description="Seed(s) for reproducibility. Comma-separated for batch (e.g. '42,123,456')")
-    # ACE-Step specific parameters
+    # Empath specific parameters
     thinking: bool = False
     guidance_scale: Optional[float] = None
     batch_size: Optional[int] = None
@@ -534,12 +534,12 @@ def create_app() -> FastAPI:
         # =================================================================
         print("[OpenRouter API] Initializing models at startup...")
 
-        config_path = os.getenv("ACESTEP_CONFIG_PATH", "acestep-v15-turbo")
-        device = os.getenv("ACESTEP_DEVICE", "auto")
-        use_flash_attention = _env_bool("ACESTEP_USE_FLASH_ATTENTION", True)
-        offload_to_cpu = _env_bool("ACESTEP_OFFLOAD_TO_CPU", False)
-        offload_dit_to_cpu = _env_bool("ACESTEP_OFFLOAD_DIT_TO_CPU", False)
-        compile_model = _env_bool("ACESTEP_COMPILE_MODEL", False)
+        config_path = os.getenv("EMPATH_CONFIG_PATH", "empath-v15-turbo")
+        device = os.getenv("EMPATH_DEVICE", "auto")
+        use_flash_attention = _env_bool("EMPATH_USE_FLASH_ATTENTION", True)
+        offload_to_cpu = _env_bool("EMPATH_OFFLOAD_TO_CPU", False)
+        offload_dit_to_cpu = _env_bool("EMPATH_OFFLOAD_DIT_TO_CPU", False)
+        compile_model = _env_bool("EMPATH_COMPILE_MODEL", False)
 
         # Initialize DiT model
         print(f"[OpenRouter API] Loading DiT model: {config_path}")
@@ -564,9 +564,9 @@ def create_app() -> FastAPI:
         # Initialize LLM
         print("[OpenRouter API] Loading LLM model...")
         checkpoint_dir = os.path.join(project_root, "checkpoints")
-        lm_model_path = os.getenv("ACESTEP_LM_MODEL_PATH", "acestep-5Hz-lm-0.6B")
-        backend = os.getenv("ACESTEP_LM_BACKEND", "vllm")
-        lm_offload = _env_bool("ACESTEP_LM_OFFLOAD_TO_CPU", False)
+        lm_model_path = os.getenv("EMPATH_LM_MODEL_PATH", "empath-5Hz-lm-0.6B")
+        backend = os.getenv("EMPATH_LM_BACKEND", "vllm")
+        lm_offload = _env_bool("EMPATH_LM_OFFLOAD_TO_CPU", False)
 
         try:
             lm_status, lm_ok = llm_handler.initialize(
@@ -594,7 +594,7 @@ def create_app() -> FastAPI:
             executor.shutdown(wait=False, cancel_futures=True)
     
     app = FastAPI(
-        title="ACE-Step OpenRouter API",
+        title="Empath OpenRouter API",
         version="1.0",
         description="OpenRouter-compatible API for text-to-music generation",
         lifespan=lifespan,
@@ -1128,7 +1128,7 @@ def create_app() -> FastAPI:
         """Health check endpoint."""
         return {
             "status": "ok",
-            "service": "ACE-Step OpenRouter API",
+            "service": "Empath OpenRouter API",
             "version": "1.0",
         }
 
@@ -1143,7 +1143,7 @@ def main() -> None:
     """Run the server."""
     import uvicorn
     
-    parser = argparse.ArgumentParser(description="ACE-Step OpenRouter API server")
+    parser = argparse.ArgumentParser(description="Empath OpenRouter API server")
     parser.add_argument(
         "--host",
         default=os.getenv("OPENROUTER_HOST", "127.0.0.1"),

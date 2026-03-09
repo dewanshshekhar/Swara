@@ -2,7 +2,7 @@
 
 Side-Step supports two ways to prepare your audio dataset for training: **folder-only mode** (zero configuration) and **JSON mode** (full metadata control).
 
-Side-Step is **fully compatible** with ACE-Step's dataset JSON format. If you built your dataset using ACE-Step's Dataset Builder (Gradio UI), the resulting JSON works directly with Side-Step -- all fields are recognized.
+Side-Step is **fully compatible** with Empath's dataset JSON format. If you built your dataset using Empath's Dataset Builder (Gradio UI), the resulting JSON works directly with Side-Step -- all fields are recognized.
 
 Both modes produce the same preprocessed `.pt` tensors. The only difference is how much information you provide about each audio file.
 
@@ -81,7 +81,7 @@ Three formats are accepted:
 }
 ```
 
-**Full ACE-Step format** (with dataset-level metadata -- this is what ACE-Step's Dataset Builder produces):
+**Full Empath format** (with dataset-level metadata -- this is what Empath's Dataset Builder produces):
 
 ```json
 {
@@ -126,7 +126,7 @@ Relative paths in `audio_path` are resolved **from the JSON file's directory**, 
 
 ## Dataset-Level Metadata Block
 
-When using the full ACE-Step format, the top-level `metadata` block controls dataset-wide behavior:
+When using the full Empath format, the top-level `metadata` block controls dataset-wide behavior:
 
 | Field | Default | Description |
 | :--- | :--- | :--- |
@@ -140,7 +140,7 @@ When using the full ACE-Step format, the top-level `metadata` block controls dat
 
 **How `genre_ratio` works:** At preprocessing time, Side-Step randomly selects the specified percentage of samples (seeded for reproducibility) and uses their `genre` field instead of `caption` for the text prompt. This adds variety to training -- the model learns to respond to both detailed captions and genre tags. With `genre_ratio=0` (default), all samples use caption. With `genre_ratio=90`, 90% use genre.
 
-**How `custom_tag` works:** The dataset-level `custom_tag` is applied as a fallback to any sample that doesn't have its own. In ACE-Step's Dataset Builder, `set_custom_tag()` copies the tag to every sample, so typically all samples already have it. Side-Step respects both the per-sample and dataset-level values.
+**How `custom_tag` works:** The dataset-level `custom_tag` is applied as a fallback to any sample that doesn't have its own. In Empath's Dataset Builder, `set_custom_tag()` copies the tag to every sample, so typically all samples already have it. Side-Step respects both the per-sample and dataset-level values.
 
 ---
 
@@ -168,7 +168,7 @@ When using the full ACE-Step format, the top-level `metadata` block controls dat
 
 \*At least one of `audio_path` or `filename` is required for Side-Step to find the audio file.
 
-**"Accepted"** means Side-Step reads and preserves the field in preprocessed tensor metadata but does not use it to modify the training prompt. These fields exist for compatibility with ACE-Step's Dataset Builder.
+**"Accepted"** means Side-Step reads and preserves the field in preprocessed tensor metadata but does not use it to modify the training prompt. These fields exist for compatibility with Empath's Dataset Builder.
 
 ---
 
@@ -219,7 +219,7 @@ The `tag_position` field controls placement:
 ]
 ```
 
-### Full ACE-Step format (as produced by the Dataset Builder)
+### Full Empath format (as produced by the Dataset Builder)
 
 ```json
 {
@@ -275,7 +275,7 @@ The `tag_position` field controls placement:
 }
 ```
 
-With `genre_ratio: 90`, about 90% of these samples will use their `genre` field (e.g., "Rock", "Ambient") as the training prompt instead of the full `caption`. This matches ACE-Step's upstream behavior.
+With `genre_ratio: 90`, about 90% of these samples will use their `genre` field (e.g., "Rock", "Ambient") as the training prompt instead of the full `caption`. This matches Empath's upstream behavior.
 
 ---
 
@@ -288,7 +288,7 @@ With `genre_ratio: 90`, about 90% of these samples will use their `genre` field 
 - **Captions matter:** Descriptive captions give the model more to learn from. "Energetic rock with distorted guitars" is better than "song1".
 - **Lyrics format:** Use section markers like `[Verse 1]`, `[Chorus]`, `[Bridge]` for structure. Use `[Instrumental]` for tracks without vocals.
 - **Genre ratio:** If you have both `caption` and `genre` filled out, use `genre_ratio` to add prompt variety during training.
-- **ACE-Step compatibility:** JSONs created by ACE-Step's Dataset Builder work directly. All fields are recognized.
+- **Empath compatibility:** JSONs created by Empath's Dataset Builder work directly. All fields are recognized.
 
 ---
 

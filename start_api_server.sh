@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ACE-Step REST API Server Launcher - Linux (CUDA)
-# This script launches the REST API server for ACE-Step
+# Empath REST API Server Launcher - Linux (CUDA)
+# This script launches the REST API server for Empath
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,14 +28,14 @@ DOWNLOAD_SOURCE=""
 #   - <=6GB VRAM: LLM disabled (DiT-only mode)
 #   - >6GB VRAM: LLM enabled
 # Values: auto (default), true (force enable), false (force disable)
-export ACESTEP_INIT_LLM=auto
-# export ACESTEP_INIT_LLM=true
-# export ACESTEP_INIT_LLM=false
+export EMPATH_INIT_LLM=auto
+# export EMPATH_INIT_LLM=true
+# export EMPATH_INIT_LLM=false
 
 # LM model path (optional, only used when LLM is enabled)
-# Available models: acestep-5Hz-lm-0.6B, acestep-5Hz-lm-1.7B, acestep-5Hz-lm-4B
+# Available models: empath-5Hz-lm-0.6B, empath-5Hz-lm-1.7B, empath-5Hz-lm-4B
 LM_MODEL_PATH=""
-# LM_MODEL_PATH="--lm-model-path acestep-5Hz-lm-0.6B"
+# LM_MODEL_PATH="--lm-model-path empath-5Hz-lm-0.6B"
 
 # Update check on startup (set to "false" to disable)
 CHECK_UPDATE="true"
@@ -43,8 +43,8 @@ CHECK_UPDATE="true"
 
 # Skip model loading at startup (models will be lazy-loaded on first request)
 # Set to "true" to start server quickly without loading models
-# export ACESTEP_NO_INIT=false
-# export ACESTEP_NO_INIT=true
+# export EMPATH_NO_INIT=false
+# export EMPATH_NO_INIT=true
 
 # ==================== Launch ====================
 
@@ -113,7 +113,7 @@ _startup_update_check() {
 }
 _startup_update_check
 
-echo "Starting ACE-Step REST API Server..."
+echo "Starting Empath REST API Server..."
 echo "API will be available at: http://${HOST}:${PORT}"
 echo "API Documentation: http://${HOST}:${PORT}/docs"
 echo
@@ -133,7 +133,7 @@ if ! command -v uv &>/dev/null; then
     echo "uv package manager not found!"
     echo "========================================"
     echo
-    echo "ACE-Step requires the uv package manager."
+    echo "Empath requires the uv package manager."
     echo
     read -rp "Install uv now? (Y/N): " INSTALL_UV
 
@@ -200,23 +200,23 @@ if [[ ! -d "$SCRIPT_DIR/.venv" ]]; then
     echo
 fi
 
-echo "Starting ACE-Step API Server..."
+echo "Starting Empath API Server..."
 echo
 
 # Build command with optional parameters
-ACESTEP_ARGS="acestep-api --host $HOST --port $PORT"
-[[ -n "$API_KEY" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $API_KEY"
-[[ -n "$DOWNLOAD_SOURCE" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $DOWNLOAD_SOURCE"
-[[ -n "$LM_MODEL_PATH" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $LM_MODEL_PATH"
+EMPATH_ARGS="empath-api --host $HOST --port $PORT"
+[[ -n "$API_KEY" ]] && EMPATH_ARGS="$EMPATH_ARGS $API_KEY"
+[[ -n "$DOWNLOAD_SOURCE" ]] && EMPATH_ARGS="$EMPATH_ARGS $DOWNLOAD_SOURCE"
+[[ -n "$LM_MODEL_PATH" ]] && EMPATH_ARGS="$EMPATH_ARGS $LM_MODEL_PATH"
 
-cd "$SCRIPT_DIR" && uv run $ACESTEP_ARGS || {
+cd "$SCRIPT_DIR" && uv run $EMPATH_ARGS || {
     echo
     echo "[Retry] Online dependency resolution failed, retrying in offline mode..."
     echo
-    uv run --offline $ACESTEP_ARGS || {
+    uv run --offline $EMPATH_ARGS || {
         echo
         echo "========================================"
-        echo "[Error] Failed to start ACE-Step API Server"
+        echo "[Error] Failed to start Empath API Server"
         echo "========================================"
         echo
         echo "Both online and offline modes failed."

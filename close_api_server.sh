@@ -12,7 +12,7 @@ Defaults:
 Behavior:
 	- If --pid is provided, stops that PID.
 	- Otherwise, finds the listening PID(s) on --port and stops them.
-	- By default, only stops processes whose cmdline contains "uvicorn" or "acestep.api_server".
+	- By default, only stops processes whose cmdline contains "uvicorn" or "empath.api_server".
 		Use --force to skip this safety check.
 EOF
 }
@@ -61,7 +61,7 @@ _is_target_process() {
 	local pid="$1"
 	local cmd
 	cmd="$(_cmdline "$pid")"
-	[[ "$cmd" == *"uvicorn"* || "$cmd" == *"acestep.api_server"* ]]
+	[[ "$cmd" == *"uvicorn"* || "$cmd" == *"empath.api_server"* ]]
 }
 
 _find_pids_by_port() {
@@ -92,7 +92,7 @@ _stop_pid() {
 	fi
 
 	if [[ "$FORCE" != "1" ]] && ! _is_target_process "$pid"; then
-		echo "Skip PID $pid (cmdline does not look like uvicorn/acestep.api_server). Use --force to stop anyway." >&2
+		echo "Skip PID $pid (cmdline does not look like uvicorn/empath.api_server). Use --force to stop anyway." >&2
 		echo "cmdline: $(_cmdline "$pid")" >&2
 		return 3
 	fi

@@ -1,79 +1,79 @@
-# ACE-Step API 客户端文档
+# Empath API Client Documentation
 
-**Language / 语言 / 言語:** [English](../en/API.md) | [中文](API.md) | [日本語](../ja/API.md)
-
----
-
-本服务提供基于 HTTP 的异步音乐生成 API。
-
-**基本工作流程**：
-1. 调用 `POST /release_task` 提交任务并获取 `task_id`。
-2. 调用 `POST /query_result` 批量查询任务状态，直到 `status` 为 `1`（成功）或 `2`（失败）。
-3. 通过结果中返回的 `GET /v1/audio?path=...` URL 下载音频文件。
+**Language / 语言 / 言語:** [English](API.md) | [中文](../zh/API.md) | [日本語](../ja/API.md)
 
 ---
 
-## 目录
+This service provides an HTTP-based asynchronous music generation API.
 
-- [认证](#1-认证)
-- [响应格式](#2-响应格式)
-- [任务状态说明](#3-任务状态说明)
-- [创建生成任务](#4-创建生成任务)
-- [批量查询任务结果](#5-批量查询任务结果)
-- [格式化输入](#6-格式化输入)
-- [获取随机样本](#7-获取随机样本)
-- [列出可用模型](#8-列出可用模型)
-- [服务器统计](#9-服务器统计)
-- [下载音频文件](#10-下载音频文件)
-- [健康检查](#11-健康检查)
-- [环境变量](#12-环境变量)
+**Basic Workflow**:
+1. Call `POST /release_task` to submit a task and obtain a `task_id`.
+2. Call `POST /query_result` to batch query task status until `status` is `1` (succeeded) or `2` (failed).
+3. Download audio files via `GET /v1/audio?path=...` URLs returned in the result.
 
 ---
 
-## 1. 认证
+## Table of Contents
 
-API 支持可选的 API Key 认证。启用后，必须在请求中提供有效的密钥。
+- [Authentication](#1-authentication)
+- [Response Format](#2-response-format)
+- [Task Status Description](#3-task-status-description)
+- [Create Generation Task](#4-create-generation-task)
+- [Batch Query Task Results](#5-batch-query-task-results)
+- [Format Input](#6-format-input)
+- [Get Random Sample](#7-get-random-sample)
+- [List Available Models](#8-list-available-models)
+- [Server Statistics](#9-server-statistics)
+- [Download Audio Files](#10-download-audio-files)
+- [Health Check](#11-health-check)
+- [Environment Variables](#12-environment-variables)
 
-### 认证方式
+---
 
-支持两种认证方式：
+## 1. Authentication
 
-**方式 A：请求体中的 ai_token**
+The API supports optional API key authentication. When enabled, a valid key must be provided in requests.
+
+### Authentication Methods
+
+Two authentication methods are supported:
+
+**Method A: ai_token in request body**
 
 ```json
 {
   "ai_token": "your-api-key",
-  "prompt": "欢快的流行歌曲",
+  "prompt": "upbeat pop song",
   ...
 }
 ```
 
-**方式 B：Authorization 头**
+**Method B: Authorization header**
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Authorization: Bearer your-api-key' \
   -H 'Content-Type: application/json' \
-  -d '{"prompt": "欢快的流行歌曲"}'
+  -d '{"prompt": "upbeat pop song"}'
 ```
 
-### 配置 API Key
+### Configuring API Key
 
-通过环境变量或命令行参数设置：
+Set via environment variable or command-line argument:
 
 ```bash
-# 环境变量
-export ACESTEP_API_KEY=your-secret-key
+# Environment variable
+export EMPATH_API_KEY=your-secret-key
 
-# 或命令行参数
-python -m acestep.api_server --api-key your-secret-key
+# Or command-line argument
+python -m empath.api_server --api-key your-secret-key
 ```
 
 ---
 
-## 2. 响应格式
+## 2. Response Format
 
-所有 API 响应使用统一的包装格式：
+All API responses use a unified wrapper format:
 
 ```json
 {
@@ -85,182 +85,182 @@ python -m acestep.api_server --api-key your-secret-key
 }
 ```
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 | :--- | :--- | :--- |
-| `data` | any | 实际响应数据 |
-| `code` | int | 状态码（200=成功）|
-| `error` | string | 错误信息（成功时为 null）|
-| `timestamp` | int | 响应时间戳（毫秒）|
-| `extra` | any | 额外信息（通常为 null）|
+| `data` | any | Actual response data |
+| `code` | int | Status code (200=success) |
+| `error` | string | Error message (null on success) |
+| `timestamp` | int | Response timestamp (milliseconds) |
+| `extra` | any | Extra information (usually null) |
 
 ---
 
-## 3. 任务状态说明
+## 3. Task Status Description
 
-任务状态（`status`）使用整数表示：
+Task status (`status`) is represented as integers:
 
-| 状态码 | 状态名 | 说明 |
+| Status Code | Status Name | Description |
 | :--- | :--- | :--- |
-| `0` | queued/running | 任务排队中或执行中 |
-| `1` | succeeded | 生成成功，结果已就绪 |
-| `2` | failed | 生成失败 |
+| `0` | queued/running | Task is queued or in progress |
+| `1` | succeeded | Generation succeeded, result is ready |
+| `2` | failed | Generation failed |
 
 ---
 
-## 4. 创建生成任务
+## 4. Create Generation Task
 
-### 4.1 API 定义
+### 4.1 API Definition
 
-- **URL**：`/release_task`
-- **方法**：`POST`
-- **Content-Type**：`application/json`、`multipart/form-data` 或 `application/x-www-form-urlencoded`
+- **URL**: `/release_task`
+- **Method**: `POST`
+- **Content-Type**: `application/json`, `multipart/form-data`, or `application/x-www-form-urlencoded`
 
-### 4.2 请求参数
+### 4.2 Request Parameters
 
-#### 参数命名约定
+#### Parameter Naming Convention
 
-API 支持大多数参数的 **snake_case** 和 **camelCase** 命名。例如：
+The API supports both **snake_case** and **camelCase** naming for most parameters. For example:
 - `audio_duration` / `duration` / `audioDuration`
 - `key_scale` / `keyscale` / `keyScale`
 - `time_signature` / `timesignature` / `timeSignature`
 - `sample_query` / `sampleQuery` / `description` / `desc`
 - `use_format` / `useFormat` / `format`
 
-此外，元数据可以通过嵌套对象传递（`metas`、`metadata` 或 `user_metadata`）。
+Additionally, metadata can be passed in a nested object (`metas`, `metadata`, or `user_metadata`).
 
-#### 方法 A：JSON 请求（application/json）
+#### Method A: JSON Request (application/json)
 
-适用于仅传递文本参数，或引用服务器上已存在的音频文件路径。
+Suitable for passing only text parameters, or referencing audio file paths that already exist on the server.
 
-**基本参数**：
+**Basic Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `prompt` | string | `""` | 音乐描述提示词（别名：`caption`）|
-| `lyrics` | string | `""` | 歌词内容 |
-| `thinking` | bool | `false` | 是否使用 5Hz LM 生成音频代码（lm-dit 行为）|
-| `vocal_language` | string | `"en"` | 歌词语言（en、zh、ja 等）|
-| `audio_format` | string | `"mp3"` | 输出格式（mp3、wav、flac）|
+| `prompt` | string | `""` | Music description prompt (alias: `caption`) |
+| `lyrics` | string | `""` | Lyrics content |
+| `thinking` | bool | `false` | Whether to use 5Hz LM to generate audio codes (lm-dit behavior) |
+| `vocal_language` | string | `"en"` | Lyrics language (en, zh, ja, etc.) |
+| `audio_format` | string | `"mp3"` | Output format (mp3, wav, flac) |
 
-**样本/描述模式参数**：
+**Sample/Description Mode Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `sample_mode` | bool | `false` | 启用随机样本生成模式（通过 LM 自动生成 caption/lyrics/metas）|
-| `sample_query` | string | `""` | 用于样本生成的自然语言描述（例如"一首柔和的孟加拉情歌"）。别名：`description`、`desc` |
-| `use_format` | bool | `false` | 使用 LM 增强/格式化提供的 caption 和 lyrics。别名：`format` |
+| `sample_mode` | bool | `false` | Enable random sample generation mode (auto-generates caption/lyrics/metas via LM) |
+| `sample_query` | string | `""` | Natural language description for sample generation (e.g., "a soft Bengali love song"). Aliases: `description`, `desc` |
+| `use_format` | bool | `false` | Use LM to enhance/format the provided caption and lyrics. Alias: `format` |
 
-**多模型支持**：
+**Multi-Model Support**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `model` | string | null | 选择使用哪个 DiT 模型（例如 `"acestep-v15-turbo"`、`"acestep-v15-turbo-shift3"`）。使用 `/v1/models` 列出可用模型。如果未指定，使用默认模型。|
+| `model` | string | null | Select which DiT model to use (e.g., `"empath-v15-turbo"`, `"empath-v15-turbo-shift3"`). Use `/v1/models` to list available models. If not specified, uses the default model. |
 
-**thinking 语义（重要）**：
+**thinking Semantics (Important)**:
 
-- `thinking=false`：
-  - 服务器**不会**使用 5Hz LM 生成 `audio_code_string`。
-  - DiT 以 **text2music** 模式运行，**忽略**任何提供的 `audio_code_string`。
-- `thinking=true`：
-  - 服务器将使用 5Hz LM 生成 `audio_code_string`（lm-dit 行为）。
-  - DiT 使用 LM 生成的代码运行，以增强音乐质量。
+- `thinking=false`:
+  - The server will **NOT** use 5Hz LM to generate `audio_code_string`.
+  - DiT runs in **text2music** mode and **ignores** any provided `audio_code_string`.
+- `thinking=true`:
+  - The server will use 5Hz LM to generate `audio_code_string` (lm-dit behavior).
+  - DiT runs with LM-generated codes for enhanced music quality.
 
-**元数据自动补全（条件性）**：
+**Metadata Auto-Completion (Conditional)**:
 
-当 `use_cot_caption=true` 或 `use_cot_language=true` 或元数据字段缺失时，服务器可能会调用 5Hz LM 根据 `caption`/`lyrics` 填充缺失的字段：
+When `use_cot_caption=true` or `use_cot_language=true` or metadata fields are missing, the server may call 5Hz LM to fill the missing fields based on `caption`/`lyrics`:
 
 - `bpm`
 - `key_scale`
 - `time_signature`
 - `audio_duration`
 
-用户提供的值始终优先；LM 只填充空/缺失的字段。
+User-provided values always win; LM only fills the fields that are empty/missing.
 
-**音乐属性参数**：
+**Music Attribute Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `bpm` | int | null | 指定节奏（BPM），范围 30-300 |
-| `key_scale` | string | `""` | 调性（例如"C Major"、"Am"）。别名：`keyscale`、`keyScale` |
-| `time_signature` | string | `""` | 拍号（2、3、4、6 分别表示 2/4、3/4、4/4、6/8）。别名：`timesignature`、`timeSignature` |
-| `audio_duration` | float | null | 生成时长（秒），范围 10-600。别名：`duration`、`target_duration` |
+| `bpm` | int | null | Specify tempo (BPM), range 30-300 |
+| `key_scale` | string | `""` | Key/scale (e.g., "C Major", "Am"). Aliases: `keyscale`, `keyScale` |
+| `time_signature` | string | `""` | Time signature (2, 3, 4, 6 for 2/4, 3/4, 4/4, 6/8). Aliases: `timesignature`, `timeSignature` |
+| `audio_duration` | float | null | Generation duration (seconds), range 10-600. Aliases: `duration`, `target_duration` |
 
-**音频代码（可选）**：
+**Audio Codes (Optional)**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `audio_code_string` | string 或 string[] | `""` | 用于 `llm_dit` 的音频语义令牌（5Hz）。别名：`audioCodeString` |
+| `audio_code_string` | string or string[] | `""` | Audio semantic tokens (5Hz) for `llm_dit`. Alias: `audioCodeString` |
 
-**生成控制参数**：
+**Generation Control Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `inference_steps` | int | `8` | 推理步数。Turbo 模型：1-20（推荐 8）。Base 模型：1-200（推荐 32-64）|
-| `guidance_scale` | float | `7.0` | 提示引导系数。仅对 base 模型有效 |
-| `use_random_seed` | bool | `true` | 是否使用随机种子 |
-| `seed` | int | `-1` | 指定种子（当 use_random_seed=false 时）|
-| `batch_size` | int | `2` | 批量生成数量（最多 8）|
+| `inference_steps` | int | `8` | Number of inference steps. Turbo model: 1-20 (recommended 8). Base model: 1-200 (recommended 32-64). |
+| `guidance_scale` | float | `7.0` | Prompt guidance coefficient. Only effective for base model. |
+| `use_random_seed` | bool | `true` | Whether to use random seed |
+| `seed` | int | `-1` | Specify seed (when use_random_seed=false) |
+| `batch_size` | int | `2` | Batch generation count (max 8) |
 
-**高级 DiT 参数**：
+**Advanced DiT Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `shift` | float | `3.0` | 时间步偏移因子（范围 1.0-5.0）。仅对 base 模型有效，对 turbo 模型无效 |
-| `infer_method` | string | `"ode"` | 扩散推理方法：`"ode"`（Euler，更快）或 `"sde"`（随机）|
-| `timesteps` | string | null | 自定义时间步，逗号分隔值（例如 `"0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0"`）。覆盖 `inference_steps` 和 `shift` |
-| `use_adg` | bool | `false` | 使用自适应双引导（仅 base 模型）|
-| `cfg_interval_start` | float | `0.0` | CFG 应用起始比例（0.0-1.0）|
-| `cfg_interval_end` | float | `1.0` | CFG 应用结束比例（0.0-1.0）|
+| `shift` | float | `3.0` | Timestep shift factor (range 1.0-5.0). Only effective for base models, not turbo models. |
+| `infer_method` | string | `"ode"` | Diffusion inference method: `"ode"` (Euler, faster) or `"sde"` (stochastic). |
+| `timesteps` | string | null | Custom timesteps as comma-separated values (e.g., `"0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0"`). Overrides `inference_steps` and `shift`. |
+| `use_adg` | bool | `false` | Use Adaptive Dual Guidance (base model only) |
+| `cfg_interval_start` | float | `0.0` | CFG application start ratio (0.0-1.0) |
+| `cfg_interval_end` | float | `1.0` | CFG application end ratio (0.0-1.0) |
 
-**5Hz LM 参数（可选，服务器端）**：
+**5Hz LM Parameters (Optional, server-side)**:
 
-这些参数控制 5Hz LM 采样，用于元数据自动补全和（当 `thinking=true` 时）代码生成。
+These parameters control 5Hz LM sampling, used for metadata auto-completion and (when `thinking=true`) codes generation.
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `lm_model_path` | string | null | 5Hz LM 检查点目录名（例如 `acestep-5Hz-lm-0.6B`）|
-| `lm_backend` | string | `"vllm"` | `vllm` 或 `pt` |
-| `lm_temperature` | float | `0.85` | 采样温度 |
-| `lm_cfg_scale` | float | `2.5` | CFG 比例（>1 启用 CFG）|
-| `lm_negative_prompt` | string | `"NO USER INPUT"` | CFG 使用的负面提示 |
-| `lm_top_k` | int | null | Top-k（0/null 禁用）|
-| `lm_top_p` | float | `0.9` | Top-p（>=1 将被视为禁用）|
-| `lm_repetition_penalty` | float | `1.0` | 重复惩罚 |
+| `lm_model_path` | string | null | 5Hz LM checkpoint dir name (e.g. `empath-5Hz-lm-0.6B`) |
+| `lm_backend` | string | `"vllm"` | `vllm` or `pt` |
+| `lm_temperature` | float | `0.85` | Sampling temperature |
+| `lm_cfg_scale` | float | `2.5` | CFG scale (>1 enables CFG) |
+| `lm_negative_prompt` | string | `"NO USER INPUT"` | Negative prompt used by CFG |
+| `lm_top_k` | int | null | Top-k (0/null disables) |
+| `lm_top_p` | float | `0.9` | Top-p (>=1 will be treated as disabled) |
+| `lm_repetition_penalty` | float | `1.0` | Repetition penalty |
 
-**LM CoT（思维链）参数**：
+**LM CoT (Chain-of-Thought) Parameters**:
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `use_cot_caption` | bool | `true` | 让 LM 通过 CoT 推理重写/增强输入 caption。别名：`cot_caption`、`cot-caption` |
-| `use_cot_language` | bool | `true` | 让 LM 通过 CoT 检测人声语言。别名：`cot_language`、`cot-language` |
-| `constrained_decoding` | bool | `true` | 启用基于 FSM 的约束解码以获得结构化 LM 输出。别名：`constrainedDecoding`、`constrained` |
-| `constrained_decoding_debug` | bool | `false` | 启用约束解码的调试日志 |
-| `allow_lm_batch` | bool | `true` | 允许 LM 批量处理以提高效率 |
+| `use_cot_caption` | bool | `true` | Let LM rewrite/enhance the input caption via CoT reasoning. Aliases: `cot_caption`, `cot-caption` |
+| `use_cot_language` | bool | `true` | Let LM detect vocal language via CoT. Aliases: `cot_language`, `cot-language` |
+| `constrained_decoding` | bool | `true` | Enable FSM-based constrained decoding for structured LM output. Aliases: `constrainedDecoding`, `constrained` |
+| `constrained_decoding_debug` | bool | `false` | Enable debug logging for constrained decoding |
+| `allow_lm_batch` | bool | `true` | Allow LM batch processing for efficiency |
 
-**编辑/参考音频参数**（需要服务器上的绝对路径）：
+**Edit/Reference Audio Parameters** (requires absolute path on server):
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `reference_audio_path` | string | null | 参考音频路径（风格迁移）|
-| `src_audio_path` | string | null | 源音频路径（重绘/翻唱）|
-| `task_type` | string | `"text2music"` | 任务类型：`text2music`、`cover`、`repaint`、`lego`、`extract`、`complete` |
-| `instruction` | string | auto | 编辑指令（如未提供则根据 task_type 自动生成）|
-| `repainting_start` | float | `0.0` | 重绘开始时间（秒）|
-| `repainting_end` | float | null | 重绘结束时间（秒），-1 表示音频末尾 |
-| `audio_cover_strength` | float | `1.0` | 翻唱强度（0.0-1.0）。风格迁移使用较小值（0.2）|
+| `reference_audio_path` | string | null | Reference audio path (Style Transfer) |
+| `src_audio_path` | string | null | Source audio path (Repainting/Cover) |
+| `task_type` | string | `"text2music"` | Task type: `text2music`, `cover`, `repaint`, `lego`, `extract`, `complete` |
+| `instruction` | string | auto | Edit instruction (auto-generated based on task_type if not provided) |
+| `repainting_start` | float | `0.0` | Repainting start time (seconds) |
+| `repainting_end` | float | null | Repainting end time (seconds), -1 for end of audio |
+| `audio_cover_strength` | float | `1.0` | Cover strength (0.0-1.0). Lower values (0.2) for style transfer. |
 
-#### 方法 B：文件上传（multipart/form-data）
+#### Method B: File Upload (multipart/form-data)
 
-当需要上传本地音频文件作为参考或源音频时使用。
+Use this when you need to upload local audio files as reference or source audio.
 
-除了支持上述所有字段作为表单字段外，还支持以下文件字段：
+In addition to supporting all the above fields as Form Fields, the following file fields are also supported:
 
-- `reference_audio` 或 `ref_audio`：（文件）上传参考音频文件
-- `src_audio` 或 `ctx_audio`：（文件）上传源音频文件
+- `reference_audio` or `ref_audio`: (File) Upload reference audio file
+- `src_audio` or `ctx_audio`: (File) Upload source audio file
 
-> **注意**：上传文件后，相应的 `_path` 参数将被自动忽略，系统将使用上传后的临时文件路径。
+> **Note**: After uploading files, the corresponding `_path` parameters will be automatically ignored, and the system will use the temporary file path after upload.
 
-### 4.3 响应示例
+### 4.3 Response Example
 
 ```json
 {
@@ -276,108 +276,108 @@ API 支持大多数参数的 **snake_case** 和 **camelCase** 命名。例如：
 }
 ```
 
-### 4.4 使用示例（cURL）
+### 4.4 Usage Examples (cURL)
 
-**基本 JSON 方法**：
+**Basic JSON Method**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "欢快的流行歌曲",
-    "lyrics": "你好世界",
+    "prompt": "upbeat pop song",
+    "lyrics": "Hello world",
     "inference_steps": 8
   }'
 ```
 
-**使用 thinking=true（LM 生成代码 + 填充缺失元数据）**：
+**With thinking=true (LM generates codes + fills missing metas)**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "欢快的流行歌曲",
-    "lyrics": "你好世界",
+    "prompt": "upbeat pop song",
+    "lyrics": "Hello world",
     "thinking": true,
     "lm_temperature": 0.85,
     "lm_cfg_scale": 2.5
   }'
 ```
 
-**描述驱动生成（sample_query）**：
+**Description-driven generation (sample_query)**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "sample_query": "一首适合安静夜晚的柔和孟加拉情歌",
+    "sample_query": "a soft Bengali love song for a quiet evening",
     "thinking": true
   }'
 ```
 
-**使用格式增强（use_format=true）**：
+**With format enhancement (use_format=true)**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "流行摇滚",
-    "lyrics": "[Verse 1]\n走在街上...",
+    "prompt": "pop rock",
+    "lyrics": "[Verse 1]\nWalking down the street...",
     "use_format": true,
     "thinking": true
   }'
 ```
 
-**选择特定模型**：
+**Select specific model**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "电子舞曲",
-    "model": "acestep-v15-turbo",
+    "prompt": "electronic dance music",
+    "model": "empath-v15-turbo",
     "thinking": true
   }'
 ```
 
-**使用自定义时间步**：
+**With custom timesteps**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "爵士钢琴三重奏",
+    "prompt": "jazz piano trio",
     "timesteps": "0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0",
     "thinking": true
   }'
 ```
 
-**文件上传方法**：
+**File Upload Method**:
 
 ```bash
 curl -X POST http://localhost:8001/release_task \
-  -F "prompt=重新混音这首歌" \
+  -F "prompt=remix this song" \
   -F "src_audio=@/path/to/local/song.mp3" \
   -F "task_type=repaint"
 ```
 
 ---
 
-## 5. 批量查询任务结果
+## 5. Batch Query Task Results
 
-### 5.1 API 定义
+### 5.1 API Definition
 
-- **URL**：`/query_result`
-- **方法**：`POST`
-- **Content-Type**：`application/json` 或 `application/x-www-form-urlencoded`
+- **URL**: `/query_result`
+- **Method**: `POST`
+- **Content-Type**: `application/json` or `application/x-www-form-urlencoded`
 
-### 5.2 请求参数
+### 5.2 Request Parameters
 
-| 参数名 | 类型 | 说明 |
+| Parameter Name | Type | Description |
 | :--- | :--- | :--- |
-| `task_id_list` | string (JSON array) 或 array | 要查询的任务 ID 列表 |
+| `task_id_list` | string (JSON array) or array | List of task IDs to query |
 
-### 5.3 响应示例
+### 5.3 Response Example
 
 ```json
 {
@@ -385,7 +385,7 @@ curl -X POST http://localhost:8001/release_task \
     {
       "task_id": "550e8400-e29b-41d4-a716-446655440000",
       "status": 1,
-      "result": "[{\"file\": \"/v1/audio?path=...\", \"wave\": \"\", \"status\": 1, \"create_time\": 1700000000, \"env\": \"development\", \"prompt\": \"欢快的流行歌曲\", \"lyrics\": \"你好世界\", \"metas\": {\"bpm\": 120, \"duration\": 30, \"genres\": \"\", \"keyscale\": \"C Major\", \"timesignature\": \"4\"}, \"generation_info\": \"...\", \"seed_value\": \"12345,67890\", \"lm_model\": \"acestep-5Hz-lm-0.6B\", \"dit_model\": \"acestep-v15-turbo\"}]"
+      "result": "[{\"file\": \"/v1/audio?path=...\", \"wave\": \"\", \"status\": 1, \"create_time\": 1700000000, \"env\": \"development\", \"prompt\": \"upbeat pop song\", \"lyrics\": \"Hello world\", \"metas\": {\"bpm\": 120, \"duration\": 30, \"genres\": \"\", \"keyscale\": \"C Major\", \"timesignature\": \"4\"}, \"generation_info\": \"...\", \"seed_value\": \"12345,67890\", \"lm_model\": \"empath-5Hz-lm-0.6B\", \"dit_model\": \"empath-v15-turbo\"}]"
     }
   ],
   "code": 200,
@@ -395,24 +395,24 @@ curl -X POST http://localhost:8001/release_task \
 }
 ```
 
-**结果字段说明**（result 为 JSON 字符串，解析后包含）：
+**Result Field Description** (result is a JSON string, after parsing contains):
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 | :--- | :--- | :--- |
-| `file` | string | 音频文件 URL（配合 `/v1/audio` 端点使用）|
-| `wave` | string | 波形数据（通常为空）|
-| `status` | int | 状态码（0=进行中，1=成功，2=失败）|
-| `create_time` | int | 创建时间（Unix 时间戳）|
-| `env` | string | 环境标识 |
-| `prompt` | string | 使用的提示词 |
-| `lyrics` | string | 使用的歌词 |
-| `metas` | object | 元数据（bpm、duration、genres、keyscale、timesignature）|
-| `generation_info` | string | 生成信息摘要 |
-| `seed_value` | string | 使用的种子值（逗号分隔）|
-| `lm_model` | string | 使用的 LM 模型名称 |
-| `dit_model` | string | 使用的 DiT 模型名称 |
+| `file` | string | Audio file URL (use with `/v1/audio` endpoint) |
+| `wave` | string | Waveform data (usually empty) |
+| `status` | int | Status code (0=in progress, 1=success, 2=failed) |
+| `create_time` | int | Creation time (Unix timestamp) |
+| `env` | string | Environment identifier |
+| `prompt` | string | Prompt used |
+| `lyrics` | string | Lyrics used |
+| `metas` | object | Metadata (bpm, duration, genres, keyscale, timesignature) |
+| `generation_info` | string | Generation info summary |
+| `seed_value` | string | Seed values used (comma-separated) |
+| `lm_model` | string | LM model name used |
+| `dit_model` | string | DiT model name used |
 
-### 5.4 使用示例
+### 5.4 Usage Example
 
 ```bash
 curl -X POST http://localhost:8001/query_result \
@@ -424,36 +424,36 @@ curl -X POST http://localhost:8001/query_result \
 
 ---
 
-## 6. 格式化输入
+## 6. Format Input
 
-### 6.1 API 定义
+### 6.1 API Definition
 
-- **URL**：`/format_input`
-- **方法**：`POST`
+- **URL**: `/format_input`
+- **Method**: `POST`
 
-此端点使用 LLM 增强和格式化用户提供的 caption 和 lyrics。
+This endpoint uses LLM to enhance and format user-provided caption and lyrics.
 
-### 6.2 请求参数
+### 6.2 Request Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `prompt` | string | `""` | 音乐描述提示词 |
-| `lyrics` | string | `""` | 歌词内容 |
-| `temperature` | float | `0.85` | LM 采样温度 |
-| `param_obj` | string (JSON) | `"{}"` | 包含元数据的 JSON 对象（duration、bpm、key、time_signature、language）|
+| `prompt` | string | `""` | Music description prompt |
+| `lyrics` | string | `""` | Lyrics content |
+| `temperature` | float | `0.85` | LM sampling temperature |
+| `param_obj` | string (JSON) | `"{}"` | JSON object containing metadata (duration, bpm, key, time_signature, language) |
 
-### 6.3 响应示例
+### 6.3 Response Example
 
 ```json
 {
   "data": {
-    "caption": "增强后的音乐描述",
-    "lyrics": "格式化后的歌词...",
+    "caption": "Enhanced music description",
+    "lyrics": "Formatted lyrics...",
     "bpm": 120,
     "key_scale": "C Major",
     "time_signature": "4",
     "duration": 180,
-    "vocal_language": "zh"
+    "vocal_language": "en"
   },
   "code": 200,
   "error": null,
@@ -462,47 +462,47 @@ curl -X POST http://localhost:8001/query_result \
 }
 ```
 
-### 6.4 使用示例
+### 6.4 Usage Example
 
 ```bash
 curl -X POST http://localhost:8001/format_input \
   -H 'Content-Type: application/json' \
   -d '{
-    "prompt": "流行摇滚",
-    "lyrics": "在街上漫步",
-    "param_obj": "{\"duration\": 180, \"language\": \"zh\"}"
+    "prompt": "pop rock",
+    "lyrics": "Walking down the street",
+    "param_obj": "{\"duration\": 180, \"language\": \"en\"}"
   }'
 ```
 
 ---
 
-## 7. 获取随机样本
+## 7. Get Random Sample
 
-### 7.1 API 定义
+### 7.1 API Definition
 
-- **URL**：`/create_random_sample`
-- **方法**：`POST`
+- **URL**: `/create_random_sample`
+- **Method**: `POST`
 
-此端点从预加载的示例数据中返回随机样本参数，用于表单填充。
+This endpoint returns random sample parameters from pre-loaded example data for form filling.
 
-### 7.2 请求参数
+### 7.2 Request Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
+| Parameter Name | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `sample_type` | string | `"simple_mode"` | 样本类型：`"simple_mode"` 或 `"custom_mode"` |
+| `sample_type` | string | `"simple_mode"` | Sample type: `"simple_mode"` or `"custom_mode"` |
 
-### 7.3 响应示例
+### 7.3 Response Example
 
 ```json
 {
   "data": {
-    "caption": "轻快的流行歌曲，带有吉他伴奏",
-    "lyrics": "[Verse 1]\n阳光洒在脸上...",
+    "caption": "Upbeat pop song with guitar accompaniment",
+    "lyrics": "[Verse 1]\nSunshine on my face...",
     "bpm": 120,
     "key_scale": "G Major",
     "time_signature": "4",
     "duration": 180,
-    "vocal_language": "zh"
+    "vocal_language": "en"
   },
   "code": 200,
   "error": null,
@@ -511,7 +511,7 @@ curl -X POST http://localhost:8001/format_input \
 }
 ```
 
-### 7.4 使用示例
+### 7.4 Usage Example
 
 ```bash
 curl -X POST http://localhost:8001/create_random_sample \
@@ -521,31 +521,31 @@ curl -X POST http://localhost:8001/create_random_sample \
 
 ---
 
-## 8. 列出可用模型
+## 8. List Available Models
 
-### 8.1 API 定义
+### 8.1 API Definition
 
-- **URL**：`/v1/models`
-- **方法**：`GET`
+- **URL**: `/v1/models`
+- **Method**: `GET`
 
-返回服务器上加载的可用 DiT 模型列表。
+Returns a list of available DiT models loaded on the server.
 
-### 8.2 响应示例
+### 8.2 Response Example
 
 ```json
 {
   "data": {
     "models": [
       {
-        "name": "acestep-v15-turbo",
+        "name": "empath-v15-turbo",
         "is_default": true
       },
       {
-        "name": "acestep-v15-turbo-shift3",
+        "name": "empath-v15-turbo-shift3",
         "is_default": false
       }
     ],
-    "default_model": "acestep-v15-turbo"
+    "default_model": "empath-v15-turbo"
   },
   "code": 200,
   "error": null,
@@ -554,7 +554,7 @@ curl -X POST http://localhost:8001/create_random_sample \
 }
 ```
 
-### 8.3 使用示例
+### 8.3 Usage Example
 
 ```bash
 curl http://localhost:8001/v1/models
@@ -562,16 +562,16 @@ curl http://localhost:8001/v1/models
 
 ---
 
-## 9. 服务器统计
+## 9. Server Statistics
 
-### 9.1 API 定义
+### 9.1 API Definition
 
-- **URL**：`/v1/stats`
-- **方法**：`GET`
+- **URL**: `/v1/stats`
+- **Method**: `GET`
 
-返回服务器运行统计信息。
+Returns server runtime statistics.
 
-### 9.2 响应示例
+### 9.2 Response Example
 
 ```json
 {
@@ -594,7 +594,7 @@ curl http://localhost:8001/v1/models
 }
 ```
 
-### 9.3 使用示例
+### 9.3 Usage Example
 
 ```bash
 curl http://localhost:8001/v1/stats
@@ -602,46 +602,46 @@ curl http://localhost:8001/v1/stats
 
 ---
 
-## 10. 下载音频文件
+## 10. Download Audio Files
 
-### 10.1 API 定义
+### 10.1 API Definition
 
-- **URL**：`/v1/audio`
-- **方法**：`GET`
+- **URL**: `/v1/audio`
+- **Method**: `GET`
 
-通过路径下载生成的音频文件。
+Download generated audio files by path.
 
-### 10.2 请求参数
+### 10.2 Request Parameters
 
-| 参数名 | 类型 | 说明 |
+| Parameter Name | Type | Description |
 | :--- | :--- | :--- |
-| `path` | string | URL 编码的音频文件路径 |
+| `path` | string | URL-encoded path to the audio file |
 
-### 10.3 使用示例
+### 10.3 Usage Example
 
 ```bash
-# 使用任务结果中的 URL 下载
+# Download using the URL from task result
 curl "http://localhost:8001/v1/audio?path=%2Ftmp%2Fapi_audio%2Fabc123.mp3" -o output.mp3
 ```
 
 ---
 
-## 11. 健康检查
+## 11. Health Check
 
-### 11.1 API 定义
+### 11.1 API Definition
 
-- **URL**：`/health`
-- **方法**：`GET`
+- **URL**: `/health`
+- **Method**: `GET`
 
-返回服务健康状态。
+Returns service health status.
 
-### 11.2 响应示例
+### 11.2 Response Example
 
 ```json
 {
   "data": {
     "status": "ok",
-    "service": "ACE-Step API",
+    "service": "Empath API",
     "version": "1.0"
   },
   "code": 200,
@@ -653,96 +653,96 @@ curl "http://localhost:8001/v1/audio?path=%2Ftmp%2Fapi_audio%2Fabc123.mp3" -o ou
 
 ---
 
-## 12. 环境变量
+## 12. Environment Variables
 
-API 服务器可以通过环境变量进行配置：
+The API server can be configured using environment variables:
 
-### 服务器配置
+### Server Configuration
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_API_HOST` | `127.0.0.1` | 服务器绑定主机 |
-| `ACESTEP_API_PORT` | `8001` | 服务器绑定端口 |
-| `ACESTEP_API_KEY` | （空）| API 认证密钥（空则禁用认证）|
-| `ACESTEP_API_WORKERS` | `1` | API 工作线程数 |
+| `EMPATH_API_HOST` | `127.0.0.1` | Server bind host |
+| `EMPATH_API_PORT` | `8001` | Server bind port |
+| `EMPATH_API_KEY` | (empty) | API authentication key (empty disables auth) |
+| `EMPATH_API_WORKERS` | `1` | API worker thread count |
 
-### 模型配置
+### Model Configuration
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_CONFIG_PATH` | `acestep-v15-turbo` | 主 DiT 模型路径 |
-| `ACESTEP_CONFIG_PATH2` | （空）| 辅助 DiT 模型路径（可选）|
-| `ACESTEP_CONFIG_PATH3` | （空）| 第三个 DiT 模型路径（可选）|
-| `ACESTEP_DEVICE` | `auto` | 模型加载设备 |
-| `ACESTEP_USE_FLASH_ATTENTION` | `true` | 启用 flash attention |
-| `ACESTEP_OFFLOAD_TO_CPU` | `false` | 空闲时将模型卸载到 CPU |
-| `ACESTEP_OFFLOAD_DIT_TO_CPU` | `false` | 专门将 DiT 卸载到 CPU |
+| `EMPATH_CONFIG_PATH` | `empath-v15-turbo` | Primary DiT model path |
+| `EMPATH_CONFIG_PATH2` | (empty) | Secondary DiT model path (optional) |
+| `EMPATH_CONFIG_PATH3` | (empty) | Third DiT model path (optional) |
+| `EMPATH_DEVICE` | `auto` | Device for model loading |
+| `EMPATH_USE_FLASH_ATTENTION` | `true` | Enable flash attention |
+| `EMPATH_OFFLOAD_TO_CPU` | `false` | Offload models to CPU when idle |
+| `EMPATH_OFFLOAD_DIT_TO_CPU` | `false` | Offload DiT specifically to CPU |
 
-### LM 配置
+### LM Configuration
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_INIT_LLM` | auto | 是否在启动时初始化 LM（auto 根据 GPU 自动决定）|
-| `ACESTEP_LM_MODEL_PATH` | `acestep-5Hz-lm-0.6B` | 默认 5Hz LM 模型 |
-| `ACESTEP_LM_BACKEND` | `vllm` | LM 后端（vllm 或 pt）|
-| `ACESTEP_LM_DEVICE` | （与 ACESTEP_DEVICE 相同）| LM 设备 |
-| `ACESTEP_LM_OFFLOAD_TO_CPU` | `false` | 将 LM 卸载到 CPU |
+| `EMPATH_INIT_LLM` | auto | Whether to initialize LM at startup (auto determines based on GPU) |
+| `EMPATH_LM_MODEL_PATH` | `empath-5Hz-lm-0.6B` | Default 5Hz LM model |
+| `EMPATH_LM_BACKEND` | `vllm` | LM backend (vllm or pt) |
+| `EMPATH_LM_DEVICE` | (same as EMPATH_DEVICE) | Device for LM |
+| `EMPATH_LM_OFFLOAD_TO_CPU` | `false` | Offload LM to CPU |
 
-### 队列配置
+### Queue Configuration
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_QUEUE_MAXSIZE` | `200` | 最大队列大小 |
-| `ACESTEP_QUEUE_WORKERS` | `1` | 队列工作者数量 |
-| `ACESTEP_AVG_JOB_SECONDS` | `5.0` | 初始平均任务持续时间估算 |
-| `ACESTEP_AVG_WINDOW` | `50` | 平均任务时间计算窗口 |
+| `EMPATH_QUEUE_MAXSIZE` | `200` | Maximum queue size |
+| `EMPATH_QUEUE_WORKERS` | `1` | Number of queue workers |
+| `EMPATH_AVG_JOB_SECONDS` | `5.0` | Initial average job duration estimate |
+| `EMPATH_AVG_WINDOW` | `50` | Window for averaging job duration |
 
-### 缓存配置
+### Cache Configuration
 
-| 变量 | 默认值 | 说明 |
+| Variable | Default | Description |
 | :--- | :--- | :--- |
-| `ACESTEP_TMPDIR` | `.cache/acestep/tmp` | 临时文件目录 |
-| `TRITON_CACHE_DIR` | `.cache/acestep/triton` | Triton 缓存目录 |
-| `TORCHINDUCTOR_CACHE_DIR` | `.cache/acestep/torchinductor` | TorchInductor 缓存目录 |
+| `EMPATH_TMPDIR` | `.cache/empath/tmp` | Temporary file directory |
+| `TRITON_CACHE_DIR` | `.cache/empath/triton` | Triton cache directory |
+| `TORCHINDUCTOR_CACHE_DIR` | `.cache/empath/torchinductor` | TorchInductor cache directory |
 
 ---
 
-## 错误处理
+## Error Handling
 
-**HTTP 状态码**：
+**HTTP Status Codes**:
 
-- `200`：成功
-- `400`：无效请求（错误的 JSON、缺少字段）
-- `401`：未授权（缺少或无效的 API Key）
-- `404`：资源未找到
-- `415`：不支持的 Content-Type
-- `429`：服务器繁忙（队列已满）
-- `500`：内部服务器错误
+- `200`: Success
+- `400`: Invalid request (bad JSON, missing fields)
+- `401`: Unauthorized (missing or invalid API key)
+- `404`: Resource not found
+- `415`: Unsupported Content-Type
+- `429`: Server busy (queue is full)
+- `500`: Internal server error
 
-**错误响应格式**：
+**Error Response Format**:
 
 ```json
 {
-  "detail": "描述问题的错误消息"
+  "detail": "Error message describing the issue"
 }
 ```
 
 ---
 
-## 最佳实践
+## Best Practices
 
-1. **使用 `thinking=true`** 以获得 LM 增强生成的最佳质量结果。
+1. **Use `thinking=true`** for best quality results with LM-enhanced generation.
 
-2. **使用 `sample_query`/`description`** 从自然语言描述快速生成。
+2. **Use `sample_query`/`description`** for quick generation from natural language descriptions.
 
-3. **使用 `use_format=true`** 当你有 caption/lyrics 但希望 LM 增强它们时。
+3. **Use `use_format=true`** when you have caption/lyrics but want LM to enhance them.
 
-4. **批量查询任务状态** 使用 `/query_result` 端点一次查询多个任务。
+4. **Batch query task status** using the `/query_result` endpoint to query multiple tasks at once.
 
-5. **检查 `/v1/stats`** 响应来了解服务器负载和平均任务时间。
+5. **Check `/v1/stats`** to understand server load and average job time.
 
-6. **使用多模型支持** 通过设置 `ACESTEP_CONFIG_PATH2` 和 `ACESTEP_CONFIG_PATH3` 环境变量，然后通过 `model` 参数选择。
+6. **Use multi-model support** by setting `EMPATH_CONFIG_PATH2` and `EMPATH_CONFIG_PATH3` environment variables, then select with the `model` parameter.
 
-7. **生产环境** 中，设置 `ACESTEP_API_KEY` 以启用认证，保护 API 安全。
+7. **For production**, set `EMPATH_API_KEY` to enable authentication and secure your API.
 
-8. **低显存环境** 中，启用 `ACESTEP_OFFLOAD_TO_CPU=true` 以支持更长的音频生成。
+8. **For low VRAM environments**, enable `EMPATH_OFFLOAD_TO_CPU=true` to support longer audio generation.

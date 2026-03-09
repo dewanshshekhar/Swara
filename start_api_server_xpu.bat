@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step REST API Server Launcher - Intel XPU
+REM Empath REST API Server Launcher - Intel XPU
 REM For Intel Arc GPUs (A770, A750, A580, A380) and integrated graphics
 REM Requires: Python 3.11, PyTorch XPU nightly from download.pytorch.org/whl/xpu
 REM IMPORTANT: Uses torch.xpu backend with SYCL/Level Zero acceleration
@@ -37,13 +37,13 @@ REM By default, LLM is auto-enabled/disabled based on GPU VRAM:
 REM   - <=6GB VRAM: LLM disabled (DiT-only mode)
 REM   - >6GB VRAM: LLM enabled
 REM Values: auto (default), true (force enable), false (force disable)
-set ACESTEP_INIT_LLM=auto
-REM set ACESTEP_INIT_LLM=true
-REM set ACESTEP_INIT_LLM=false
+set EMPATH_INIT_LLM=auto
+REM set EMPATH_INIT_LLM=true
+REM set EMPATH_INIT_LLM=false
 
 REM LM model path (optional, only used when LLM is enabled)
-REM Available models: acestep-5Hz-lm-0.6B, acestep-5Hz-lm-1.7B, acestep-5Hz-lm-4B
-REM set LM_MODEL_PATH=--lm-model-path acestep-5Hz-lm-4B
+REM Available models: empath-5Hz-lm-0.6B, empath-5Hz-lm-1.7B, empath-5Hz-lm-4B
+REM set LM_MODEL_PATH=--lm-model-path empath-5Hz-lm-4B
 
 REM Update check on startup (set to false to disable)
 set CHECK_UPDATE=true
@@ -51,8 +51,8 @@ REM set CHECK_UPDATE=false
 
 REM Skip model loading at startup (models will be lazy-loaded on first request)
 REM Set to true to start server quickly without loading models
-REM set ACESTEP_NO_INIT=false
-REM set ACESTEP_NO_INIT=true
+REM set EMPATH_NO_INIT=false
+REM set EMPATH_NO_INIT=true
 
 REM ==================== Venv Configuration ====================
 REM Path to the XPU virtual environment (relative to this script)
@@ -132,7 +132,7 @@ echo.
 :SkipUpdateCheck
 
 echo ============================================
-echo   ACE-Step 1.5 API - Intel XPU Edition
+echo   Empath 1.5 API - Intel XPU Edition
 echo ============================================
 echo.
 
@@ -179,7 +179,7 @@ if !ERRORLEVEL! NEQ 0 (
 )
 echo.
 
-echo Starting ACE-Step REST API Server...
+echo Starting Empath REST API Server...
 echo API will be available at: http://%HOST%:%PORT%
 echo API Documentation: http://%HOST%:%PORT%/docs
 echo.
@@ -190,7 +190,7 @@ if not "%API_KEY%"=="" set "CMD=!CMD! %API_KEY%"
 if not "%DOWNLOAD_SOURCE%"=="" set "CMD=!CMD! %DOWNLOAD_SOURCE%"
 if not "%LM_MODEL_PATH%"=="" set "CMD=!CMD! %LM_MODEL_PATH%"
 
-python -u acestep\api_server.py !CMD!
+python -u empath\api_server.py !CMD!
 
 pause
 endlocal

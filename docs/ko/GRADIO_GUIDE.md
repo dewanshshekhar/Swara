@@ -1,556 +1,567 @@
-# ACE-Step Gradio 데모 사용자 가이드
+# Empath Gradio Demo User Guide
 
-**언어 / Language / 语言 / 言語:** [English](../en/GRADIO_GUIDE.md) | [한국어](GRADIO_GUIDE.md) | [中文](../zh/GRADIO_GUIDE.md) | [日本語](../ja/GRADIO_GUIDE.md)
-
----
-
-이 가이드는 ACE-Step Gradio 웹 인터페이스를 사용한 음악 생성에 대한 포괄적인 문서를 제공하며, 모든 기능과 설정을 포함합니다.
-
-## 목차
-
-- [시작하기](#시작하기)
-- [서비스 설정](#서비스-설정)
-- [생성 모드](#생성-모드)
-- [입력 파라미터](#입력-파라미터)
-- [고급 설정](#고급-설정)
-- [결과 섹션](#결과-섹션)
-- [LoRA 학습](#lora-학습)
-- [팁과 모범 사례](#팁과-모범-사례)
+**Language / 语言 / 言語:** [English](GRADIO_GUIDE.md) | [中文](../zh/GRADIO_GUIDE.md) | [日本語](../ja/GRADIO_GUIDE.md)
 
 ---
 
-## 시작하기
+This guide provides comprehensive documentation for using the Empath Gradio web interface for music generation, including all features and settings.
 
-### 데모 실행
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Service Configuration](#service-configuration)
+- [Generation Modes](#generation-modes)
+- [Input Parameters](#input-parameters)
+- [Advanced Settings](#advanced-settings)
+- [Results Section](#results-section)
+- [LoRA Training](#lora-training)
+- [Tips and Best Practices](#tips-and-best-practices)
+
+---
+
+## Getting Started
+
+### Launching the Demo
 
 ```bash
-# 기본 실행
+# Basic launch
 python app.py
 
-# 사전 초기화 포함
-python app.py --config acestep-v15-turbo --init-llm
+# With pre-initialization
+python app.py --config empath-v15-turbo --init-llm
 
-# 특정 포트 지정
+# With specific port
 python app.py --port 7860
 ```
 
-### 인터페이스 개요
+### Interface Overview
 
-Gradio 인터페이스의 레이아웃:
+The Gradio interface is organized as follows:
 
-1. **설정** (접이식 아코디언) - 서비스 설정, DiT/LM 파라미터, 출력 옵션
-2. **생성 탭** - 메인 작업 공간. 상단에 **생성 모드** 라디오 선택기:
-   - Turbo/SFT 모델: Simple, Custom, Remix, Repaint
-   - Base 모델: Simple, Custom, Remix, Repaint, Extract, Lego, Complete
-3. **결과 섹션** - 생성된 오디오 재생, 스코어링, 배치 내비게이션
-4. **학습 탭** - 데이터셋 빌더 및 LoRA 학습
-
----
-
-## 서비스 설정
-
-### 모델 선택
-
-| 설정 | 설명 |
-|------|------|
-| **체크포인트 파일** | 학습된 모델 체크포인트 선택 (사용 가능한 경우) |
-| **메인 모델 경로** | DiT 모델 설정 선택 (예: `acestep-v15-turbo`, `acestep-v15-turbo-shift3`) |
-| **디바이스** | 처리 디바이스: `auto` (권장), `cuda`, 또는 `cpu` |
-
-### 5Hz LM 설정
-
-| 설정 | 설명 |
-|------|------|
-| **5Hz LM 모델 경로** | 언어 모델 선택. **사용 가능한 모델은 GPU 티어에 따라 자동 필터링** — 예: 6-8GB GPU는 0.6B만, 24GB+ GPU는 모든 크기(0.6B, 1.7B, 4B) 표시. |
-| **5Hz LM 백엔드** | `vllm` (더 빠름, VRAM ≥8GB NVIDIA GPU 권장), `pt` (PyTorch, 범용 폴백), 또는 `mlx` (Apple Silicon). **VRAM <8GB GPU에서는 `pt`/`mlx`로 제한** (vllm의 KV 캐시가 메모리를 과도하게 사용하므로). |
-| **5Hz LM 초기화** | 초기화 시 LM을 로드하려면 체크 (thinking 모드에 필요). **VRAM ≤6GB GPU(Tier 1-2)에서 기본적으로 체크 해제 및 비활성화.** |
-
-> **적응형 기본값**: 모든 LM 설정은 GPU의 VRAM 티어에 따라 자동 구성됩니다. 권장 LM 모델, 백엔드, 초기화 상태가 최적 성능을 위해 사전 설정됩니다. 수동으로 변경할 수 있지만, GPU와 호환되지 않는 선택 시 시스템이 경고를 표시합니다.
-
-### 성능 옵션
-
-| 설정 | 설명 |
-|------|------|
-| **Flash Attention 사용** | 더 빠른 추론을 위해 활성화 (flash_attn 패키지 필요) |
-| **CPU로 오프로드** | 유휴 시 모델을 CPU로 오프로드하여 GPU 메모리 절약. **VRAM <20GB GPU에서 자동 활성화.** |
-| **DiT를 CPU로 오프로드** | DiT 모델을 특별히 CPU로 오프로드. **VRAM <12GB GPU에서 자동 활성화.** |
-| **INT8 양자화** | INT8 가중치 양자화로 모델 VRAM 사용량 감소. **VRAM <20GB GPU에서 자동 활성화.** |
-| **모델 컴파일** | 최적화된 추론을 위해 `torch.compile` 활성화. **모든 티어에서 기본 활성화** (양자화 활성 시 필요). |
-
-> **티어 인식 설정**: 오프로드, 양자화, 컴파일 옵션은 GPU 티어에 따라 자동 설정됩니다. 전체 티어 테이블은 [GPU_COMPATIBILITY.md](../ko/GPU_COMPATIBILITY.md)를 참조하세요.
-
-### LoRA 어댑터
-
-| 설정 | 설명 |
-|------|------|
-| **LoRA 경로** | 학습된 LoRA 어댑터 디렉토리 경로 |
-| **LoRA 로드** | 지정된 LoRA 어댑터 로드 |
-| **언로드** | 현재 로드된 LoRA 제거 |
-| **LoRA 사용** | 추론용 로드된 LoRA 활성화/비활성화 |
-
-> **⚠️ 참고:** PEFT와 TorchAO 간 호환성 문제로 양자화된 모델에 LoRA 어댑터를 로드할 수 없습니다. LoRA를 사용해야 하는 경우 어댑터를 로드하기 전에 **INT8 양자화**를 **None**으로 설정하세요.
-
-### 초기화
-
-**서비스 초기화**를 클릭하여 모델을 로드합니다. 상태 박스에 다음을 포함한 진행 상황과 확인이 표시됩니다:
-- 감지된 GPU 티어 및 VRAM
-- 최대 허용 시간 및 배치 크기 (LM 초기화 여부에 따라 동적 조정)
-- 자동 수정된 호환되지 않는 설정에 대한 경고
-
-초기화 후 **오디오 시간** 및 **배치 크기** 슬라이더가 티어 제한을 반영하도록 자동 업데이트됩니다.
+1. **Settings** (collapsed accordion) - Service configuration, DiT/LM parameters, output options
+2. **Generation Tab** - The main workspace with a **Generation Mode** radio selector:
+   - Turbo/SFT models: Simple, Custom, Remix, Repaint
+   - Base model: Simple, Custom, Remix, Repaint, Extract, Lego, Complete
+3. **Results Section** - Generated audio playback, scoring, batch navigation
+4. **Training Tab** - Dataset builder and LoRA training
 
 ---
 
-## 생성 모드
+## Service Configuration
 
-생성 탭 상단의 **생성 모드** 라디오 선택기가 워크플로를 결정합니다. Turbo 및 SFT 모델은 4가지 모드를 제공하고, Base 모델은 3가지를 추가로 제공합니다.
+### Model Selection
 
-### Simple 모드
+| Setting | Description |
+|---------|-------------|
+| **Checkpoint File** | Select a trained model checkpoint (if available) |
+| **Main Model Path** | Choose the DiT model configuration (e.g., `empath-v15-turbo`, `empath-v15-turbo-shift3`) |
+| **Device** | Processing device: `auto` (recommended), `cuda`, or `cpu` |
 
-빠른 자연어 기반 음악 생성을 위해 설계되었습니다.
+### 5Hz LM Configuration
 
-**사용 방법:**
-1. 생성 모드에서 **Simple** 선택
-2. "곡 설명" 필드에 자연어 설명 입력
-3. 보컬이 필요 없으면 "인스트루멘탈" 옵션 체크
-4. 선호하는 보컬 언어 옵션 선택
-5. **샘플 생성** 클릭하여 caption, 가사, 메타데이터 생성
-6. 확장된 섹션에서 생성된 콘텐츠 확인
-7. **음악 생성** 클릭하여 오디오 생성
+| Setting | Description |
+|---------|-------------|
+| **5Hz LM Model Path** | Select the language model. **Available models are filtered by your GPU tier** — e.g., 6-8GB GPUs only show 0.6B, while 24GB+ GPUs show all sizes (0.6B, 1.7B, 4B). |
+| **5Hz LM Backend** | `vllm` (faster, recommended for NVIDIA with ≥8GB VRAM), `pt` (PyTorch, universal fallback), or `mlx` (Apple Silicon). **On GPUs <8GB, the backend is restricted to `pt`/`mlx`** because vllm's KV cache is too memory-hungry. |
+| **Initialize 5Hz LM** | Check to load the LM during initialization (required for thinking mode). **Automatically unchecked and disabled on GPUs ≤6GB** (Tier 1-2). |
 
-**설명 예시:**
-- "조용한 저녁을 위한 부드러운 벵골 러브송"
-- "강렬한 베이스 드롭이 있는 업비트 일렉트로닉 댄스 뮤직"
-- "어쿠스틱 기타의 멜랑콜리한 인디 포크"
-- "연기 자욱한 바에서 연주하는 재즈 트리오"
+> **Adaptive Defaults**: All LM settings are automatically configured based on your GPU's VRAM tier. The recommended LM model, backend, and initialization state are pre-set for optimal performance. You can manually override these, but the system will warn you if your selection is incompatible with your GPU.
 
-**랜덤 샘플:** 🎲 버튼을 클릭하여 랜덤 예시 설명을 로드합니다.
+### Performance Options
 
-### Custom 모드
+| Setting | Description |
+|---------|-------------|
+| **Use Flash Attention** | Enable for faster inference (requires flash_attn package) |
+| **Offload to CPU** | Offload models to CPU when idle to save GPU memory. **Automatically enabled on GPUs <20GB.** |
+| **Offload DiT to CPU** | Specifically offload the DiT model to CPU. **Automatically enabled on GPUs <12GB.** |
+| **INT8 Quantization** | Reduce model VRAM footprint with INT8 weight quantization. **Automatically enabled on GPUs <20GB.** |
+| **Compile Model** | Enable `torch.compile` for optimized inference. **Enabled by default on all tiers** (required when quantization is active). |
 
-모든 생성 파라미터를 완전히 제어합니다 (text2music).
+> **Tier-Aware Settings**: Offload, quantization, and compile options are automatically set based on your GPU tier. See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) for the full tier table.
 
-**사용 방법:**
-1. 생성 모드에서 **Custom** 선택
-2. Caption과 가사 필드를 수동으로 입력
-3. 옵션으로 참조 오디오를 업로드하여 스타일 가이던스
-4. 옵션 메타데이터 설정 (BPM, 키, 시간 등)
-5. 옵션으로 **포맷** 클릭하여 LM으로 입력 향상
-6. 필요에 따라 고급 설정 구성
-7. **음악 생성** 클릭하여 오디오 생성
+### LoRA Adapter
 
-### Remix 모드
+| Setting | Description |
+|---------|-------------|
+| **LoRA Path** | Path to trained LoRA adapter directory |
+| **Load LoRA** | Load the specified LoRA adapter |
+| **Unload** | Remove the currently loaded LoRA |
+| **Use LoRA** | Enable/disable the loaded LoRA for inference |
 
-기존 오디오의 멜로디 구조를 유지하면서 스타일을 변경합니다.
+> **⚠️ Note:** LoRA adapters cannot be loaded on quantized models due to a compatibility issue between PEFT and TorchAO. If you need to use LoRA, set **INT8 Quantization** to **None** before loading the adapter.
 
-**사용 방법:**
-1. 생성 모드에서 **Remix** 선택
-2. 소스 오디오 업로드 (리믹스할 곡)
-3. 타겟 스타일을 설명하는 Caption 작성
-4. 옵션으로 가사 수정
-5. **Remix 강도** (0.0-1.0) 조정: 높을수록 = 원본 구조에 가까움
-6. **음악 생성** 클릭
+### Initialization
 
-**용도:** 커버 버전 생성, 스타일 전이, 곡 변형 생성.
+Click **Initialize Service** to load the models. The status box will show progress and confirmation, including:
+- The detected GPU tier and VRAM
+- Maximum allowed duration and batch size (adjusted dynamically based on whether LM was initialized)
+- Any warnings about incompatible settings that were automatically corrected
 
-### Repaint 모드
-
-오디오의 특정 시간 구간을 재생성하고 나머지는 유지합니다.
-
-**사용 방법:**
-1. 생성 모드에서 **Repaint** 선택
-2. 소스 오디오 업로드
-3. **리페인트 시작**과 **리페인트 끝** 설정 (초; -1은 파일 끝)
-4. 리페인트 섹션의 원하는 콘텐츠를 설명하는 Caption 작성
-5. **음악 생성** 클릭
-
-**용도:** 문제 있는 섹션 수정, 구간 내 가사 변경, 곡 연장.
-
-### Extract 모드 (Base 모델 전용)
-
-믹스된 오디오에서 특정 악기 트랙을 추출/분리합니다.
-
-**사용 방법:**
-1. 생성 모드에서 **Extract** 선택
-2. 소스 오디오 업로드
-3. 드롭다운에서 추출할 **트랙 이름** 선택
-4. **음악 생성** 클릭
-
-**사용 가능한 트랙:** vocals, backing_vocals, drums, bass, guitar, keyboard, percussion, strings, synth, fx, brass, woodwinds
-
-### Lego 모드 (Base 모델 전용)
-
-기존 오디오에 새로운 악기 트랙을 추가합니다.
-
-**사용 방법:**
-1. 생성 모드에서 **Lego** 선택
-2. 소스 오디오 업로드
-3. 드롭다운에서 추가할 **트랙 이름** 선택
-4. 트랙 특성을 설명하는 Caption 작성
-5. **음악 생성** 클릭
-
-### Complete 모드 (Base 모델 전용)
-
-지정된 악기로 부분적인 트랙을 완성합니다 (자동 편곡).
-
-**사용 방법:**
-1. 생성 모드에서 **Complete** 선택
-2. 소스 오디오 업로드
-3. 추가할 여러 **트랙 이름** 선택
-4. 원하는 스타일을 설명하는 Caption 작성
-5. **음악 생성** 클릭
+After initialization, the **Audio Duration** and **Batch Size** sliders are automatically updated to reflect the tier's limits.
 
 ---
 
-## 입력 파라미터
+## Generation Modes
 
-### 오디오 입력
+The **Generation Mode** radio selector at the top of the Generation tab determines your workflow. Turbo and SFT models offer four modes; Base models add three more.
 
-| 필드 | 설명 |
-|------|------|
-| **참조 오디오** | 스타일/음색 가이던스를 위한 옵션 오디오 (Custom 모드에서 표시) |
-| **소스 오디오** | Remix, Repaint, Extract, Lego, Complete 모드에 필수 |
-| **코드로 변환** | 소스 오디오에서 5Hz 시맨틱 코드 추출 |
+### Simple Mode
 
-#### LM 코드 힌트 (Custom 모드)
+Designed for quick, natural language-based music generation.
 
-사전 계산된 오디오 시맨틱 코드를 여기에 붙여넣어 생성을 가이드할 수 있습니다. **트랜스크라이브** 버튼을 사용하여 코드를 분석하고 메타데이터를 추출합니다. 소스 오디오 업로드 없이 멜로디 구조를 제어하기 위한 고급 기능입니다.
+**How to use:**
+1. Select **Simple** in the Generation Mode radio
+2. Enter a natural language description in the "Song Description" field
+3. Optionally check "Instrumental" if you don't want vocals
+4. Optionally select a preferred vocal language
+5. Click **Create Sample** to generate caption, lyrics, and metadata
+6. Review the generated content in the expanded sections
+7. Click **Generate Music** to create the audio
 
-### 음악 Caption
+**Example descriptions:**
+- "a soft Bengali love song for a quiet evening"
+- "upbeat electronic dance music with heavy bass drops"
+- "melancholic indie folk with acoustic guitar"
+- "jazz trio playing in a smoky bar"
 
-원하는 음악의 텍스트 설명. 다음에 대해 구체적으로 작성:
-- 장르와 스타일
-- 악기
-- 분위기와 느낌
-- 템포 느낌 (BPM을 지정하지 않는 경우)
+**Random Sample:** Click the 🎲 button to load a random example description.
 
-**예시:** "일렉 기타, 강렬한 드럼, 캐치한 신스 훅이 있는 업비트 팝 록"
+### Custom Mode
 
-🎲를 클릭하여 랜덤 예시 caption을 로드합니다.
+Full control over all generation parameters (text2music).
 
-### 가사
+**How to use:**
+1. Select **Custom** in the Generation Mode radio
+2. Manually fill in the Caption and Lyrics fields
+3. Optionally upload Reference Audio for style guidance
+4. Set optional metadata (BPM, Key, Duration, etc.)
+5. Optionally click **Format** to enhance your input using the LM
+6. Configure advanced settings as needed
+7. Click **Generate Music** to create the audio
 
-구조 태그가 포함된 가사를 입력:
+### Remix Mode
+
+Transform existing audio while maintaining its melodic structure but changing style.
+
+**How to use:**
+1. Select **Remix** in the Generation Mode radio
+2. Upload Source Audio (the song to remix)
+3. Write a Caption describing the target style
+4. Optionally modify Lyrics
+5. Adjust **Remix Strength** (0.0-1.0): higher = closer to original structure
+6. Click **Generate Music**
+
+**Use cases:** Creating cover versions, style transfer, generating variants of a song.
+
+### Repaint Mode
+
+Regenerate a specific time segment of audio while keeping the rest intact.
+
+**How to use:**
+1. Select **Repaint** in the Generation Mode radio
+2. Upload Source Audio
+3. Set **Repainting Start** and **Repainting End** (seconds; -1 for end of file)
+4. Write a Caption describing the desired content for the repainted section
+5. Click **Generate Music**
+
+**Use cases:** Fixing problematic sections, changing lyrics in a segment, extending songs.
+
+### Extract Mode (Base Model Only)
+
+Extract/isolate a specific instrument track from mixed audio.
+
+**How to use:**
+1. Select **Extract** in the Generation Mode radio
+2. Upload Source Audio
+3. Select the **Track Name** to extract from the dropdown
+4. Click **Generate Music**
+
+**Available tracks:** vocals, backing_vocals, drums, bass, guitar, keyboard, percussion, strings, synth, fx, brass, woodwinds
+
+### Lego Mode (Base Model Only)
+
+Add a new instrument track to existing audio.
+
+**How to use:**
+1. Select **Lego** in the Generation Mode radio
+2. Upload Source Audio
+3. Select the **Track Name** to add from the dropdown
+4. Write a Caption describing the track characteristics
+5. Click **Generate Music**
+
+### Complete Mode (Base Model Only)
+
+Complete partial tracks with specified instruments (auto-arrangement).
+
+**How to use:**
+1. Select **Complete** in the Generation Mode radio
+2. Upload Source Audio
+3. Select multiple **Track Names** to add
+4. Write a Caption describing the desired style
+5. Click **Generate Music**
+
+---
+
+## Input Parameters
+
+### Audio Inputs
+
+| Field | Description |
+|-------|-------------|
+| **Reference Audio** | Optional audio for style/timbre guidance (visible in Custom mode) |
+| **Source Audio** | Required for Remix, Repaint, Extract, Lego, Complete modes |
+| **Convert to Codes** | Extract 5Hz semantic codes from source audio |
+
+#### LM Codes Hints (Custom Mode)
+
+Pre-computed audio semantic codes can be pasted here to guide generation. Use the **Transcribe** button to analyze codes and extract metadata. This is an advanced feature for controlling melodic structure without uploading source audio.
+
+### Music Caption
+
+The text description of the desired music. Be specific about:
+- Genre and style
+- Instruments
+- Mood and atmosphere
+- Tempo feel (if not specifying BPM)
+
+**Example:** "upbeat pop rock with electric guitars, driving drums, and catchy synth hooks"
+
+Click 🎲 to load a random example caption.
+
+### Lyrics
+
+Enter lyrics with structure tags:
 
 ```
 [Verse 1]
-오늘 거리를 걸으며
-네가 했던 말들을 떠올렸어
+Walking down the street today
+Thinking of the words you used to say
 
 [Chorus]
-나는 앞으로 나아가, 강하게 서서
-여기가 내 자리야
+I'm moving on, I'm staying strong
+This is where I belong
 
 [Verse 2]
 ...
 ```
 
-**인스트루멘탈 체크박스:** 가사 내용에 관계없이 인스트루멘탈 음악을 생성하려면 체크합니다.
+**Instrumental checkbox:** Check this to generate instrumental music regardless of lyrics content.
 
-**보컬 언어:** 보컬 언어를 선택합니다. 자동 감지 또는 인스트루멘탈 트랙에는 "unknown"을 사용합니다.
+**Vocal Language:** Select the language for vocals. Use "unknown" for auto-detection or instrumental tracks.
 
-**포맷 버튼:** 5Hz LM을 사용하여 caption과 가사를 향상시키려면 클릭합니다.
+**Format button:** Click to enhance caption and lyrics using the 5Hz LM.
 
-### 옵션 파라미터
+### Optional Parameters
 
-| 파라미터 | 기본값 | 설명 |
-|----------|--------|------|
-| **BPM** | 자동 | 분당 비트 수 (30-300) |
-| **키 스케일** | 자동 | 음악 키 (예: "C Major", "Am", "F# minor") |
-| **박자 기호** | 자동 | 박자 기호: 2 (2/4), 3 (3/4), 4 (4/4), 6 (6/8) |
-| **오디오 시간** | 자동/-1 | 목표 길이(초) (10-600). -1은 자동 |
-| **배치 크기** | 2 | 생성할 오디오 변형 수 (1-8) |
-
----
-
-## 고급 설정
-
-### DiT 파라미터
-
-| 파라미터 | 기본값 | 설명 |
-|----------|--------|------|
-| **추론 스텝** | 8 | 디노이징 스텝. Turbo: 1-20, Base: 1-200 |
-| **가이던스 스케일** | 7.0 | CFG 강도 (base 모델만). 높을수록 = 프롬프트를 더 따름 |
-| **시드** | -1 | 랜덤 시드. 배치에는 쉼표로 구분된 값 사용 |
-| **랜덤 시드** | ✓ | 체크 시 랜덤 시드 생성 |
-| **오디오 형식** | mp3 | 출력 형식: mp3, flac |
-| **시프트** | 3.0 | 타임스텝 시프트 계수 (1.0-5.0). turbo에 3.0 권장 |
-| **추론 방법** | ode | ode (Euler, 더 빠름) 또는 sde (확률적) |
-| **커스텀 타임스텝** | - | 타임스텝 오버라이드 (예: "0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0") |
-
-### Base 모델 전용 파라미터
-
-| 파라미터 | 기본값 | 설명 |
-|----------|--------|------|
-| **ADG 사용** | ✗ | 더 나은 품질을 위해 적응형 듀얼 가이던스 활성화 |
-| **CFG 구간 시작** | 0.0 | CFG 적용 시작 시점 (0.0-1.0) |
-| **CFG 구간 끝** | 1.0 | CFG 적용 종료 시점 (0.0-1.0) |
-
-### LM 파라미터
-
-| 파라미터 | 기본값 | 설명 |
-|----------|--------|------|
-| **LM 온도** | 0.85 | 샘플링 온도 (0.0-2.0). 높을수록 = 더 창의적 |
-| **LM CFG 스케일** | 2.0 | LM 가이던스 강도 (1.0-3.0) |
-| **LM Top-K** | 0 | Top-K 샘플링. 0이면 비활성화 |
-| **LM Top-P** | 0.9 | 핵 샘플링 (0.0-1.0) |
-| **LM 네거티브 프롬프트** | "NO USER INPUT" | CFG용 네거티브 프롬프트 |
-
-### CoT (사고의 연쇄) 옵션
-
-| 옵션 | 기본값 | 설명 |
-|------|--------|------|
-| **CoT Metas** | ✓ | LM 추론을 통해 메타데이터 생성 |
-| **CoT Language** | ✓ | LM으로 보컬 언어 감지 |
-| **제약 디코딩 디버그** | ✗ | 디버그 로깅 활성화 |
-
-### 생성 옵션
-
-| 옵션 | 기본값 | 설명 |
-|------|--------|------|
-| **LM 코드 강도** | 1.0 | LM 코드가 생성에 미치는 영향의 강도 (0.0-1.0) |
-| **자동 스코어** | ✗ | 품질 스코어 자동 계산 |
-| **자동 LRC** | ✗ | 가사 타임스탬프 자동 생성 |
-| **LM 배치 청크 크기** | 8 | LM 배치당 최대 항목 수 (GPU 메모리) |
-
-### 메인 생성 컨트롤
-
-| 컨트롤 | 설명 |
-|--------|------|
-| **Think** | 코드 생성 및 메타데이터를 위한 5Hz LM 활성화 |
-| **ParallelThinking** | 병렬 LM 배치 처리 활성화 |
-| **CaptionRewrite** | LM이 입력 caption을 향상시키도록 함 |
-| **AutoGen** | 완료 후 다음 배치 자동 시작 |
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| **BPM** | Auto | Tempo in beats per minute (30-300) |
+| **Key Scale** | Auto | Musical key (e.g., "C Major", "Am", "F# minor") |
+| **Time Signature** | Auto | Time signature: 2 (2/4), 3 (3/4), 4 (4/4), 6 (6/8) |
+| **Audio Duration** | Auto/-1 | Target length in seconds (10-600). -1 for automatic |
+| **Batch Size** | 2 | Number of audio variations to generate (1-8). **Value persists across mode changes and enhancement actions**. Can be set via `--batch_size` CLI argument |
 
 ---
 
-## 결과 섹션
+## Advanced Settings
 
-### 생성된 오디오
+### DiT Parameters
 
-배치 크기에 따라 최대 8개의 오디오 샘플이 표시됩니다. 각 샘플에는 다음이 포함됩니다:
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| **Inference Steps** | 8 | Denoising steps. Turbo: 1-20, Base: 1-200 |
+| **Guidance Scale** | 7.0 | CFG strength (base model only). Higher = follows prompt more |
+| **Seed** | -1 | Random seed. Use comma-separated values for batches |
+| **Random Seed** | ✓ | When checked, generates random seeds |
+| **Audio Format** | mp3 | Output format: mp3, flac |
+| **Shift** | 3.0 | Timestep shift factor (1.0-5.0). Recommended 3.0 for turbo |
+| **Inference Method** | ode | ode (Euler, faster) or sde (stochastic) |
+| **Custom Timesteps** | - | Override timesteps (e.g., "0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0") |
 
-- **오디오 플레이어** - 생성된 오디오 재생, 일시 정지, 다운로드
-- **소스로 전송** - 이 오디오를 소스 오디오 입력으로 전송하여 추가 처리
-- **저장** - 오디오와 메타데이터를 JSON 파일로 저장
-- **스코어** - 퍼플렉시티 기반 품질 스코어 계산
-- **LRC** - 가사 타임스탬프 생성 (LRC 형식)
+### Base Model Only Parameters
 
-### 상세 아코디언
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| **Use ADG** | ✗ | Enable Adaptive Dual Guidance for better quality |
+| **CFG Interval Start** | 0.0 | When to start applying CFG (0.0-1.0) |
+| **CFG Interval End** | 1.0 | When to stop applying CFG (0.0-1.0) |
 
-"Score & LRC & LM Codes"를 클릭하여 확장하고 다음을 확인:
-- **LM 코드** - 이 샘플의 5Hz 시맨틱 코드
-- **품질 스코어** - 퍼플렉시티 기반 품질 메트릭
-- **가사 타임스탬프** - LRC 형식 타이밍 데이터
+### LM Parameters
 
-### 배치 내비게이션
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| **LM Temperature** | 0.85 | Sampling temperature (0.0-2.0). Higher = more creative |
+| **LM CFG Scale** | 2.0 | LM guidance strength (1.0-3.0) |
+| **LM Top-K** | 0 | Top-K sampling. 0 disables |
+| **LM Top-P** | 0.9 | Nucleus sampling (0.0-1.0) |
+| **LM Negative Prompt** | "NO USER INPUT" | Negative prompt for CFG |
 
-| 컨트롤 | 설명 |
-|--------|------|
-| **◀ 이전** | 이전 배치 보기 |
-| **배치 인디케이터** | 현재 배치 위치 표시 (예: "배치 1 / 3") |
-| **다음 배치 상태** | 백그라운드 생성 진행 상황 표시 |
-| **다음 ▶** | 다음 배치 보기 (AutoGen이 켜져 있으면 생성 트리거) |
+### CoT (Chain-of-Thought) Options
 
-### 파라미터 복원
+| Option | Default | Description |
+|--------|---------|-------------|
+| **CoT Metas** | ✓ | Generate metadata via LM reasoning |
+| **CoT Language** | ✓ | Detect vocal language via LM |
+| **Constrained Decoding Debug** | ✗ | Enable debug logging |
 
-**이 설정을 UI에 적용**을 클릭하여 현재 배치의 모든 생성 파라미터를 입력 필드로 복원합니다. 좋은 결과를 반복하는 데 유용합니다.
+### Generation Options
 
-### 배치 결과
+| Option | Default | Description |
+|--------|---------|-------------|
+| **LM Codes Strength** | 1.0 | How strongly LM codes influence generation (0.0-1.0) |
+| **Auto Score** | ✗ | Automatically calculate quality scores |
+| **Auto LRC** | ✗ | Automatically generate lyrics timestamps |
+| **LM Batch Chunk Size** | 8 | Max items per LM batch (GPU memory) |
 
-"배치 결과 및 생성 상세" 아코디언에는 다음이 포함됩니다:
-- **모든 생성 파일** - 모든 배치의 모든 파일 다운로드
-- **생성 상세** - 생성 과정에 대한 상세 정보
+### Main Generation Controls
+
+| Control | Description |
+|---------|-------------|
+| **Think** | Enable 5Hz LM for code generation and metadata |
+| **ParallelThinking** | Enable parallel LM batch processing |
+| **CaptionRewrite** | Let LM enhance the input caption |
+| **AutoGen** | Automatically start next batch after completion |
 
 ---
 
-## LoRA 학습
+## Results Section
 
-LoRA 학습 탭은 커스텀 LoRA 어댑터를 만들기 위한 도구를 제공합니다.
+### Generated Audio
 
-> 📖 **전체 단계별 안내** (데이터 준비, 주석, 전처리, 학습, 내보내기)는 [LoRA 학습 튜토리얼](./LoRA_Training_Tutorial.md)을 참조하세요.
+Up to 8 audio samples are displayed based on batch size. Each sample includes:
 
-### 데이터셋 빌더 탭
+- **Audio Player** - Play, pause, and download the generated audio
+- **Send To Src** - Send this audio to the Source Audio input for further processing
+- **Save** - Save audio and metadata to a JSON file
+- **Score** - Calculate perplexity-based quality score
+- **LRC** - Generate lyrics timestamps (LRC format)
 
-#### 1단계: 로드 또는 스캔
+### Details Accordion
 
-**옵션 A: 기존 데이터셋 로드**
-1. 이전에 저장한 데이터셋 JSON 경로 입력
-2. **로드** 클릭
+Click "Score & LRC & LM Codes" to expand and view:
+- **LM Codes** - The 5Hz semantic codes for this sample
+- **Quality Score** - Perplexity-based quality metric
+- **Lyrics Timestamps** - LRC format timing data
 
-**옵션 B: 새 디렉토리 스캔**
-1. 오디오 폴더 경로 입력
-2. **스캔** 클릭하여 오디오 파일 검색 (wav, mp3, flac, ogg, opus)
+### Batch Navigation
 
-#### 2단계: 데이터셋 설정
+| Control | Description |
+|---------|-------------|
+| **◀ Previous** | View the previous batch |
+| **Batch Indicator** | Shows current batch position (e.g., "Batch 1 / 3") |
+| **Next Batch Status** | Shows background generation progress |
+| **Next ▶** | View the next batch (triggers generation if AutoGen is on) |
 
-| 설정 | 설명 |
-|------|------|
-| **데이터셋 이름** | 데이터셋 이름 |
-| **모두 인스트루멘탈** | 모든 트랙에 보컬이 없는 경우 체크 |
-| **커스텀 활성화 태그** | 이 LoRA의 스타일을 활성화하는 고유 태그 |
-| **태그 위치** | 태그를 배치할 위치: 앞에 추가, 뒤에 추가, 또는 caption 대체 |
+### Restore Parameters
 
-#### 3단계: 자동 라벨링
+Click **Apply These Settings to UI** to restore all generation parameters from the current batch back to the input fields. Useful for iterating on a good result.
 
-**모두 자동 라벨링**을 클릭하여 모든 오디오 파일의 메타데이터를 생성:
-- Caption (음악 설명)
+### Batch Results
+
+The "Batch Results & Generation Details" accordion contains:
+- **All Generated Files** - Download all files from all batches
+- **Generation Details** - Detailed information about the generation process
+
+---
+
+## LoRA Training
+
+The LoRA Training tab provides tools for creating custom LoRA adapters.
+
+> 📖 **For a comprehensive step-by-step walkthrough** (data preparation, annotation, preprocessing, training, and export), see the [LoRA Training Tutorial](./LoRA_Training_Tutorial.md).
+
+### Dataset Builder Tab
+
+#### Step 1: Load or Scan
+
+**Option A: Load Existing Dataset**
+1. Enter the path to a previously saved dataset JSON
+2. Click **Load**
+
+**Option B: Scan New Directory**
+1. Enter the path to your audio folder
+2. Click **Scan** to find audio files (wav, mp3, flac, ogg, opus)
+
+#### Step 2: Configure Dataset
+
+| Setting | Description |
+|---------|-------------|
+| **Dataset Name** | Name for your dataset |
+| **All Instrumental** | Check if all tracks have no vocals |
+| **Custom Activation Tag** | Unique tag to activate this LoRA's style |
+| **Tag Position** | Where to place the tag: Prepend, Append, or Replace caption |
+
+#### Step 3: Auto-Label
+
+Click **Auto-Label All** to generate metadata for all audio files:
+- Caption (music description)
 - BPM
-- 키
-- 박자 기호
+- Key
+- Time Signature
 
-**메타 건너뛰기** 옵션은 LLM 라벨링을 건너뛰고 N/A 값을 사용합니다.
+**Skip Metas** option will skip LLM labeling and use N/A values.
 
-#### 4단계: 미리보기 및 편집
+#### Step 4: Preview & Edit
 
-슬라이더를 사용하여 샘플을 선택하고 수동 편집:
+Use the slider to select samples and manually edit:
 - Caption
-- 가사
-- BPM, 키, 박자 기호
-- 언어
-- 인스트루멘탈 플래그
+- Lyrics
+- BPM, Key, Time Signature
+- Language
+- Instrumental flag
 
-**변경 저장**을 클릭하여 샘플을 업데이트합니다.
+Click **Save Changes** to update the sample.
 
-#### 5단계: 데이터셋 저장
+#### Step 5: Save Dataset
 
-저장 경로를 입력하고 **데이터셋 저장**을 클릭하여 JSON으로 내보냅니다.
+Enter a save path and click **Save Dataset** to export as JSON.
 
-#### 6단계: 전처리
+#### Step 6: Preprocess
 
-빠른 학습을 위해 데이터셋을 사전 계산 텐서로 변환:
-1. 옵션으로 기존 데이터셋 JSON 로드
-2. 텐서 출력 디렉토리 설정
-3. **전처리** 클릭
+Convert the dataset to pre-computed tensors for fast training:
+1. Optionally load an existing dataset JSON
+2. Set the tensor output directory
+3. Click **Preprocess**
 
-이것은 오디오를 VAE 잠재 변수로 인코딩하고, 텍스트를 임베딩으로 인코딩하며, 조건 인코더를 실행합니다.
+This encodes audio to VAE latents, text to embeddings, and runs the condition encoder.
 
-### LoRA 학습 탭
+### Train LoRA Tab
 
-#### 데이터셋 선택
+#### Dataset Selection
 
-전처리된 텐서 디렉토리 경로를 입력하고 **데이터셋 로드**를 클릭합니다.
+Enter the path to preprocessed tensors directory and click **Load Dataset**.
 
-#### LoRA 설정
+#### LoRA Settings
 
-| 설정 | 기본값 | 설명 |
-|------|--------|------|
-| **LoRA 랭크 (r)** | 64 | LoRA의 용량. 높을수록 = 더 많은 용량, 더 많은 메모리 |
-| **LoRA 알파** | 128 | 스케일링 계수 (일반적으로 랭크의 2배) |
-| **LoRA 드롭아웃** | 0.1 | 정규화를 위한 드롭아웃 비율 |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **LoRA Rank (r)** | 64 | Capacity of LoRA. Higher = more capacity, more memory |
+| **LoRA Alpha** | 128 | Scaling factor (typically 2x rank) |
+| **LoRA Dropout** | 0.1 | Dropout rate for regularization |
 
-#### 학습 파라미터
+#### Training Parameters
 
-| 설정 | 기본값 | 설명 |
-|------|--------|------|
-| **학습률** | 1e-4 | 최적화 학습률 |
-| **최대 에폭** | 500 | 최대 학습 에폭 |
-| **배치 크기** | 1 | 학습 배치 크기 |
-| **그래디언트 누적** | 1 | 유효 배치 = batch_size × accumulation |
-| **N 에폭마다 저장** | 200 | 체크포인트 저장 빈도 |
-| **시프트** | 3.0 | turbo 모델의 타임스텝 시프트 |
-| **시드** | 42 | 재현성을 위한 랜덤 시드 |
+| Setting | Default | Description |
+|---------|---------|-------------|
+| **Learning Rate** | 1e-4 | Optimization learning rate |
+| **Max Epochs** | 500 | Maximum training epochs |
+| **Batch Size** | 1 | Training batch size |
+| **Gradient Accumulation** | 1 | Effective batch = batch_size × accumulation |
+| **Save Every N Epochs** | 200 | Checkpoint save frequency |
+| **Shift** | 3.0 | Timestep shift for turbo model |
+| **Seed** | 42 | Random seed for reproducibility |
 
-#### 학습 컨트롤
+#### Training Controls
 
-- **학습 시작** - 학습 프로세스 시작
-- **학습 중지** - 학습 중단
-- **학습 진행** - 현재 에폭과 손실 표시
-- **학습 로그** - 상세 학습 출력
-- **학습 손실 플롯** - 시각적 손실 곡선
+- **Start Training** - Begin the training process
+- **Stop Training** - Interrupt training
+- **Training Progress** - Shows current epoch and loss
+- **Training Log** - Detailed training output
+- **Training Loss Plot** - Visual loss curve
 
-#### LoRA 내보내기
+#### Export LoRA
 
-학습 후 최종 어댑터를 내보냅니다:
-1. 내보내기 경로 입력
-2. **LoRA 내보내기** 클릭
+After training, export the final adapter:
+1. Enter the export path
+2. Click **Export LoRA**
 
----
+#### Performance notes (Windows / low VRAM)
 
-## 팁과 모범 사례
+On Windows or systems with limited VRAM, training and preprocessing can stall or use more memory than expected. The following can help:
 
-### 최고 품질을 위해
+- **Persistent workers** – Epoch-boundary worker reinitialization on Windows can cause long pauses; the default behavior has been improved (see related fixes) so stalls are less common out of the box.
+- **Offload unused models** – During preprocessing, offloading models that are not needed for the current step (e.g. via **Offload to CPU** in Service Configuration) can greatly reduce VRAM use and avoid spikes that slow or block preprocessing.
+- **Tiled encode** – Using tiled encoding for preprocessing reduces peak VRAM and can turn multi-minute preprocessing into much shorter runs when VRAM is tight.
+- **Batch size** – Lower batch size during training reduces memory use at the cost of longer training; gradient accumulation can keep effective batch size while staying within VRAM limits.
 
-1. **thinking 모드 사용** - LM 향상 생성을 위해 "Think" 체크박스를 활성화 유지
-2. **caption을 구체적으로** - 장르, 악기, 분위기, 스타일 세부 사항 포함
-3. **LM이 메타데이터를 감지하도록** - 자동 감지를 위해 BPM/키/시간을 비워 둠
-4. **배치 생성 사용** - 2-4개 변형을 생성하고 최적의 것을 선택
-
-### 더 빠른 생성을 위해
-
-1. **turbo 모델 사용** - `acestep-v15-turbo` 또는 `acestep-v15-turbo-shift3` 선택
-2. **추론 스텝을 8로 유지** - turbo에 최적인 기본값
-3. **배치 크기 줄이기** - 빠른 결과가 필요하면 배치 크기 낮추기
-4. **AutoGen 비활성화** - 배치 생성의 수동 제어
-
-### 일관된 결과를 위해
-
-1. **특정 시드 설정** - "랜덤 시드" 체크 해제 후 시드 값 입력
-2. **좋은 결과 저장** - 재현을 위해 파라미터를 내보내려면 "저장" 사용
-3. **"이 설정 적용" 사용** - 좋은 배치에서 파라미터 복원
-
-### 장시간 음악을 위해
-
-1. **명시적 시간 설정** - 초 단위로 시간 지정
-2. **Repaint 모드 사용** - 초기 생성 후 문제 있는 섹션 수정
-3. **생성 체인** - "소스로 전송"을 사용하여 이전 결과를 기반으로 구축
-
-### 스타일 일관성을 위해
-
-1. **LoRA 학습** - 스타일에 맞는 커스텀 어댑터 생성
-2. **참조 오디오 사용** - 오디오 업로드에서 스타일 참조 업로드
-3. **일관된 caption 사용** - 유사한 설명적 언어 유지
-
-### 문제 해결
-
-**오디오가 생성되지 않음:**
-- 모델이 초기화되었는지 확인 (녹색 상태 메시지)
-- thinking 모드 사용 시 5Hz LM이 초기화되었는지 확인
-- 오류 메시지에 대한 상태 출력 확인
-
-**결과 품질이 낮음:**
-- 추론 스텝 증가 (base 모델의 경우)
-- 가이던스 스케일 조정
-- 다른 시드 시도
-- caption을 더 구체적으로 작성
-
-**메모리 부족 (OOM):**
-- 시스템에 자동 VRAM 관리 (VRAM 가드, 적응형 VAE 디코드, 자동 배치 축소) 포함. 그래도 OOM 발생 시:
-- 수동으로 배치 크기 줄이기
-- CPU 오프로드 활성화 (VRAM <20GB에서 자동 활성화되어야 함)
-- INT8 양자화 활성화 (VRAM <20GB에서 자동 활성화되어야 함)
-- LM 배치 청크 크기 줄이기
-
-**LM이 작동하지 않음:**
-- 초기화 시 "5Hz LM 초기화"가 체크되었는지 확인 (VRAM ≤6GB GPU에서 기본 비활성화)
-- 유효한 LM 모델 경로가 선택되었는지 확인 (티어 호환 모델만 표시)
-- vllm 또는 PyTorch 백엔드가 사용 가능한지 확인 (VRAM <8GB에서 vllm 제한)
-- LM 체크박스가 회색이면 GPU 티어가 LM을 지원하지 않음 — DiT 전용 모드 사용
+These options are especially useful when preprocessing takes a long time or you see out-of-memory or long pauses between epochs.
 
 ---
 
-## 키보드 단축키
+## Tips and Best Practices
 
-Gradio 인터페이스는 표준 웹 단축키를 지원합니다:
-- **Tab** - 입력 필드 간 이동
-- **Enter** - 텍스트 입력 제출
-- **Space** - 체크박스 토글
+### For Best Quality
+
+1. **Use thinking mode** - Keep "Think" checkbox enabled for LM-enhanced generation
+2. **Be specific in captions** - Include genre, instruments, mood, and style details
+3. **Let LM detect metadata** - Leave BPM/Key/Duration empty for auto-detection
+4. **Use batch generation** - Generate 2-4 variations and pick the best
+
+### For Faster Generation
+
+1. **Use turbo model** - Select `empath-v15-turbo` or `empath-v15-turbo-shift3`
+2. **Keep inference steps at 8** - Default is optimal for turbo
+3. **Reduce batch size** - Lower batch size if you need quick results
+4. **Disable AutoGen** - Manual control over batch generation
+
+### For Consistent Results
+
+1. **Set a specific seed** - Uncheck "Random Seed" and enter a seed value
+2. **Save good results** - Use "Save" to export parameters for reproduction
+3. **Use "Apply These Settings"** - Restore parameters from a good batch
+
+### For Long-form Music
+
+1. **Set explicit duration** - Specify duration in seconds
+2. **Use repaint task** - Fix problematic sections after initial generation
+3. **Chain generations** - Use "Send To Src" to build upon previous results
+
+### For Style Consistency
+
+1. **Train a LoRA** - Create a custom adapter for your style
+2. **Use reference audio** - Upload style reference in Audio Uploads
+3. **Use consistent captions** - Maintain similar descriptive language
+
+### Troubleshooting
+
+**No audio generated:**
+- Check that the model is initialized (green status message)
+- Ensure 5Hz LM is initialized if using thinking mode
+- Check the status output for error messages
+
+**Poor quality results:**
+- Increase inference steps (for base model)
+- Adjust guidance scale
+- Try different seeds
+- Make caption more specific
+
+**Out of memory:**
+- The system includes automatic VRAM management (VRAM guard, adaptive VAE decode, auto batch reduction). If OOM still occurs:
+- Reduce batch size manually
+- Enable CPU offloading (should be auto-enabled for GPUs <20GB)
+- Enable INT8 quantization (should be auto-enabled for GPUs <20GB)
+- Reduce LM batch chunk size
+- See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) for recommended settings per tier
+
+**LM not working:**
+- Ensure "Initialize 5Hz LM" was checked during initialization (disabled by default on GPUs ≤6GB)
+- Check that a valid LM model path is selected (only tier-compatible models are shown)
+- Verify vllm or PyTorch backend is available (vllm restricted on GPUs <8GB)
+- If the LM checkbox is grayed out, your GPU tier does not support LM — use DiT-only mode
 
 ---
 
-## 언어 지원
+## Keyboard Shortcuts
 
-인터페이스는 여러 UI 언어를 지원합니다:
-- **영어** (en)
-- **중국어** (zh)
-- **일본어** (ja)
-- **한국어** (ko)
-
-서비스 설정 섹션에서 선호하는 언어를 선택하세요.
+The Gradio interface supports standard web shortcuts:
+- **Tab** - Move between input fields
+- **Enter** - Submit text inputs
+- **Space** - Toggle checkboxes
 
 ---
 
-자세한 내용은 다음을 참조하세요:
-- 메인 README: [`../../README.md`](../../README.md)
-- REST API 문서: [`../en/API.md`](../en/API.md)
-- Python 추론 API: [`../en/INFERENCE.md`](../en/INFERENCE.md)
+## Language Support
+
+The interface supports multiple UI languages:
+- **English** (en)
+- **Chinese** (zh)
+- **Japanese** (ja)
+
+Select your preferred language in the Service Configuration section.
+
+---
+
+For more information, see:
+- Main README: [`../../README.md`](../../README.md)
+- REST API Documentation: [`API.md`](API.md)
+- Python Inference API: [`INFERENCE.md`](INFERENCE.md)

@@ -36,7 +36,7 @@ Presets are stored in three locations, searched in this priority order:
 | 1 (highest) | `./presets/` | All | Project-local user presets. New saves go here. |
 | 2 | `~/.config/sidestep/presets/` | Linux/macOS | Global user presets (fallback). |
 | 2 | `%APPDATA%\sidestep\presets\` | Windows | Global user presets (fallback). |
-| 3 (lowest) | `acestep/training_v2/presets/` | All | Built-in presets shipped with Side-Step. Read-only. |
+| 3 (lowest) | `empath/training_v2/presets/` | All | Built-in presets shipped with Side-Step. Read-only. |
 
 **Key behaviors:**
 
@@ -45,7 +45,7 @@ Presets are stored in three locations, searched in this priority order:
 - **Deleting** can remove local or global presets. Built-in presets cannot be deleted.
 - A local preset with the same name as a built-in effectively overrides it.
 
-The local directory is anchored to the Side-Step project root (found by looking for `train.py` or `pyproject.toml` + `acestep/`), so presets are always found regardless of your current working directory.
+The local directory is anchored to the Side-Step project root (found by looking for `train.py` or `pyproject.toml` + `empath/`), so presets are always found regardless of your current working directory.
 
 ---
 

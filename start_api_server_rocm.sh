@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ACE-Step REST API Server Launcher - Linux AMD ROCm
+# Empath REST API Server Launcher - Linux AMD ROCm
 # For AMD RX 7000/6000 series GPUs on Linux
 # Requires: ROCm 6.x+ and ROCm PyTorch from https://pytorch.org/
 #
@@ -18,7 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==================== ROCm Configuration ====================
 # Force PyTorch LM backend (bypasses nano-vllm flash_attn dependency)
-export ACESTEP_LM_BACKEND="pt"
+export EMPATH_LM_BACKEND="pt"
 
 # RDNA3 GPU architecture override (RX 7900 XT/XTX, RX 7800 XT, etc.)
 # Change to 11.0.1 for gfx1101 (RX 7700 XT, RX 7800 XT)
@@ -51,14 +51,14 @@ DOWNLOAD_SOURCE=""
 #   - <=6GB VRAM: LLM disabled (DiT-only mode)
 #   - >6GB VRAM: LLM enabled
 # Values: auto (default), true (force enable), false (force disable)
-export ACESTEP_INIT_LLM=auto
-# export ACESTEP_INIT_LLM=true
-# export ACESTEP_INIT_LLM=false
+export EMPATH_INIT_LLM=auto
+# export EMPATH_INIT_LLM=true
+# export EMPATH_INIT_LLM=false
 
 # LM model path (optional, only used when LLM is enabled)
-# Available models: acestep-5Hz-lm-0.6B, acestep-5Hz-lm-1.7B, acestep-5Hz-lm-4B
+# Available models: empath-5Hz-lm-0.6B, empath-5Hz-lm-1.7B, empath-5Hz-lm-4B
 LM_MODEL_PATH=""
-# LM_MODEL_PATH="--lm-model-path acestep-5Hz-lm-0.6B"
+# LM_MODEL_PATH="--lm-model-path empath-5Hz-lm-0.6B"
 
 # Update check on startup (set to "false" to disable)
 CHECK_UPDATE="true"
@@ -66,8 +66,8 @@ CHECK_UPDATE="true"
 
 # Skip model loading at startup (models will be lazy-loaded on first request)
 # Set to "true" to start server quickly without loading models
-# export ACESTEP_NO_INIT=false
-# export ACESTEP_NO_INIT=true
+# export EMPATH_NO_INIT=false
+# export EMPATH_NO_INIT=true
 
 # ==================== Venv Configuration ====================
 VENV_DIR="${SCRIPT_DIR}/venv_rocm"
@@ -135,7 +135,7 @@ _startup_update_check() {
 _startup_update_check
 
 echo "============================================"
-echo "  ACE-Step 1.5 API - Linux AMD ROCm Edition"
+echo "  Empath 1.5 API - Linux AMD ROCm Edition"
 echo "============================================"
 echo
 
@@ -175,7 +175,7 @@ print(f'HIP: {hip}' if hip else 'WARNING: Not a ROCm build')
 fi
 echo
 
-echo "Starting ACE-Step REST API Server..."
+echo "Starting Empath REST API Server..."
 echo "API will be available at: http://${HOST}:${PORT}"
 echo "API Documentation: http://${HOST}:${PORT}/docs"
 echo
@@ -186,4 +186,4 @@ CMD="--host $HOST --port $PORT"
 [[ -n "$DOWNLOAD_SOURCE" ]] && CMD="$CMD $DOWNLOAD_SOURCE"
 [[ -n "$LM_MODEL_PATH" ]] && CMD="$CMD $LM_MODEL_PATH"
 
-cd "$SCRIPT_DIR" && python3 -u acestep/api_server.py $CMD
+cd "$SCRIPT_DIR" && python3 -u empath/api_server.py $CMD

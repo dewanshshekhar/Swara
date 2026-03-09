@@ -1,4 +1,4 @@
-# ACE-Step OpenRouter API Documentation
+# Empath OpenRouter API Documentation
 
 > OpenAI Chat Completions-compatible API for AI music generation
 
@@ -127,7 +127,7 @@ Supports both plain text and multimodal (text + audio) formats:
   "id": "chatcmpl-a1b2c3d4e5f6g7h8",
   "object": "chat.completion",
   "created": 1706688000,
-  "model": "acemusic/acestep-v15-turbo",
+  "model": "acemusic/empath-v15-turbo",
   "choices": [
     {
       "index": 0,
@@ -203,8 +203,8 @@ Returns available model information.
 {
   "data": [
     {
-      "id": "acemusic/acestep-v15-turbo",
-      "name": "ACE-Step",
+      "id": "acemusic/empath-v15-turbo",
+      "name": "Empath",
       "created": 1706688000,
       "description": "High-performance text-to-music generation model. Supports multiple styles, lyrics input, and various audio durations.",
       "input_modalities": ["text", "audio"],
@@ -228,7 +228,7 @@ Returns available model information.
 ```json
 {
   "status": "ok",
-  "service": "ACE-Step OpenRouter API",
+  "service": "Empath OpenRouter API",
   "version": "1.0"
 }
 ```
@@ -416,7 +416,7 @@ Set `"stream": true` to enable SSE (Server-Sent Events) streaming.
 Each event starts with `data: `, followed by JSON, ending with a double newline `\n\n`:
 
 ```
-data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{...},"finish_reason":null}]}
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{...},"finish_reason":null}]}
 
 ```
 
@@ -434,15 +434,15 @@ data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1706688000
 ### Streaming Response Example
 
 ```
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"content":"\n\n## Metadata\n**Caption:** Upbeat pop\n**BPM:** 120"},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"content":"\n\n## Metadata\n**Caption:** Upbeat pop\n**BPM:** 120"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"content":"."},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"content":"."},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"audio":[{"type":"audio_url","audio_url":{"url":"data:audio/mpeg;base64,..."}}]},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"audio":[{"type":"audio_url","audio_url":{"url":"data:audio/mpeg;base64,..."}}]},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
 
 data: [DONE]
 
@@ -648,9 +648,9 @@ The following environment variables can be used to configure the server (for ope
 | `OPENROUTER_API_KEY` | None | API authentication key |
 | `OPENROUTER_HOST` | `127.0.0.1` | Listen address |
 | `OPENROUTER_PORT` | `8002` | Listen port |
-| `ACESTEP_CONFIG_PATH` | `acestep-v15-turbo` | DiT model configuration path |
-| `ACESTEP_DEVICE` | `auto` | Inference device |
-| `ACESTEP_LM_MODEL_PATH` | `acestep-5Hz-lm-0.6B` | LLM model path |
-| `ACESTEP_LM_BACKEND` | `vllm` | LLM inference backend |
-| `ACESTEP_QUEUE_MAXSIZE` | `200` | Task queue max capacity |
-| `ACESTEP_GENERATION_TIMEOUT` | `600` | Non-streaming request timeout (seconds) |
+| `EMPATH_CONFIG_PATH` | `empath-v15-turbo` | DiT model configuration path |
+| `EMPATH_DEVICE` | `auto` | Inference device |
+| `EMPATH_LM_MODEL_PATH` | `empath-5Hz-lm-0.6B` | LLM model path |
+| `EMPATH_LM_BACKEND` | `vllm` | LLM inference backend |
+| `EMPATH_QUEUE_MAXSIZE` | `200` | Task queue max capacity |
+| `EMPATH_GENERATION_TIMEOUT` | `600` | Non-streaming request timeout (seconds) |

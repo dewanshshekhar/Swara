@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "========================================"
-echo "ACE-Step Environment Detection Test"
+echo "Empath Environment Detection Test"
 echo "========================================"
 echo
 
@@ -38,7 +38,7 @@ if [[ -f "$SCRIPT_DIR/pyproject.toml" ]]; then
     echo "[PASS] pyproject.toml found"
     echo
     echo "Available scripts:"
-    grep -E "^acestep" "$SCRIPT_DIR/pyproject.toml" 2>/dev/null | head -5 || echo "  (not found)"
+    grep -E "^empath" "$SCRIPT_DIR/pyproject.toml" 2>/dev/null | head -5 || echo "  (not found)"
 else
     echo "[FAIL] pyproject.toml not found"
 fi
@@ -66,7 +66,7 @@ echo
 echo "[Test 4] Environment selection logic..."
 if command -v uv &>/dev/null || [[ -x "$HOME/.local/bin/uv" ]] || [[ -x "$HOME/.cargo/bin/uv" ]]; then
     echo "[RESULT] Will use: uv package manager"
-    echo "Command: uv run acestep"
+    echo "Command: uv run empath"
 else
     echo "[ERROR] uv not found!"
     echo "Please install uv first."

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ACE-Step 1.5 Inference Profiler & Benchmark
+Empath 1.5 Inference Profiler & Benchmark
 
 Comprehensive profiling tool that supports all features, devices, and backends.
 Uses the high-level inference API and built-in time_costs for accurate timing.
@@ -60,7 +60,7 @@ if PROJECT_ROOT not in sys.path:
 
 import torch
 
-from acestep.inference import (
+from empath.inference import (
     generate_music,
     understand_music,
     create_sample,
@@ -69,9 +69,9 @@ from acestep.inference import (
     GenerationConfig,
     GenerationResult,
 )
-from acestep.handler import AceStepHandler
-from acestep.llm_inference import LLMHandler
-from acestep.gpu_config import (
+from empath.handler import AceStepHandler
+from empath.llm_inference import LLMHandler
+from empath.gpu_config import (
     get_gpu_config,
     set_global_gpu_config,
     get_gpu_tier,
@@ -116,10 +116,10 @@ def auto_detect_backend(device: str) -> str:
 def load_env_config() -> Dict[str, str]:
     """Load configuration defaults from .env file."""
     env_config = {
-        "ACESTEP_CONFIG_PATH": "acestep-v15-turbo",
-        "ACESTEP_LM_MODEL_PATH": "acestep-5Hz-lm-0.6B",
-        "ACESTEP_DEVICE": "auto",
-        "ACESTEP_LM_BACKEND": "auto",
+        "EMPATH_CONFIG_PATH": "empath-v15-turbo",
+        "EMPATH_LM_MODEL_PATH": "empath-5Hz-lm-0.6B",
+        "EMPATH_DEVICE": "auto",
+        "EMPATH_LM_BACKEND": "auto",
     }
     env_file = os.path.join(PROJECT_ROOT, ".env")
     if os.path.exists(env_file):
@@ -454,7 +454,7 @@ def run_profile_mode(dit_handler, llm_handler, args, timer: PreciseTimer):
     )
 
     # Use a temporary directory for output (don't pollute project root)
-    save_dir = tempfile.mkdtemp(prefix="acestep_profile_")
+    save_dir = tempfile.mkdtemp(prefix="empath_profile_")
 
     # Warmup
     if not args.no_warmup:
@@ -552,7 +552,7 @@ def run_benchmark_mode(dit_handler, llm_handler, args, timer: PreciseTimer):
     with open(example_file, "r", encoding="utf-8") as f:
         example_data = json.load(f)
 
-    save_dir = tempfile.mkdtemp(prefix="acestep_bench_")
+    save_dir = tempfile.mkdtemp(prefix="empath_bench_")
 
     # Define benchmark matrix
     durations = [30, 60, 120]
@@ -927,7 +927,7 @@ def _run_single_tier_test(
     # Run generation
     try:
         print(f"\n  Running generation... ({_get_vram_info_str()})")
-        save_dir = tempfile.mkdtemp(prefix=f"acestep_tier{int(sim_gb)}_{test_variant}_")
+        save_dir = tempfile.mkdtemp(prefix=f"empath_tier{int(sim_gb)}_{test_variant}_")
 
         params = GenerationParams(
             caption=example_data.get("caption", ""),
@@ -962,7 +962,7 @@ def _run_single_tier_test(
         _orig_batch_with_lm = None
         _orig_batch_without_lm = None
         if batch_size_override is not None and batch_size_override > 1:
-            from acestep.gpu_config import GPU_TIER_CONFIGS as _tier_configs
+            from empath.gpu_config import GPU_TIER_CONFIGS as _tier_configs
             tier = gpu_config.tier
             if tier in _tier_configs:
                 _patched_tier_config = True
@@ -1036,7 +1036,7 @@ def run_tier_test_mode(args):
       - no-offload: no quantization AND no CPU offload (all models on GPU)
 
     This replaces the manual workflow of:
-      MAX_CUDA_VRAM=8 uv run acestep → click UI → wait → check
+      MAX_CUDA_VRAM=8 uv run empath → click UI → wait → check
     """
     # Determine which tiers to test
     default_tiers = [4, 6, 8, 12, 16, 24, 48]
@@ -1058,7 +1058,7 @@ def run_tier_test_mode(args):
     disk_lm_models = []
     if os.path.exists(checkpoint_dir):
         for item in sorted(os.listdir(checkpoint_dir)):
-            if os.path.isdir(os.path.join(checkpoint_dir, item)) and item.startswith("acestep-5Hz-lm-"):
+            if os.path.isdir(os.path.join(checkpoint_dir, item)) and item.startswith("empath-5Hz-lm-"):
                 disk_lm_models.append(item)
 
     boundary_mode = getattr(args, "tier_boundary", False)
@@ -1738,7 +1738,7 @@ def initialize_handlers(
             pass
 
     compile_model = os.environ.get(
-        "ACESTEP_COMPILE_MODEL", ""
+        "EMPATH_COMPILE_MODEL", ""
     ).strip().lower() in {"1", "true", "yes", "y", "on"}
 
     print("  Initializing DiT handler...")
@@ -1801,7 +1801,7 @@ def build_parser() -> argparse.ArgumentParser:
     env_config = load_env_config()
 
     parser = argparse.ArgumentParser(
-        description="ACE-Step 1.5 Inference Profiler & Benchmark",
+        description="Empath 1.5 Inference Profiler & Benchmark",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -1838,20 +1838,20 @@ Examples:
     parser.add_argument(
         "--device",
         type=str,
-        default=env_config["ACESTEP_DEVICE"],
+        default=env_config["EMPATH_DEVICE"],
         help=(
             f"Device: auto/cuda/mps/cpu "
-            f"(default: {env_config['ACESTEP_DEVICE']})"
+            f"(default: {env_config['EMPATH_DEVICE']})"
         ),
     )
     parser.add_argument(
         "--lm-backend",
         type=str,
-        default=env_config["ACESTEP_LM_BACKEND"],
+        default=env_config["EMPATH_LM_BACKEND"],
         choices=["auto", "vllm", "pt", "mlx"],
         help=(
             f"LLM backend "
-            f"(default: {env_config['ACESTEP_LM_BACKEND']})"
+            f"(default: {env_config['EMPATH_LM_BACKEND']})"
         ),
     )
 
@@ -1859,19 +1859,19 @@ Examples:
     parser.add_argument(
         "--config-path",
         type=str,
-        default=env_config["ACESTEP_CONFIG_PATH"],
+        default=env_config["EMPATH_CONFIG_PATH"],
         help=(
             f"DiT model config "
-            f"(default: {env_config['ACESTEP_CONFIG_PATH']})"
+            f"(default: {env_config['EMPATH_CONFIG_PATH']})"
         ),
     )
     parser.add_argument(
         "--lm-model",
         type=str,
-        default=env_config["ACESTEP_LM_MODEL_PATH"],
+        default=env_config["EMPATH_LM_MODEL_PATH"],
         help=(
             f"LLM model path "
-            f"(default: {env_config['ACESTEP_LM_MODEL_PATH']})"
+            f"(default: {env_config['EMPATH_LM_MODEL_PATH']})"
         ),
     )
 
@@ -2108,7 +2108,7 @@ def main():
     # Tier-test mode has its own initialization flow
     if args.mode == "tier-test":
         print("=" * 120)
-        print("ACE-Step 1.5 Tier Compatibility Test")
+        print("Empath 1.5 Tier Compatibility Test")
         print("=" * 120)
         run_tier_test_mode(args)
         print("\n" + "=" * 120)
@@ -2137,7 +2137,7 @@ def main():
 
     # Print header
     print("=" * 100)
-    print("ACE-Step 1.5 Inference Profiler")
+    print("Empath 1.5 Inference Profiler")
     print("=" * 100)
     print(f"\n  Mode:           {args.mode}")
     print(f"  Device:         {device} (requested: {args.device})")

@@ -5,7 +5,7 @@ REM This script helps merge backed up files with new version
 setlocal enabledelayedexpansion
 
 echo ========================================
-echo ACE-Step Backup Merge Helper
+echo Empath Backup Merge Helper
 echo ========================================
 echo.
 
@@ -101,7 +101,7 @@ for /f "delims=" %%f in ('dir /b /s "!SELECTED_BACKUP!\*.*" 2^>nul') do (
 )
 
 echo.
-set /p FILE_NAME="Enter filename to compare (e.g., start_gradio_ui.bat or acestep\handler.py): "
+set /p FILE_NAME="Enter filename to compare (e.g., start_gradio_ui.bat or empath\handler.py): "
 
 set BACKUP_FILE=%SELECTED_BACKUP%\%FILE_NAME%
 set CURRENT_FILE=%~dp0%FILE_NAME%
@@ -180,7 +180,7 @@ for /f "delims=" %%f in ('dir /b /s "!SELECTED_BACKUP!\*.*" 2^>nul') do (
 )
 
 echo.
-set /p FILE_NAME="Enter filename to restore (e.g., start_gradio_ui.bat or acestep\handler.py): "
+set /p FILE_NAME="Enter filename to restore (e.g., start_gradio_ui.bat or empath\handler.py): "
 
 set BACKUP_FILE=%SELECTED_BACKUP%\%FILE_NAME%
 set CURRENT_FILE=%~dp0%FILE_NAME%

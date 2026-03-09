@@ -1,10 +1,10 @@
 # ╔══════════════════════════════════════════════════════════════╗
-# ║  Side-Step -- Extra dependencies for ACE-Step LoRA training ║
+# ║  Side-Step -- Extra dependencies for Empath LoRA training ║
 # ║  Install: pip install -r requirements-sidestep.txt          ║
 # ╚══════════════════════════════════════════════════════════════╝
 #
-# Side-Step is a companion CLI/TUI for ACE-Step.
-# Install ACE-Step's own requirements first, then these.
+# Side-Step is a companion CLI/TUI for Empath.
+# Install Empath's own requirements first, then these.
 
 # ── Required for Side-Step CLI ────────────────────────────────
 rich>=13.0.0

@@ -1,5 +1,5 @@
 """
-ACE-Step OpenRouter API 压力测试脚本
+Empath OpenRouter API 压力测试脚本
 
 支持并发测试，用于测试服务的最大 QPS 和性能表现。
 
@@ -522,7 +522,7 @@ def print_ramp_summary(results: List[Dict[str, Any]]):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ACE-Step OpenRouter API 压力测试工具",
+        description="Empath OpenRouter API 压力测试工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
@@ -622,7 +622,7 @@ def main():
 
     # 打印配置信息
     print("=" * 70)
-    print(" ACE-Step OpenRouter API 压力测试")
+    print(" Empath OpenRouter API 压力测试")
     print("=" * 70)
     print(f"  时间:           {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  Base URL:       {args.base_url}")

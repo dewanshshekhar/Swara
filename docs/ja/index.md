@@ -1,34 +1,40 @@
 ---
 layout: home
 hero:
-  name: ACE-Step 1.5
-  text: オープンソース音楽生成
-  tagline: コンシューマーハードウェアで商用グレードの音楽生成。A100で1曲2秒未満、VRAM 4GB未満。
+  name: Empath 1.5
+  text: Open-Source Music Generation
+  tagline: Commercial-grade music generation on consumer hardware. Under 2s per song on A100, <4GB VRAM.
   image:
     src: /logo.png
-    alt: ACE-Step
+    alt: Empath
   actions:
     - theme: brand
-      text: インストール
-      link: /ja/INSTALL
+      text: Installation
+      link: /en/INSTALL
     - theme: alt
-      text: チュートリアル (必読)
-      link: /ja/Tutorial
+      text: Tutorial (Must Read)
+      link: /en/Tutorial
     - theme: alt
-      text: API リファレンス
-      link: /ja/API
+      text: API Reference
+      link: /en/API
 
 features:
   - icon: "&#9889;"
-    title: 超高速生成
-    details: A100で1曲2秒未満、RTX 3090で10秒未満。10秒から10分の音声生成に対応。
+    title: Ultra-Fast Generation
+    details: Under 2s per full song on A100, under 10s on RTX 3090. Supports 10s to 10min audio generation.
   - icon: "&#127925;"
-    title: 商用グレード品質
-    details: 1000以上の楽器・スタイル、50以上の言語、きめ細やかな音色記述と歌詞構造制御。
+    title: Commercial-Grade Quality
+    details: 1000+ instruments and styles, 50+ languages with lyrics prompt for structure and style control.
   - icon: "&#127899;"
-    title: 多彩な編集機能
-    details: カバー生成、リペイント、トラック分離、ボーカルからBGM、マルチトラック生成など。
+    title: Versatile Editing
+    details: Cover generation, repainting, track separation, vocal-to-BGM, multi-track generation, and more.
   - icon: "&#128640;"
-    title: 軽量・カスタマイズ可能
-    details: 4GB未満のVRAMでローカル実行。数曲からLoRAを学習、3090で1時間。
+    title: Lightweight & Customizable
+    details: Runs locally with <4GB VRAM. Train a LoRA from just a few songs in 1 hour on a 3090.
+  - icon: "&#127908;"
+    title: Reference Audio Input
+    details: Use reference audio to guide generation style. Create covers from existing audio.
+  - icon: "&#128300;"
+    title: Audio Understanding
+    details: Extract BPM, key/scale, time signature and caption from audio. Auto-generate LRC timestamps.
 ---

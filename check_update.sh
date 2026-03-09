@@ -11,7 +11,7 @@ GIT_PATH=""
 REPO_PATH="$SCRIPT_DIR"
 
 echo "========================================"
-echo "ACE-Step Update Check"
+echo "Empath Update Check"
 echo "========================================"
 echo
 

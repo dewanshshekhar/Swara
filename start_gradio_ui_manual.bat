@@ -1,8 +1,8 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
-REM ACE-Step Gradio Web UI Launcher
-REM This script launches the Gradio web interface for ACE-Step
+REM Empath Gradio Web UI Launcher
+REM This script launches the Gradio web interface for Empath
 
 REM ==================== Load .env Configuration ====================
 REM Load settings from .env file if it exists
@@ -31,8 +31,8 @@ REM When not specified, defaults to min(2, GPU_max)
 REM set BATCH_SIZE=--batch_size 4
 
 REM Model settings
-if not defined CONFIG_PATH set CONFIG_PATH=--config_path acestep-v15-turbo
-if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-0.6B
+if not defined CONFIG_PATH set CONFIG_PATH=--config_path empath-v15-turbo
+if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-0.6B
 REM set OFFLOAD_TO_CPU=--offload_to_cpu true
 
 REM LLM (Language Model) initialization settings
@@ -138,7 +138,7 @@ echo.
 
 :SkipUpdateCheck
 
-echo Starting ACE-Step Gradio Web UI...
+echo Starting Empath Gradio Web UI...
 echo Server will be available at: http://%SERVER_NAME%:%PORT%
 echo.
 
@@ -148,7 +148,7 @@ if exist "%~dp0python_embedded\python.exe" (
 
     REM Build command with optional parameters
     set "PYTHON_EXE=%~dp0python_embedded\python.exe"
-    set "SCRIPT_PATH=%~dp0acestep\acestep_v15_pipeline.py"
+    set "SCRIPT_PATH=%~dp0empath\empath_v15_pipeline.py"
     set "CMD=--port %PORT% --server-name %SERVER_NAME% --language %LANGUAGE%"
     if not "%SHARE%"=="" set "CMD=!CMD! %SHARE%"
     if not "%CONFIG_PATH%"=="" set "CMD=!CMD! %CONFIG_PATH%"
@@ -175,7 +175,7 @@ if exist "%~dp0python_embedded\python.exe" (
         echo uv package manager not found!
         echo ========================================
         echo.
-        echo ACE-Step requires either:
+        echo Empath requires either:
         echo   1. python_embedded directory ^(portable package^)
         echo   2. uv package manager
         echo.
@@ -225,7 +225,7 @@ if exist "%~dp0python_embedded\python.exe" (
                     echo.
                     echo uv installed but not in PATH yet.
                     echo Please restart your terminal or run:
-                    echo   %USERPROFILE%\.local\bin\uv.exe run acestep
+                    echo   %USERPROFILE%\.local\bin\uv.exe run empath
                     echo.
                     pause
                     exit /b 1
@@ -239,7 +239,7 @@ if exist "%~dp0python_embedded\python.exe" (
                 echo Please install uv manually:
                 echo   1. Using PowerShell: irm https://astral.sh/uv/install.ps1 ^| iex
                 echo   2. Using winget: winget install --id=astral-sh.uv -e
-                echo   3. Download portable package: https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z
+                echo   3. Download portable package: https://files.acemusic.ai/acemusic/win/Empath-1.5.7z
                 echo.
                 pause
                 exit /b 1
@@ -248,9 +248,9 @@ if exist "%~dp0python_embedded\python.exe" (
             echo.
             echo Installation cancelled.
             echo.
-            echo To use ACE-Step, please either:
+            echo To use Empath, please either:
             echo   1. Install uv: winget install --id=astral-sh.uv -e
-            echo   2. Download portable package: https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z
+            echo   2. Download portable package: https://files.acemusic.ai/acemusic/win/Empath-1.5.7z
             echo.
             pause
             exit /b 1
@@ -301,34 +301,34 @@ if exist "%~dp0python_embedded\python.exe" (
         echo.
     )
 
-    echo Starting ACE-Step Gradio UI...
+    echo Starting Empath Gradio UI...
     echo.
 
     REM Build command with optional parameters
-    set "ACESTEP_ARGS=acestep --port %PORT% --server-name %SERVER_NAME% --language %LANGUAGE%"
-    if not "%SHARE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %SHARE%"
-    if not "%CONFIG_PATH%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %CONFIG_PATH%"
-    if not "%LM_MODEL_PATH%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %LM_MODEL_PATH%"
-    if not "%OFFLOAD_TO_CPU%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %OFFLOAD_TO_CPU%"
-    if not "%INIT_LLM%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %INIT_LLM%"
-    if not "%DOWNLOAD_SOURCE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %DOWNLOAD_SOURCE%"
-    if not "%INIT_SERVICE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %INIT_SERVICE%"
-    if not "%BATCH_SIZE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %BATCH_SIZE%"
-    if not "%ENABLE_API%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %ENABLE_API%"
-    if not "%API_KEY%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %API_KEY%"
-    if not "%AUTH_USERNAME%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %AUTH_USERNAME%"
-    if not "%AUTH_PASSWORD%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %AUTH_PASSWORD%"
+    set "EMPATH_ARGS=empath --port %PORT% --server-name %SERVER_NAME% --language %LANGUAGE%"
+    if not "%SHARE%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %SHARE%"
+    if not "%CONFIG_PATH%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %CONFIG_PATH%"
+    if not "%LM_MODEL_PATH%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %LM_MODEL_PATH%"
+    if not "%OFFLOAD_TO_CPU%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %OFFLOAD_TO_CPU%"
+    if not "%INIT_LLM%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %INIT_LLM%"
+    if not "%DOWNLOAD_SOURCE%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %DOWNLOAD_SOURCE%"
+    if not "%INIT_SERVICE%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %INIT_SERVICE%"
+    if not "%BATCH_SIZE%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %BATCH_SIZE%"
+    if not "%ENABLE_API%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %ENABLE_API%"
+    if not "%API_KEY%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %API_KEY%"
+    if not "%AUTH_USERNAME%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %AUTH_USERNAME%"
+    if not "%AUTH_PASSWORD%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %AUTH_PASSWORD%"
 
-    uv run !ACESTEP_ARGS!
+    uv run !EMPATH_ARGS!
     if !ERRORLEVEL! NEQ 0 (
         echo.
         echo [Retry] Online dependency resolution failed, retrying in offline mode...
         echo.
-        uv run --offline !ACESTEP_ARGS!
+        uv run --offline !EMPATH_ARGS!
         if !ERRORLEVEL! NEQ 0 (
             echo.
             echo ========================================
-            echo [Error] Failed to start ACE-Step
+            echo [Error] Failed to start Empath
             echo ========================================
             echo.
             echo Both online and offline modes failed.
@@ -369,23 +369,23 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             for /f "tokens=* delims= " %%x in ("!line!") do set "key=%%x"
             
             REM Map .env variable names to batch script variables
-            if /i "!key!"=="ACESTEP_CONFIG_PATH" (
+            if /i "!key!"=="EMPATH_CONFIG_PATH" (
                 if not "!value!"=="" set "CONFIG_PATH=--config_path !value!"
             )
-            if /i "!key!"=="ACESTEP_LM_MODEL_PATH" (
+            if /i "!key!"=="EMPATH_LM_MODEL_PATH" (
                 if not "!value!"=="" set "LM_MODEL_PATH=--lm_model_path !value!"
             )
-            if /i "!key!"=="ACESTEP_INIT_LLM" (
+            if /i "!key!"=="EMPATH_INIT_LLM" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "INIT_LLM=--init_llm !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_DOWNLOAD_SOURCE" (
+            if /i "!key!"=="EMPATH_DOWNLOAD_SOURCE" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "DOWNLOAD_SOURCE=--download-source !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_API_KEY" (
+            if /i "!key!"=="EMPATH_API_KEY" (
                 if not "!value!"=="" set "API_KEY=--api-key !value!"
             )
             if /i "!key!"=="PORT" (
@@ -397,7 +397,7 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             if /i "!key!"=="LANGUAGE" (
                 if not "!value!"=="" set "LANGUAGE=!value!"
             )
-            if /i "!key!"=="ACESTEP_BATCH_SIZE" (
+            if /i "!key!"=="EMPATH_BATCH_SIZE" (
                 if not "!value!"=="" set "BATCH_SIZE=--batch_size !value!"
             )
         )
@@ -411,7 +411,7 @@ REM Ask for manual settings
 color 0B
 echo.
 echo ======================================================
-echo             ACE-Step Manual Launch Mode
+echo             Empath Manual Launch Mode
 echo ======================================================
 echo.
 :manual_choice_ask
@@ -449,27 +449,27 @@ echo Selected Update Check: %CHECK_UPDATE%
 
 echo.
 echo -------------------- Select DiT Model --------------------
-echo 1^) acestep-v15-base
-echo 2^) acestep-v15-sft
-echo 3^) acestep-v15-turbo  (Recommended)
-echo 4^) acestep-v15-turbo-rl
+echo 1^) empath-v15-base
+echo 2^) empath-v15-sft
+echo 3^) empath-v15-turbo  (Recommended)
+echo 4^) empath-v15-turbo-rl
 echo.
 :dit_choice_ask
     set /p DIT_CHOICE="Enter selection (1-4): "
     if "%DIT_CHOICE%"=="1" (
-        set CONFIG_PATH=--config_path acestep-v15-base
+        set CONFIG_PATH=--config_path empath-v15-base
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="2" (
-        set CONFIG_PATH=--config_path acestep-v15-sft
+        set CONFIG_PATH=--config_path empath-v15-sft
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="3" (
-        set CONFIG_PATH=--config_path acestep-v15-turbo
+        set CONFIG_PATH=--config_path empath-v15-turbo
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="4" (
-        set CONFIG_PATH=--config_path acestep-v15-turbo-rl
+        set CONFIG_PATH=--config_path empath-v15-turbo-rl
         goto dit_choice_done
     )
     echo Invalid input. Please enter a number between 1 and 4.
@@ -479,25 +479,25 @@ echo Selected DiT Model: %CONFIG_PATH:--config_path =%
 
 echo.
 echo -------------------- Select LM Model --------------------
-echo 1^) acestep-5Hz-lm-0.6B  (Recommended)
-echo 2^) acestep-5Hz-lm-1.7B
-echo 3^) acestep-5Hz-lm-4B
+echo 1^) empath-5Hz-lm-0.6B  (Recommended)
+echo 2^) empath-5Hz-lm-1.7B
+echo 3^) empath-5Hz-lm-4B
 echo 4^) Launch without LM Model
 echo.
 :lm_choice_ask
     set /p LM_CHOICE="Enter selection (1-4): "
     if "%LM_CHOICE%"=="1" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-0.6B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-0.6B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="2" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-1.7B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-1.7B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="3" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-4B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-4B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )

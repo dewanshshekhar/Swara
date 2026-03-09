@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step REST API Server Launcher
-REM This script launches the REST API server for ACE-Step
+REM Empath REST API Server Launcher
+REM This script launches the REST API server for Empath
 
 REM ==================== Configuration ====================
 REM Uncomment and modify the parameters below as needed
@@ -25,13 +25,13 @@ REM By default, LLM is auto-enabled/disabled based on GPU VRAM:
 REM   - <=6GB VRAM: LLM disabled (DiT-only mode)
 REM   - >6GB VRAM: LLM enabled
 REM Values: auto (default), true (force enable), false (force disable)
-set ACESTEP_INIT_LLM=auto
-REM set ACESTEP_INIT_LLM=true
-REM set ACESTEP_INIT_LLM=false
+set EMPATH_INIT_LLM=auto
+REM set EMPATH_INIT_LLM=true
+REM set EMPATH_INIT_LLM=false
 
 REM LM model path (optional, only used when LLM is enabled)
-REM Available models: acestep-5Hz-lm-0.6B, acestep-5Hz-lm-1.7B, acestep-5Hz-lm-4B
-REM set LM_MODEL_PATH=--lm-model-path acestep-5Hz-lm-0.6B
+REM Available models: empath-5Hz-lm-0.6B, empath-5Hz-lm-1.7B, empath-5Hz-lm-4B
+REM set LM_MODEL_PATH=--lm-model-path empath-5Hz-lm-0.6B
 
 REM Update check on startup (set to false to disable)
 set CHECK_UPDATE=true
@@ -39,8 +39,8 @@ REM set CHECK_UPDATE=false
 
 REM Skip model loading at startup (models will be lazy-loaded on first request)
 REM Set to true to start server quickly without loading models
-REM set ACESTEP_NO_INIT=false
-REM set ACESTEP_NO_INIT=true
+REM set EMPATH_NO_INIT=false
+REM set EMPATH_NO_INIT=true
 
 REM ==================== Launch ====================
 
@@ -115,7 +115,7 @@ echo.
 
 :SkipUpdateCheck
 
-echo Starting ACE-Step REST API Server...
+echo Starting Empath REST API Server...
 echo API will be available at: http://%HOST%:%PORT%
 echo API Documentation: http://%HOST%:%PORT%/docs
 echo.
@@ -126,7 +126,7 @@ if exist "%~dp0python_embedded\python.exe" (
 
     REM Build command with optional parameters
     set "PYTHON_EXE=%~dp0python_embedded\python.exe"
-    set "SCRIPT_PATH=%~dp0acestep\api_server.py"
+    set "SCRIPT_PATH=%~dp0empath\api_server.py"
     set "CMD=--host %HOST% --port %PORT%"
     if not "%API_KEY%"=="" set "CMD=!CMD! %API_KEY%"
     if not "%DOWNLOAD_SOURCE%"=="" set "CMD=!CMD! %DOWNLOAD_SOURCE%"
@@ -144,7 +144,7 @@ if exist "%~dp0python_embedded\python.exe" (
         echo uv package manager not found!
         echo ========================================
         echo.
-        echo ACE-Step requires either:
+        echo Empath requires either:
         echo   1. python_embedded directory ^(portable package^)
         echo   2. uv package manager
         echo.
@@ -194,7 +194,7 @@ if exist "%~dp0python_embedded\python.exe" (
                     echo.
                     echo uv installed but not in PATH yet.
                     echo Please restart your terminal or run:
-                    echo   %USERPROFILE%\.local\bin\uv.exe run acestep-api
+                    echo   %USERPROFILE%\.local\bin\uv.exe run empath-api
                     echo.
                     pause
                     exit /b 1
@@ -208,7 +208,7 @@ if exist "%~dp0python_embedded\python.exe" (
                 echo Please install uv manually:
                 echo   1. Using PowerShell: irm https://astral.sh/uv/install.ps1 ^| iex
                 echo   2. Using winget: winget install --id=astral-sh.uv -e
-                echo   3. Download portable package: https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z
+                echo   3. Download portable package: https://files.acemusic.ai/acemusic/win/Empath-1.5.7z
                 echo.
                 pause
                 exit /b 1
@@ -217,9 +217,9 @@ if exist "%~dp0python_embedded\python.exe" (
             echo.
             echo Installation cancelled.
             echo.
-            echo To use ACE-Step, please either:
+            echo To use Empath, please either:
             echo   1. Install uv: winget install --id=astral-sh.uv -e
-            echo   2. Download portable package: https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z
+            echo   2. Download portable package: https://files.acemusic.ai/acemusic/win/Empath-1.5.7z
             echo.
             pause
             exit /b 1
@@ -270,25 +270,25 @@ if exist "%~dp0python_embedded\python.exe" (
         echo.
     )
 
-    echo Starting ACE-Step API Server...
+    echo Starting Empath API Server...
     echo.
 
     REM Build command with optional parameters
-    set "ACESTEP_ARGS=acestep-api --host %HOST% --port %PORT%"
-    if not "%API_KEY%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %API_KEY%"
-    if not "%DOWNLOAD_SOURCE%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %DOWNLOAD_SOURCE%"
-    if not "%LM_MODEL_PATH%"=="" set "ACESTEP_ARGS=!ACESTEP_ARGS! %LM_MODEL_PATH%"
+    set "EMPATH_ARGS=empath-api --host %HOST% --port %PORT%"
+    if not "%API_KEY%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %API_KEY%"
+    if not "%DOWNLOAD_SOURCE%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %DOWNLOAD_SOURCE%"
+    if not "%LM_MODEL_PATH%"=="" set "EMPATH_ARGS=!EMPATH_ARGS! %LM_MODEL_PATH%"
 
-    uv run !ACESTEP_ARGS!
+    uv run !EMPATH_ARGS!
     if !ERRORLEVEL! NEQ 0 (
         echo.
         echo [Retry] Online dependency resolution failed, retrying in offline mode...
         echo.
-        uv run --offline !ACESTEP_ARGS!
+        uv run --offline !EMPATH_ARGS!
         if !ERRORLEVEL! NEQ 0 (
             echo.
             echo ========================================
-            echo [Error] Failed to start ACE-Step API Server
+            echo [Error] Failed to start Empath API Server
             echo ========================================
             echo.
             echo Both online and offline modes failed.

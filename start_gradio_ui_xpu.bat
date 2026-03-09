@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step Gradio Web UI Launcher - Intel XPU
+REM Empath Gradio Web UI Launcher - Intel XPU
 REM For Intel Arc GPUs (A770, A750, A580, A380) and integrated graphics
 REM Requires: Python 3.11, PyTorch XPU nightly from download.pytorch.org/whl/xpu
 REM IMPORTANT: Uses torch.xpu backend with SYCL/Level Zero acceleration
@@ -43,8 +43,8 @@ REM set BATCH_SIZE=--batch_size 4
 
 REM ==================== Model Configuration ====================
 REM Default model (can be overridden in .env file)
-if not defined CONFIG_PATH set CONFIG_PATH=--config_path acestep-v15-turbo
-if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-4B
+if not defined CONFIG_PATH set CONFIG_PATH=--config_path empath-v15-turbo
+if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-4B
 
 REM CPU offload: recommended for 4B LM on GPUs with <=16GB VRAM
 REM Models shuttle between CPU/GPU as needed (DiT stays on GPU, LM/VAE/text_encoder move on demand)
@@ -151,7 +151,7 @@ echo.
 :SkipUpdateCheck
 
 echo ============================================
-echo   ACE-Step 1.5 - Intel XPU Edition
+echo   Empath 1.5 - Intel XPU Edition
 echo ============================================
 echo.
 
@@ -198,10 +198,10 @@ if !ERRORLEVEL! NEQ 0 (
 )
 echo.
 
-echo Starting ACE-Step Gradio Web UI...
+echo Starting Empath Gradio Web UI...
 echo Server will be available at: http://%SERVER_NAME%:%PORT%
-echo Default Model: acestep-v15-turbo
-echo LM Model: acestep-5Hz-lm-4B (with CPU offload)
+echo Default Model: empath-v15-turbo
+echo LM Model: empath-5Hz-lm-4B (with CPU offload)
 echo.
 echo Select your model in the UI if needed!
 echo.
@@ -221,7 +221,7 @@ if not "%API_KEY%"=="" set "CMD=!CMD! %API_KEY%"
 if not "%AUTH_USERNAME%"=="" set "CMD=!CMD! %AUTH_USERNAME%"
 if not "%AUTH_PASSWORD%"=="" set "CMD=!CMD! %AUTH_PASSWORD%"
 
-python -u acestep\acestep_v15_pipeline.py !CMD!
+python -u empath\empath_v15_pipeline.py !CMD!
 
 pause
 endlocal
@@ -249,23 +249,23 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             for /f "tokens=* delims= " %%x in ("!line!") do set "key=%%x"
             
             REM Map .env variable names to batch script variables
-            if /i "!key!"=="ACESTEP_CONFIG_PATH" (
+            if /i "!key!"=="EMPATH_CONFIG_PATH" (
                 if not "!value!"=="" set "CONFIG_PATH=--config_path !value!"
             )
-            if /i "!key!"=="ACESTEP_LM_MODEL_PATH" (
+            if /i "!key!"=="EMPATH_LM_MODEL_PATH" (
                 if not "!value!"=="" set "LM_MODEL_PATH=--lm_model_path !value!"
             )
-            if /i "!key!"=="ACESTEP_INIT_LLM" (
+            if /i "!key!"=="EMPATH_INIT_LLM" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "INIT_LLM=--init_llm !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_DOWNLOAD_SOURCE" (
+            if /i "!key!"=="EMPATH_DOWNLOAD_SOURCE" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "DOWNLOAD_SOURCE=--download-source !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_API_KEY" (
+            if /i "!key!"=="EMPATH_API_KEY" (
                 if not "!value!"=="" set "API_KEY=--api-key !value!"
             )
             if /i "!key!"=="PORT" (
@@ -277,10 +277,10 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             if /i "!key!"=="LANGUAGE" (
                 if not "!value!"=="" set "LANGUAGE=!value!"
             )
-            if /i "!key!"=="ACESTEP_BATCH_SIZE" (
+            if /i "!key!"=="EMPATH_BATCH_SIZE" (
                 if not "!value!"=="" set "BATCH_SIZE=--batch_size !value!"
             )
-            if /i "!key!"=="ACESTEP_OFFLOAD_TO_CPU" (
+            if /i "!key!"=="EMPATH_OFFLOAD_TO_CPU" (
                 if not "!value!"=="" set "OFFLOAD_TO_CPU=--offload_to_cpu !value!"
             )
         )

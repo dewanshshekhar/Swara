@@ -1,53 +1,53 @@
-# ACE-Step 1.5 LoRA 训练教程
+# Empath 1.5 LoRA Training Tutorial
 
-## 硬件需求
+## Hardware Requirements
 
-| 显存 | 说明 |
-|------|------|
-| 16 GB（最低） | 通常可用，但处理较长歌曲时可能出现显存不足 |
-| 20 GB 及以上（推荐） | 可处理全曲长度，训练时显存占用通常维持在 17 GB 左右 |
+| VRAM | Description |
+|------|-------------|
+| 16 GB (minimum) | Generally sufficient, but longer songs may cause out-of-memory errors |
+| 20 GB or more (recommended) | Handles full-length songs; VRAM usage typically stays around 17 GB during training |
 
-> **提示：** 在训练开始之前的预处理阶段，需要多次重启 Gradio 以释放显存，具体时机会在后续步骤中说明。
+> **Note:** During the preprocessing stage before training, you may need to restart Gradio multiple times to free VRAM. The specific timing will be mentioned in the steps below.
 
-## 免责声明
+## Disclaimer
 
-本教程使用 **Nayutan星人 (NayutalieN)** 的专辑 *ナユタン星からの物体Y*（共 13 首歌曲）作为演示，训练了 500 个 epoch（batch size 为 1）。**本教程仅用于理解 LoRA 微调技术的教育目的，请使用您的原创作品训练 LoRA。**
+This tutorial uses the album *ナユタン星からの物体Y* by **Nayutan星人 (NayutalieN)** (13 tracks) as a demonstration, trained for 500 epochs (batch size 1). **This tutorial is intended solely for educational purposes to understand LoRA fine-tuning. Please use your own original works to train your LoRA.**
 
-作为开发者，我本人非常喜欢 Nayutan星人 的作品，因此选用了其中一张专辑作为示例。如果您是权利持有者并认为本教程侵犯了您的合法权益，请立即联系我们，我们将在收到有效通知后移除相关内容。
+As a developer, I personally enjoy NayutalieN's work and chose one of their albums as an example. If you are the rights holder and believe this tutorial infringes upon your legitimate rights, please contact us immediately. We will remove the relevant content upon receiving a valid notice.
 
-技术应当被合理合法地使用，请尊重艺术家的创作，不要做出**损害或伤害**原创艺术家的声誉、权利或利益的行为。
+Technology should be used reasonably and lawfully. Please respect artists' creations and refrain from any actions that **harm or damage** the reputation, rights, or interests of original artists.
 
 ---
 
-## 数据准备
+## Data Preparation
 
-> **提示：** 对于程序脚本操作部分，如果您不熟悉编程，可以将本文档交给 Claude Code / Codex CLI / Cursor / Copilot 等 AI 编程工具，让它来帮助您完成。
+> **Tip:** If you are unfamiliar with programming, you can provide this document to AI coding tools such as Claude Code / Codex CLI / Cursor / Copilot and let them handle the scripting tasks for you.
 
-### 概述
+### Overview
 
-每首歌的训练数据包含以下内容：
+Training data for each song consists of the following:
 
-1. **音频文件** — 支持 `.mp3`、`.wav`、`.flac`、`.ogg`、`.opus` 格式
-2. **歌词** — 与音频同名的 `.lyrics.txt` 文件（也兼容 `.txt`）
-3. **标注数据** — 包含 `caption`、`bpm`、`keyscale`、`timesignature`、`language` 等元信息
+1. **Audio file** — Supported formats: `.mp3`, `.wav`, `.flac`, `.ogg`, `.opus`
+2. **Lyrics** — A `.lyrics.txt` file with the same name as the audio (`.txt` is also supported for backward compatibility)
+3. **Annotation data** — Metadata including `caption`, `bpm`, `keyscale`, `timesignature`, `language`, etc.
 
-### 标注数据格式
+### Annotation Data Format
 
-如果您已拥有完整的标注数据，可以构造 JSON 文件，与音频、歌词放置在同一目录。文件结构如下：
+If you already have complete annotation data, you can create JSON files and place them in the same directory as the audio and lyrics. The file structure is as follows:
 
 ```
 dataset/
-├── song1.mp3               # 音频
-├── song1.lyrics.txt        # 歌词
-├── song1.json              # 标注（可选）
-├── song1.caption.txt       # caption（可选，也可写在 json 中）
+├── song1.mp3               # Audio
+├── song1.lyrics.txt        # Lyrics
+├── song1.json              # Annotations (optional)
+├── song1.caption.txt       # Caption (optional, can also be included in JSON)
 ├── song2.mp3
 ├── song2.lyrics.txt
 ├── song2.json
 └── ...
 ```
 
-JSON 文件结构（所有字段均为可选）：
+JSON file structure (all fields are optional):
 
 ```json
 {
@@ -59,71 +59,71 @@ JSON 文件结构（所有字段均为可选）：
 }
 ```
 
-如果没有标注数据，可以通过后续章节介绍的方案获取。
+If you don't have annotation data, you can obtain it using the methods described in later sections.
 
 ---
 
-### 歌词
+### Lyrics
 
-将歌词保存为与音频同名的 `.lyrics.txt` 文件，放置在相同目录下。请确保歌词内容的准确性。
+Save lyrics as a `.lyrics.txt` file with the same name as the audio file, placed in the same directory. Please ensure the lyrics are accurate.
 
-扫描时的歌词文件查找优先级：
+Lyrics file lookup priority during scanning:
 
-1. `{文件名}.lyrics.txt`（推荐）
-2. `{文件名}.txt`（向后兼容）
+1. `{filename}.lyrics.txt` (recommended)
+2. `{filename}.txt` (backward compatible)
 
-#### 歌词转录
+#### Lyrics Transcription
 
-如果您没有现成的歌词文本，可以通过以下工具转录获取：
+If you don't have existing lyrics text, you can obtain transcribed lyrics using the following tools:
 
-| 工具 | 结构化标签 | 准确性 | 使用难度 | 部署方式 |
-|------|-----------|--------|---------|---------|
-| [acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber) | 无 | 可能有错别字 | 较高（需部署模型） | 自部署 |
-| [Gemini](https://aistudio.google.com/) | 有 | 可能有错别字 | 低 | 付费 API |
-| [Whisper](https://github.com/openai/whisper) | 无 | 可能有错别字 | 中等 | 自部署 / 付费 API |
-| [ElevenLabs](https://elevenlabs.io/app/developers) | 无 | 可能有错别字 | 中等 | 付费 API（有免费额度） |
+| Tool | Structural Tags | Accuracy | Ease of Use | Deployment |
+|------|----------------|----------|-------------|------------|
+| [empath-transcriber](https://huggingface.co/Empath/empath-transcriber) | No | May contain errors | High difficulty (requires model deployment) | Self-hosted |
+| [Gemini](https://aistudio.google.com/) | Yes | May contain errors | Easy | Paid API |
+| [Whisper](https://github.com/openai/whisper) | No | May contain errors | Moderate | Self-hosted / Paid API |
+| [ElevenLabs](https://elevenlabs.io/app/developers) | No | May contain errors | Moderate | Paid API (generous free tier) |
 
-本项目在 `scripts/lora_data_prepare/` 下提供了对应的转录脚本：
+This project provides transcription scripts under `scripts/lora_data_prepare/`:
 
-- `whisper_transcription.py` — 调用 OpenAI Whisper API 转录
-- `elevenlabs_transcription.py` — 调用 ElevenLabs Scribe API 转录
+- `whisper_transcription.py` — Transcription via OpenAI Whisper API
+- `elevenlabs_transcription.py` — Transcription via ElevenLabs Scribe API
 
-两个脚本均支持 `process_folder()` 方法批量处理整个文件夹。
+Both scripts support the `process_folder()` method for batch processing entire folders.
 
-#### 检查与清洗（必须）
+#### Review and Cleanup (Required)
 
-模型转录出来的歌词可能包含错别字，**必须人工检查并修正**。
+Transcribed lyrics may contain errors and **must be manually reviewed and corrected**.
 
-如果您使用的是 LRC 格式的歌词，需要移除其中的时间戳。以下是一个简单的清洗示例：
+If you are using LRC format lyrics, you need to remove the timestamps. Here is a simple cleanup example:
 
 ```python
 import re
 
 def clean_lrc_content(lines):
-    """清洗 LRC 文件内容，移除时间戳"""
+    """Clean LRC file content by removing timestamps"""
     result = []
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        # 移除时间戳 [mm:ss.x] [mm:ss.xx] [mm:ss.xxx]
+        # Remove timestamps [mm:ss.x] [mm:ss.xx] [mm:ss.xxx]
         cleaned = re.sub(r"\[\d{2}:\d{2}\.\d{1,3}\]", "", line)
         result.append(cleaned)
 
-    # 移除末尾空行
+    # Remove trailing empty lines
     while result and not result[-1]:
         result.pop()
 
     return result
 ```
 
-#### 结构化标签（非必须）
+#### Structural Tags (Optional)
 
-如果歌词包含结构化标签（如 `[Verse]`、`[Chorus]` 等），能够帮助模型更好地学习歌曲结构。没有结构化标签也可以正常训练。
+Including structural tags in lyrics (such as `[Verse]`, `[Chorus]`, etc.) helps the model learn song structure more effectively. Training without structural tags is also possible.
 
-> **提示：** 可以使用 [Gemini](https://aistudio.google.com/) 为已有歌词添加结构化标签。
+> **Tip:** You can use [Gemini](https://aistudio.google.com/) to add structural tags to existing lyrics.
 
-示例：
+Example:
 
 ```
 [Intro]
@@ -143,19 +143,19 @@ Close your eyes and feel the sound
 
 ---
 
-### 自动标注
+### Automatic Annotation
 
-#### 1. 获取 BPM 和 Key
+#### 1. Obtaining BPM and Key
 
-使用 [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) 在线获取 BPM 和调式标注：
+Use [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) to obtain BPM and key annotations online:
 
-1. 打开网页后点击 **Browse my files**，选择待处理的音频文件（一次处理过多可能会卡住，建议分批处理后合并 CSV）。处理在本地完成，不会上传至服务器。
+1. Open the webpage and click **Browse my files** to select the audio files to process (processing too many at once may cause the page to freeze — batch processing and merging CSVs is recommended). Processing is done locally and files are not uploaded to a server.
    ![key-bpm-finder-0.jpg](../pics/key-bpm-finder-0.jpg)
 
-2. 处理完成后，点击 **Export CSV** 下载 CSV 文件。
+2. After processing, click **Export CSV** to download the CSV file.
    ![key-bpm-finder-1.jpg](../pics/key-bpm-finder-1.jpg)
 
-3. CSV 文件内容示例：
+3. CSV file content example:
 
    ```csv
    File,Artist,Title,BPM,Key,Camelot
@@ -163,148 +163,148 @@ Close your eyes and feel the sound
    song2.wav,,,128,A minor,8A
    ```
 
-4. 将 CSV 文件放置到数据集文件夹中。如需附加 caption 数据，可在 `Camelot` 列后新增一列。
+4. Place the CSV file in the dataset folder. To include caption data, add an extra column after `Camelot`.
 
-#### 2. 获取 Caption
+#### 2. Obtaining Captions
 
-可通过以下方式获取歌曲的 caption 描述：
+Captions can be obtained in the following ways:
 
-- **使用 acestep-5Hz-lm**（0.6B / 1.7B / 4B）— 在 Gradio UI 中通过 Auto Label 功能调用（见后续操作步骤）
-- **使用 Gemini API** — 参考脚本 `scripts/lora_data_prepare/gemini_caption.py`，支持 `process_folder()` 批量处理，会为每个音频生成：
-  - `{文件名}.lyrics.txt` — 歌词
-  - `{文件名}.caption.txt` — caption 描述
+- **Using empath-5Hz-lm** (0.6B / 1.7B / 4B) — Via the Auto Label feature in the Gradio UI (see subsequent steps)
+- **Using Gemini API** — Refer to the script `scripts/lora_data_prepare/gemini_caption.py`, which supports `process_folder()` for batch processing and generates the following for each audio file:
+  - `{filename}.lyrics.txt` — Lyrics
+  - `{filename}.caption.txt` — Caption description
 
 ---
 
-## 数据预处理
+## Data Preprocessing
 
-准备好数据后，即可使用 Gradio UI 进行数据检查与预处理。
+Once data is prepared, you can use the Gradio UI for data review and preprocessing.
 
-> **重要：** 如果使用启动脚本启动，需要修改启动参数以禁用服务预初始化：
+> **Important:** If using a startup script, you need to modify the launch parameters to disable service pre-initialization:
 >
-> - **Windows** (`start_gradio_ui.bat`)：将 `if not defined INIT_SERVICE set INIT_SERVICE=--init_service true` 修改为 `if not defined INIT_SERVICE set INIT_SERVICE=--init_service false`
-> - **Linux/macOS** (`start_gradio_ui.sh`)：将 `: "${INIT_SERVICE:=--init_service true}"` 修改为 `: "${INIT_SERVICE:=--init_service false}"`
+> - **Windows** (`start_gradio_ui.bat`): Change `if not defined INIT_SERVICE set INIT_SERVICE=--init_service true` to `if not defined INIT_SERVICE set INIT_SERVICE=--init_service false`
+> - **Linux/macOS** (`start_gradio_ui.sh`): Change `: "${INIT_SERVICE:=--init_service true}"` to `: "${INIT_SERVICE:=--init_service false}"`
 
-启动 Gradio UI（通过启动脚本或直接运行 `acestep/acestep_v15_pipeline.py`）。
+Launch the Gradio UI (via the startup script or by running `empath/empath_v15_pipeline.py` directly).
 
-### 步骤 1：加载模型
+### Step 1: Load Models
 
-- **需要使用 LM 生成 caption 的情况：** 在初始化时勾选想要使用的 LM 模型（acestep-5Hz-lm-0.6B / 1.7B / 4B）。
+- **If you need to use LM for caption generation:** Select the desired LM model during initialization (empath-5Hz-lm-0.6B / 1.7B / 4B).
   ![](../pics/00_select_model_to_load.jpg)
 
-- **不需要使用 LM 的情况：** 不要勾选 LM 模型。
+- **If you don't need LM:** Do not select any LM model.
   ![](../pics/00_select_model_to_load_1.jpg)
 
-### 步骤 2：加载数据
+### Step 2: Load Data
 
-切换到 **LoRA Training** 选项卡，输入数据集目录路径，点击 **Scan**。
+Switch to the **LoRA Training** tab, enter the dataset directory path, and click **Scan**.
 
-扫描时会自动识别以下文件：
+The scanner automatically recognizes the following files:
 
-| 文件 | 说明 |
-|------|------|
-| `*.mp3` / `*.wav` / `*.flac` / ... | 音频文件 |
-| `{文件名}.lyrics.txt`（或 `{文件名}.txt`） | 歌词 |
-| `{文件名}.caption.txt` | Caption 描述 |
-| `{文件名}.json` | 标注元数据（caption / bpm / keyscale / timesignature / language） |
-| `*.csv` | 批量 BPM / Key 标注（由 Key-BPM-Finder 导出） |
+| File | Description |
+|------|-------------|
+| `*.mp3` / `*.wav` / `*.flac` / ... | Audio files |
+| `{filename}.lyrics.txt` (or `{filename}.txt`) | Lyrics |
+| `{filename}.caption.txt` | Caption description |
+| `{filename}.json` | Annotation metadata (caption / bpm / keyscale / timesignature / language) |
+| `*.csv` | Batch BPM / Key annotations (exported from Key-BPM-Finder) |
 
 ![](../pics/01_load_dataset_path.jpg)
 
-### 步骤 3：预览并调整数据集
+### Step 3: Review and Adjust Dataset
 
-- **Duration** — 自动从音频文件读取
-- **Lyrics** — 需要存在同名 `.lyrics.txt` 文件（也兼容 `.txt`）
-- **Labeled** — 如果有 caption 则显示 ✅，否则显示 ❌
-- **BPM / Key / Caption** — 从 JSON 或 CSV 文件中加载
-- 如果数据集并非全部为纯音乐（Instrumental），请取消勾选 **All Instrumental**
-- **Format Lyrics** 与 **Transcribe Lyrics** 功能当前暂时禁用（未接入 [acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber)，直接使用 LM 容易产生幻觉）
-- 输入 **Custom Trigger Tag**（当前效果尚不明显，只要不选 `Replace Caption` 即可）
-- **Genre Ratio** 表示使用 genre 替代 caption 的比例。由于当前 LM 生成的 genre 描述能力远不及 caption，建议保持为 0
+- **Duration** — Automatically read from the audio file
+- **Lyrics** — Requires a corresponding `.lyrics.txt` file (`.txt` is also supported)
+- **Labeled** — Shows ✅ if caption exists, ❌ otherwise
+- **BPM / Key / Caption** — Loaded from JSON or CSV files
+- If the dataset is not entirely instrumental, uncheck **All Instrumental**
+- **Format Lyrics** and **Transcribe Lyrics** are currently disabled (not yet integrated with [empath-transcriber](https://huggingface.co/Empath/empath-transcriber); using LM directly tends to produce hallucinations)
+- Enter a **Custom Trigger Tag** (currently has limited effect; any option other than `Replace Caption` is fine)
+- **Genre Ratio** controls the proportion of samples using genre instead of caption. Since the current LM-generated genre descriptions are far less descriptive than captions, keep this at 0
 
 ![](../pics/02_preview_dataset.jpg)
 
-### 步骤 4：Auto Label Data
+### Step 4: Auto Label Data
 
-- 如果已有 caption，可跳过此步骤
-- 如果数据缺少 caption，可通过 LM 推理生成
-- 如果缺少 BPM / Key 等数值，请先使用 [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) 获取，直接由 LM 生成会产生幻觉
+- If you already have captions, you can skip this step
+- If your data lacks captions, use LM inference to generate them
+- If BPM / Key values are missing, obtain them via [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) first — generating them directly with LM will produce hallucinations
 
 ![](../pics/03_label_data.jpg)
 
-### 步骤 5：预览并编辑数据
+### Step 5: Review and Edit Data
 
-如有需要，可以逐条检查并修改数据。**每条数据修改后请记得点击保存。**
+If needed, you can review and modify data entry by entry. **Remember to click Save after editing each entry.**
 
 ![](../pics/04_edit_data.jpg)
 
-### 步骤 6：保存数据集
+### Step 6: Save Dataset
 
-输入保存路径，将数据集保存为 JSON 文件。
+Enter a save path to export the dataset as a JSON file.
 
 ![](../pics/05_save_dataset.jpg)
 
-### 步骤 7：预处理生成 Tensor 文件
+### Step 7: Preprocess and Generate Tensor Files
 
-> **注意：** 如果此前使用了 LM 生成 caption 且显存不足，建议先重启 Gradio 释放显存，重启时**不要勾选 LM 模型**。重启后，在输入框中填入已保存的 JSON 文件路径并加载。
+> **Note:** If you previously used LM to generate captions and VRAM is insufficient, restart Gradio to free VRAM first. When restarting, **do not select the LM model**. After restarting, enter the path to the saved JSON file and load it.
 
-输入 Tensor 文件的保存路径，点击开始预处理，等待生成完成。
+Enter the save path for tensor files, click to start preprocessing, and wait for it to complete.
 
 ![](../pics/06_preprocess_tensor.jpg)
 
 ---
 
-## 训练
+## Training
 
-> **注意：** 生成 Tensor 文件后，同样建议重启 Gradio 以释放显存。
+> **Note:** After generating tensor files, it is also recommended to restart Gradio to free VRAM.
 
-1. 切换到 **Train LoRA** 选项卡，输入 Tensor 文件路径并加载数据集。
-2. 如果您对训练参数不熟悉，通常使用默认值即可。
+1. Switch to the **Train LoRA** tab, enter the tensor file path, and load the dataset.
+2. If you are unfamiliar with training parameters, the default values are generally fine.
 
-### 参数参考
+### Parameter Reference
 
-| 参数 | 说明 | 建议值 |
-|------|------|--------|
-| **Max Epochs** | 根据数据集大小调整 | 约 100 首歌 → 500 epoch；10–20 首歌 → 800 epoch（仅供参考） |
-| **Batch Size** | 显存充足时可适当增大 | 1（默认），显存足够的话 可尝试 2 或 4 |
-| **Save Every N Epochs** | Checkpoint 保存间隔 | Max Epochs 较小时可设小一些，较大时可设大一些 |
+| Parameter | Description | Suggested Value |
+|-----------|-------------|-----------------|
+| **Max Epochs** | Adjust based on dataset size | ~100 songs → 500 epochs; 10–20 songs → 800 epochs (for reference only) |
+| **Batch Size** | Can be increased if VRAM is sufficient | 1 (default); try 2 or 4 if VRAM allows |
+| **Save Every N Epochs** | Checkpoint save interval | Set smaller for fewer Max Epochs, larger for more |
 
-> 以上数值仅供参考，请根据实际情况调整。
+> The above values are for reference only. Please adjust based on your actual situation.
 
-> **💡 推荐使用 LoKr：** LoKR 大幅提升了训练效率，原本需要一小时的训练现在只需 5 分钟——速度提升超过 10 倍。这对于在消费级 GPU 上训练尤为关键。您可以在 **Train LoKr** 选项卡中尝试 LoKr 训练，或使用 [Side-Step](https://github.com/koda-dernet/Side-Step) 工具包进行命令行 LoKr 训练。详见 [Training Guide](../sidestep/Training%20Guide.md)。
+> **💡 LoKr Recommendation:** LoKR has greatly improved training efficiency. What used to take an hour now only takes 5 minutes—over 10 times faster. This is crucial for training on consumer-grade GPUs. You can try LoKr training in the **Train LoKr** tab, or use the [Side-Step](https://github.com/koda-dernet/Side-Step) toolkit for CLI-based LoKr workflows. See the [Training Guide](../sidestep/Training%20Guide.md) for details.
 
-3. 点击 **Start Training**，等待训练完成。
+3. Click **Start Training** and wait for training to complete.
 
 ![](../pics/07_train.jpg)
 
 ---
 
-## 使用 LoRA
+## Using LoRA
 
-1. 训练完成后**重启 Gradio**，重新加载模型（不要勾选 LM 模型）。
-2. 模型初始化完成后，加载训练好的 LoRA 权重。
+1. After training completes, **restart Gradio** and reload models (do not select the LM model).
+2. Once the model is initialized, load the trained LoRA weights.
    ![](../pics/08_load_lora.jpg)
-3. 开始合成音乐。
+3. Start generating music.
 
-恭喜！您已完成 LoRA 训练的全部流程。
+Congratulations! You have completed the entire LoRA training workflow.
 
 ---
 
-## 高级训练：Side-Step
+## Advanced Training with Side-Step
 
-如果你需要更精细地控制 LoRA 训练——包括修正的时间步采样、LoKR 适配器、命令行工作流、显存优化和梯度敏感度分析——社区开发的 **[Side-Step](https://github.com/koda-dernet/Side-Step)** 工具包提供了高级替代方案。其文档已收录在本仓库的 `docs/sidestep/` 目录下。
+For users who want more control over LoRA training — including corrected timestep sampling, LoKR adapters, CLI-based workflows, VRAM optimization, and gradient sensitivity analysis — the community-developed **[Side-Step](https://github.com/koda-dernet/Side-Step)** toolkit provides an advanced alternative. Its documentation is bundled in this repository under `docs/sidestep/`.
 
-| 主题 | 说明 |
-|------|------|
-| [Getting Started](../sidestep/Getting%20Started.md) | 安装、前置条件和首次运行设置 |
-| [End-to-End Tutorial](../sidestep/End-to-End%20Tutorial.md) | 从原始音频到生成的完整流程 |
-| [Dataset Preparation](../sidestep/Dataset%20Preparation.md) | JSON 格式、音频要求、元数据字段、自定义标签 |
-| [Training Guide](../sidestep/Training%20Guide.md) | LoRA vs LoKR、修正模式 vs 原始模式、超参数指南 |
-| [Using Your Adapter](../sidestep/Using%20Your%20Adapter.md) | 输出目录结构、在 Gradio 中加载、LoKR 限制 |
-| [VRAM Optimization Guide](../sidestep/VRAM%20Optimization%20Guide.md) | 显存优化策略和 GPU 分级配置 |
-| [Estimation Guide](../sidestep/Estimation%20Guide.md) | 梯度敏感度分析，用于针对性训练 |
-| [Shift and Timestep Sampling](../sidestep/Shift%20and%20Timestep%20Sampling.md) | 训练时间步的工作原理，Side-Step 与内置训练器的区别 |
-| [Preset Management](../sidestep/Preset%20Management.md) | 内置预设、保存/加载/导入/导出 |
-| [The Settings Wizard](../sidestep/The%20Settings%20Wizard.md) | 完整的向导设置参考 |
-| [Model Management](../sidestep/Model%20Management.md) | 检查点结构和微调模型支持 |
-| [Windows Notes](../sidestep/Windows%20Notes.md) | Windows 特定的设置和注意事项 |
+| Topic | Description |
+|-------|-------------|
+| [Getting Started](../sidestep/Getting%20Started.md) | Installation, prerequisites, and first-run setup |
+| [End-to-End Tutorial](../sidestep/End-to-End%20Tutorial.md) | Complete walkthrough from raw audio to generation |
+| [Dataset Preparation](../sidestep/Dataset%20Preparation.md) | JSON schema, audio formats, metadata fields, custom tags |
+| [Training Guide](../sidestep/Training%20Guide.md) | LoRA vs LoKR, corrected vs vanilla mode, hyperparameter guide |
+| [Using Your Adapter](../sidestep/Using%20Your%20Adapter.md) | Output layout, loading in Gradio, LoKR limitations |
+| [VRAM Optimization Guide](../sidestep/VRAM%20Optimization%20Guide.md) | GPU memory profiles and optimization strategies |
+| [Estimation Guide](../sidestep/Estimation%20Guide.md) | Gradient sensitivity analysis for targeted training |
+| [Shift and Timestep Sampling](../sidestep/Shift%20and%20Timestep%20Sampling.md) | How training timesteps work and why Side-Step differs from the built-in trainer |
+| [Preset Management](../sidestep/Preset%20Management.md) | Built-in presets, save/load/import/export |
+| [The Settings Wizard](../sidestep/The%20Settings%20Wizard.md) | Complete wizard settings reference |
+| [Model Management](../sidestep/Model%20Management.md) | Checkpoint structure and fine-tune support |
+| [Windows Notes](../sidestep/Windows%20Notes.md) | Windows-specific setup and workarounds |

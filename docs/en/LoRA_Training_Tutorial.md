@@ -1,4 +1,4 @@
-# ACE-Step 1.5 LoRA Training Tutorial
+# Empath 1.5 LoRA Training Tutorial
 
 ## Hardware Requirements
 
@@ -78,7 +78,7 @@ If you don't have existing lyrics text, you can obtain transcribed lyrics using 
 
 | Tool | Structural Tags | Accuracy | Ease of Use | Deployment |
 |------|----------------|----------|-------------|------------|
-| [acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber) | No | May contain errors | High difficulty (requires model deployment) | Self-hosted |
+| [empath-transcriber](https://huggingface.co/Empath/empath-transcriber) | No | May contain errors | High difficulty (requires model deployment) | Self-hosted |
 | [Gemini](https://aistudio.google.com/) | Yes | May contain errors | Easy | Paid API |
 | [Whisper](https://github.com/openai/whisper) | No | May contain errors | Moderate | Self-hosted / Paid API |
 | [ElevenLabs](https://elevenlabs.io/app/developers) | No | May contain errors | Moderate | Paid API (generous free tier) |
@@ -169,7 +169,7 @@ Use [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) to obtain BPM and 
 
 Captions can be obtained in the following ways:
 
-- **Using acestep-5Hz-lm** (0.6B / 1.7B / 4B) — Via the Auto Label feature in the Gradio UI (see subsequent steps)
+- **Using empath-5Hz-lm** (0.6B / 1.7B / 4B) — Via the Auto Label feature in the Gradio UI (see subsequent steps)
 - **Using Gemini API** — Refer to the script `scripts/lora_data_prepare/gemini_caption.py`, which supports `process_folder()` for batch processing and generates the following for each audio file:
   - `{filename}.lyrics.txt` — Lyrics
   - `{filename}.caption.txt` — Caption description
@@ -185,11 +185,11 @@ Once data is prepared, you can use the Gradio UI for data review and preprocessi
 > - **Windows** (`start_gradio_ui.bat`): Change `if not defined INIT_SERVICE set INIT_SERVICE=--init_service true` to `if not defined INIT_SERVICE set INIT_SERVICE=--init_service false`
 > - **Linux/macOS** (`start_gradio_ui.sh`): Change `: "${INIT_SERVICE:=--init_service true}"` to `: "${INIT_SERVICE:=--init_service false}"`
 
-Launch the Gradio UI (via the startup script or by running `acestep/acestep_v15_pipeline.py` directly).
+Launch the Gradio UI (via the startup script or by running `empath/empath_v15_pipeline.py` directly).
 
 ### Step 1: Load Models
 
-- **If you need to use LM for caption generation:** Select the desired LM model during initialization (acestep-5Hz-lm-0.6B / 1.7B / 4B).
+- **If you need to use LM for caption generation:** Select the desired LM model during initialization (empath-5Hz-lm-0.6B / 1.7B / 4B).
   ![](../pics/00_select_model_to_load.jpg)
 
 - **If you don't need LM:** Do not select any LM model.
@@ -218,7 +218,7 @@ The scanner automatically recognizes the following files:
 - **Labeled** — Shows ✅ if caption exists, ❌ otherwise
 - **BPM / Key / Caption** — Loaded from JSON or CSV files
 - If the dataset is not entirely instrumental, uncheck **All Instrumental**
-- **Format Lyrics** and **Transcribe Lyrics** are currently disabled (not yet integrated with [acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber); using LM directly tends to produce hallucinations)
+- **Format Lyrics** and **Transcribe Lyrics** are currently disabled (not yet integrated with [empath-transcriber](https://huggingface.co/Empath/empath-transcriber); using LM directly tends to produce hallucinations)
 - Enter a **Custom Trigger Tag** (currently has limited effect; any option other than `Replace Caption` is fine)
 - **Genre Ratio** controls the proportion of samples using genre instead of caption. Since the current LM-generated genre descriptions are far less descriptive than captions, keep this at 0
 

@@ -1,556 +1,567 @@
-# ACE-Step Gradio 演示用户指南
+# Empath Gradio Demo User Guide
 
-**Language / 语言 / 言語:** [English](../en/GRADIO_GUIDE.md) | [中文](GRADIO_GUIDE.md) | [日本語](../ja/GRADIO_GUIDE.md)
-
----
-
-本指南提供使用 ACE-Step Gradio Web 界面进行音乐生成的综合文档，包括所有功能和设置。
-
-## 目录
-
-- [快速开始](#快速开始)
-- [服务配置](#服务配置)
-- [生成模式](#生成模式)
-- [输入参数](#输入参数)
-- [高级设置](#高级设置)
-- [结果区域](#结果区域)
-- [LoRA 训练](#lora-训练)
-- [技巧与最佳实践](#技巧与最佳实践)
+**Language / 语言 / 言語:** [English](GRADIO_GUIDE.md) | [中文](../zh/GRADIO_GUIDE.md) | [日本語](../ja/GRADIO_GUIDE.md)
 
 ---
 
-## 快速开始
+This guide provides comprehensive documentation for using the Empath Gradio web interface for music generation, including all features and settings.
 
-### 启动演示
+## Table of Contents
+
+- [Getting Started](#getting-started)
+- [Service Configuration](#service-configuration)
+- [Generation Modes](#generation-modes)
+- [Input Parameters](#input-parameters)
+- [Advanced Settings](#advanced-settings)
+- [Results Section](#results-section)
+- [LoRA Training](#lora-training)
+- [Tips and Best Practices](#tips-and-best-practices)
+
+---
+
+## Getting Started
+
+### Launching the Demo
 
 ```bash
-# 基本启动
+# Basic launch
 python app.py
 
-# 预初始化
-python app.py --config acestep-v15-turbo --init-llm
+# With pre-initialization
+python app.py --config empath-v15-turbo --init-llm
 
-# 指定端口
+# With specific port
 python app.py --port 7860
 ```
 
-### 界面概述
+### Interface Overview
 
-Gradio 界面布局如下：
+The Gradio interface is organized as follows:
 
-1. **设置**（折叠式手风琴）- 服务配置、DiT/LM 参数、输出选项
-2. **生成标签页** - 主工作区，顶部有**生成模式**单选选择器：
-   - Turbo/SFT 模型：Simple、Custom、Remix、Repaint
-   - Base 模型：Simple、Custom、Remix、Repaint、Extract、Lego、Complete
-3. **结果区域** - 生成的音频播放、评分、批次导航
-4. **训练标签页** - 数据集构建器和 LoRA 训练
-
----
-
-## 服务配置
-
-### 模型选择
-
-| 设置 | 说明 |
-|---------|-------------|
-| **检查点文件** | 选择已训练的模型检查点（如果可用）|
-| **主模型路径** | 选择 DiT 模型配置（例如 `acestep-v15-turbo`、`acestep-v15-turbo-shift3`）|
-| **设备** | 处理设备：`auto`（推荐）、`cuda` 或 `cpu` |
-
-### 5Hz LM 配置
-
-| 设置 | 说明 |
-|---------|-------------|
-| **5Hz LM 模型路径** | 选择语言模型。**可用模型根据 GPU 等级自动过滤** — 例如，6-8GB GPU 仅显示 0.6B，而 24GB+ GPU 显示所有尺寸（0.6B、1.7B、4B）。|
-| **5Hz LM 后端** | `vllm`（更快，推荐显存 ≥8GB 的 NVIDIA GPU）、`pt`（PyTorch，通用回退方案）或 `mlx`（Apple Silicon）。**显存 <8GB 的 GPU 限制为 `pt`/`mlx`**，因为 vllm 的 KV 缓存占用过大。|
-| **初始化 5Hz LM** | 勾选以在初始化期间加载 LM（thinking 模式必需）。**显存 ≤6GB 的 GPU（Tier 1-2）默认不勾选且禁用。**|
-
-> **自适应默认设置**: 所有 LM 设置根据 GPU 显存等级自动配置。推荐的 LM 模型、后端和初始化状态已预设为最佳性能。您可以手动覆盖，但如果选择与 GPU 不兼容，系统会发出警告。
-
-### 性能选项
-
-| 设置 | 说明 |
-|---------|-------------|
-| **使用 Flash Attention** | 启用以加速推理（需要 flash_attn 包）|
-| **卸载到 CPU** | 空闲时将模型卸载到 CPU 以节省 GPU 显存。**显存 <20GB 的 GPU 默认自动启用。**|
-| **将 DiT 卸载到 CPU** | 专门将 DiT 模型卸载到 CPU。**显存 <12GB 的 GPU 默认自动启用。**|
-| **INT8 量化** | 使用 INT8 权重量化减少模型显存占用。**显存 <20GB 的 GPU 默认自动启用。**|
-| **模型编译** | 启用 `torch.compile` 优化推理。**所有等级默认启用**（量化激活时必需）。|
-
-> **等级感知设置**: 卸载、量化和编译选项根据 GPU 等级自动设置。详见 [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) 了解完整的等级表。
-
-### LoRA 适配器
-
-| 设置 | 说明 |
-|---------|-------------|
-| **LoRA 路径** | 已训练的 LoRA 适配器目录路径 |
-| **加载 LoRA** | 加载指定的 LoRA 适配器 |
-| **卸载** | 移除当前加载的 LoRA |
-| **使用 LoRA** | 启用/禁用已加载的 LoRA 进行推理 |
-
-> **⚠️ 注意：** 由于 PEFT 和 TorchAO 之间的兼容性问题，无法在量化模型上加载 LoRA 适配器。如果需要使用 LoRA，请在加载适配器之前将 **INT8 量化** 设置为 **None**。
-
-### 初始化
-
-点击 **初始化服务** 加载模型。状态框将显示进度和确认信息，包括：
-- 检测到的 GPU 等级和显存
-- 最大允许时长和批次大小（根据是否初始化了 LM 动态调整）
-- 任何不兼容设置被自动修正的警告
-
-初始化后，**音频时长** 和 **批量大小** 滑块会自动更新以反映等级限制。
+1. **Settings** (collapsed accordion) - Service configuration, DiT/LM parameters, output options
+2. **Generation Tab** - The main workspace with a **Generation Mode** radio selector:
+   - Turbo/SFT models: Simple, Custom, Remix, Repaint
+   - Base model: Simple, Custom, Remix, Repaint, Extract, Lego, Complete
+3. **Results Section** - Generated audio playback, scoring, batch navigation
+4. **Training Tab** - Dataset builder and LoRA training
 
 ---
 
-## 生成模式
+## Service Configuration
 
-生成标签页顶部的**生成模式**单选选择器决定了你的工作流。Turbo 和 SFT 模型提供四种模式；Base 模型额外增加三种。
+### Model Selection
 
-### Simple 模式
+| Setting | Description |
+|---------|-------------|
+| **Checkpoint File** | Select a trained model checkpoint (if available) |
+| **Main Model Path** | Choose the DiT model configuration (e.g., `empath-v15-turbo`, `empath-v15-turbo-shift3`) |
+| **Device** | Processing device: `auto` (recommended), `cuda`, or `cpu` |
 
-专为快速、基于自然语言的音乐生成设计。
+### 5Hz LM Configuration
 
-**使用方法：**
-1. 在生成模式中选择 **Simple**
-2. 在"歌曲描述"字段中输入自然语言描述
-3. 如果不想要人声，可选择勾选"纯音乐"
-4. 可选择首选人声语言
-5. 点击 **创建样本** 生成 caption、歌词和元数据
-6. 在展开的部分中查看生成的内容
-7. 点击 **生成音乐** 创建音频
+| Setting | Description |
+|---------|-------------|
+| **5Hz LM Model Path** | Select the language model. **Available models are filtered by your GPU tier** — e.g., 6-8GB GPUs only show 0.6B, while 24GB+ GPUs show all sizes (0.6B, 1.7B, 4B). |
+| **5Hz LM Backend** | `vllm` (faster, recommended for NVIDIA with ≥8GB VRAM), `pt` (PyTorch, universal fallback), or `mlx` (Apple Silicon). **On GPUs <8GB, the backend is restricted to `pt`/`mlx`** because vllm's KV cache is too memory-hungry. |
+| **Initialize 5Hz LM** | Check to load the LM during initialization (required for thinking mode). **Automatically unchecked and disabled on GPUs ≤6GB** (Tier 1-2). |
 
-**示例描述：**
-- "一首适合安静夜晚的柔和孟加拉情歌"
-- "欢快的电子舞曲，重低音"
-- "忧郁的独立民谣，原声吉他"
-- "在烟雾弥漫的酒吧里演奏的爵士三重奏"
+> **Adaptive Defaults**: All LM settings are automatically configured based on your GPU's VRAM tier. The recommended LM model, backend, and initialization state are pre-set for optimal performance. You can manually override these, but the system will warn you if your selection is incompatible with your GPU.
 
-**随机样本：** 点击 🎲 按钮加载随机示例描述。
+### Performance Options
 
-### Custom 模式
+| Setting | Description |
+|---------|-------------|
+| **Use Flash Attention** | Enable for faster inference (requires flash_attn package) |
+| **Offload to CPU** | Offload models to CPU when idle to save GPU memory. **Automatically enabled on GPUs <20GB.** |
+| **Offload DiT to CPU** | Specifically offload the DiT model to CPU. **Automatically enabled on GPUs <12GB.** |
+| **INT8 Quantization** | Reduce model VRAM footprint with INT8 weight quantization. **Automatically enabled on GPUs <20GB.** |
+| **Compile Model** | Enable `torch.compile` for optimized inference. **Enabled by default on all tiers** (required when quantization is active). |
 
-完全控制所有生成参数（text2music）。
+> **Tier-Aware Settings**: Offload, quantization, and compile options are automatically set based on your GPU tier. See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) for the full tier table.
 
-**使用方法：**
-1. 在生成模式中选择 **Custom**
-2. 手动填写 Caption 和歌词字段
-3. 可选上传参考音频用于风格引导
-4. 设置可选元数据（BPM、调性、时长等）
-5. 可选点击 **格式化** 使用 LM 增强您的输入
-6. 根据需要配置高级设置
-7. 点击 **生成音乐** 创建音频
+### LoRA Adapter
 
-### Remix 模式
+| Setting | Description |
+|---------|-------------|
+| **LoRA Path** | Path to trained LoRA adapter directory |
+| **Load LoRA** | Load the specified LoRA adapter |
+| **Unload** | Remove the currently loaded LoRA |
+| **Use LoRA** | Enable/disable the loaded LoRA for inference |
 
-保持现有音频的旋律结构，同时改变风格。
+> **⚠️ Note:** LoRA adapters cannot be loaded on quantized models due to a compatibility issue between PEFT and TorchAO. If you need to use LoRA, set **INT8 Quantization** to **None** before loading the adapter.
 
-**使用方法：**
-1. 在生成模式中选择 **Remix**
-2. 上传源音频（要 remix 的歌曲）
-3. 编写描述目标风格的 Caption
-4. 可选修改歌词
-5. 调整 **Remix 强度**（0.0-1.0）：越高 = 越接近原始结构
-6. 点击 **生成音乐**
+### Initialization
 
-**用例：** 创建翻唱版本、风格迁移、生成歌曲变体。
+Click **Initialize Service** to load the models. The status box will show progress and confirmation, including:
+- The detected GPU tier and VRAM
+- Maximum allowed duration and batch size (adjusted dynamically based on whether LM was initialized)
+- Any warnings about incompatible settings that were automatically corrected
 
-### Repaint 模式
-
-重新生成音频的特定时间段，保持其余部分不变。
-
-**使用方法：**
-1. 在生成模式中选择 **Repaint**
-2. 上传源音频
-3. 设置**重绘开始**和**重绘结束**（秒；-1 表示文件末尾）
-4. 编写描述重绘部分期望内容的 Caption
-5. 点击 **生成音乐**
-
-**用例：** 修复有问题的部分、修改某段歌词、延长歌曲。
-
-### Extract 模式（仅 Base 模型）
-
-从混音音频中提取/分离特定乐器轨道。
-
-**使用方法：**
-1. 在生成模式中选择 **Extract**
-2. 上传源音频
-3. 从下拉菜单中选择要提取的**轨道名称**
-4. 点击 **生成音乐**
-
-**可用轨道：** vocals、backing_vocals、drums、bass、guitar、keyboard、percussion、strings、synth、fx、brass、woodwinds
-
-### Lego 模式（仅 Base 模型）
-
-为现有音频添加新的乐器轨道。
-
-**使用方法：**
-1. 在生成模式中选择 **Lego**
-2. 上传源音频
-3. 从下拉菜单中选择要添加的**轨道名称**
-4. 编写描述轨道特征的 Caption
-5. 点击 **生成音乐**
-
-### Complete 模式（仅 Base 模型）
-
-用指定的乐器完成部分轨道（自动编排）。
-
-**使用方法：**
-1. 在生成模式中选择 **Complete**
-2. 上传源音频
-3. 选择多个要添加的**轨道名称**
-4. 编写描述期望风格的 Caption
-5. 点击 **生成音乐**
+After initialization, the **Audio Duration** and **Batch Size** sliders are automatically updated to reflect the tier's limits.
 
 ---
 
-## 输入参数
+## Generation Modes
 
-### 音频输入
+The **Generation Mode** radio selector at the top of the Generation tab determines your workflow. Turbo and SFT models offer four modes; Base models add three more.
 
-| 字段 | 说明 |
+### Simple Mode
+
+Designed for quick, natural language-based music generation.
+
+**How to use:**
+1. Select **Simple** in the Generation Mode radio
+2. Enter a natural language description in the "Song Description" field
+3. Optionally check "Instrumental" if you don't want vocals
+4. Optionally select a preferred vocal language
+5. Click **Create Sample** to generate caption, lyrics, and metadata
+6. Review the generated content in the expanded sections
+7. Click **Generate Music** to create the audio
+
+**Example descriptions:**
+- "a soft Bengali love song for a quiet evening"
+- "upbeat electronic dance music with heavy bass drops"
+- "melancholic indie folk with acoustic guitar"
+- "jazz trio playing in a smoky bar"
+
+**Random Sample:** Click the 🎲 button to load a random example description.
+
+### Custom Mode
+
+Full control over all generation parameters (text2music).
+
+**How to use:**
+1. Select **Custom** in the Generation Mode radio
+2. Manually fill in the Caption and Lyrics fields
+3. Optionally upload Reference Audio for style guidance
+4. Set optional metadata (BPM, Key, Duration, etc.)
+5. Optionally click **Format** to enhance your input using the LM
+6. Configure advanced settings as needed
+7. Click **Generate Music** to create the audio
+
+### Remix Mode
+
+Transform existing audio while maintaining its melodic structure but changing style.
+
+**How to use:**
+1. Select **Remix** in the Generation Mode radio
+2. Upload Source Audio (the song to remix)
+3. Write a Caption describing the target style
+4. Optionally modify Lyrics
+5. Adjust **Remix Strength** (0.0-1.0): higher = closer to original structure
+6. Click **Generate Music**
+
+**Use cases:** Creating cover versions, style transfer, generating variants of a song.
+
+### Repaint Mode
+
+Regenerate a specific time segment of audio while keeping the rest intact.
+
+**How to use:**
+1. Select **Repaint** in the Generation Mode radio
+2. Upload Source Audio
+3. Set **Repainting Start** and **Repainting End** (seconds; -1 for end of file)
+4. Write a Caption describing the desired content for the repainted section
+5. Click **Generate Music**
+
+**Use cases:** Fixing problematic sections, changing lyrics in a segment, extending songs.
+
+### Extract Mode (Base Model Only)
+
+Extract/isolate a specific instrument track from mixed audio.
+
+**How to use:**
+1. Select **Extract** in the Generation Mode radio
+2. Upload Source Audio
+3. Select the **Track Name** to extract from the dropdown
+4. Click **Generate Music**
+
+**Available tracks:** vocals, backing_vocals, drums, bass, guitar, keyboard, percussion, strings, synth, fx, brass, woodwinds
+
+### Lego Mode (Base Model Only)
+
+Add a new instrument track to existing audio.
+
+**How to use:**
+1. Select **Lego** in the Generation Mode radio
+2. Upload Source Audio
+3. Select the **Track Name** to add from the dropdown
+4. Write a Caption describing the track characteristics
+5. Click **Generate Music**
+
+### Complete Mode (Base Model Only)
+
+Complete partial tracks with specified instruments (auto-arrangement).
+
+**How to use:**
+1. Select **Complete** in the Generation Mode radio
+2. Upload Source Audio
+3. Select multiple **Track Names** to add
+4. Write a Caption describing the desired style
+5. Click **Generate Music**
+
+---
+
+## Input Parameters
+
+### Audio Inputs
+
+| Field | Description |
 |-------|-------------|
-| **参考音频** | 用于风格/音色引导的可选音频（Custom 模式下可见） |
-| **源音频** | Remix、Repaint、Extract、Lego、Complete 模式必需 |
-| **转换为代码** | 从源音频提取 5Hz 语义代码 |
+| **Reference Audio** | Optional audio for style/timbre guidance (visible in Custom mode) |
+| **Source Audio** | Required for Remix, Repaint, Extract, Lego, Complete modes |
+| **Convert to Codes** | Extract 5Hz semantic codes from source audio |
 
-#### LM 代码提示（Custom 模式）
+#### LM Codes Hints (Custom Mode)
 
-可以在此粘贴预计算的音频语义代码来引导生成。使用 **转录** 按钮分析代码并提取元数据。这是一个高级功能，用于在不上传源音频的情况下控制旋律结构。
+Pre-computed audio semantic codes can be pasted here to guide generation. Use the **Transcribe** button to analyze codes and extract metadata. This is an advanced feature for controlling melodic structure without uploading source audio.
 
-### 音乐描述
+### Music Caption
 
-期望音乐的文本描述。请具体说明：
-- 风格和类型
-- 乐器
-- 情绪和氛围
-- 节奏感（如果不指定 BPM）
+The text description of the desired music. Be specific about:
+- Genre and style
+- Instruments
+- Mood and atmosphere
+- Tempo feel (if not specifying BPM)
 
-**示例：** "欢快的流行摇滚，电吉他、有力的鼓点和朗朗上口的合成器钩子"
+**Example:** "upbeat pop rock with electric guitars, driving drums, and catchy synth hooks"
 
-点击 🎲 加载随机示例 caption。
+Click 🎲 to load a random example caption.
 
-### 歌词
+### Lyrics
 
-输入带结构标签的歌词：
+Enter lyrics with structure tags:
 
 ```
 [Verse 1]
-今天走在街上
-想着你曾说过的话
+Walking down the street today
+Thinking of the words you used to say
 
 [Chorus]
-我在前进，我很坚强
-这就是我属于的地方
+I'm moving on, I'm staying strong
+This is where I belong
 
 [Verse 2]
 ...
 ```
 
-**纯音乐复选框：** 勾选此项以生成纯音乐，无论歌词内容如何。
+**Instrumental checkbox:** Check this to generate instrumental music regardless of lyrics content.
 
-**人声语言：** 选择人声语言。对于自动检测或纯音乐，使用"unknown"。
+**Vocal Language:** Select the language for vocals. Use "unknown" for auto-detection or instrumental tracks.
 
-**格式化按钮：** 点击使用 5Hz LM 增强 caption 和歌词。
+**Format button:** Click to enhance caption and lyrics using the 5Hz LM.
 
-### 可选参数
+### Optional Parameters
 
-| 参数 | 默认值 | 说明 |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| **BPM** | 自动 | 每分钟节拍数（30-300）|
-| **调性** | 自动 | 音乐调性（例如"C Major"、"Am"、"F# minor"）|
-| **拍号** | 自动 | 拍号：2（2/4）、3（3/4）、4（4/4）、6（6/8）|
-| **音频时长** | 自动/-1 | 目标长度（秒）（10-600）。-1 为自动 |
-| **批量大小** | 2 | 要生成的音频变体数量（1-8）|
+| **BPM** | Auto | Tempo in beats per minute (30-300) |
+| **Key Scale** | Auto | Musical key (e.g., "C Major", "Am", "F# minor") |
+| **Time Signature** | Auto | Time signature: 2 (2/4), 3 (3/4), 4 (4/4), 6 (6/8) |
+| **Audio Duration** | Auto/-1 | Target length in seconds (10-600). -1 for automatic |
+| **Batch Size** | 2 | Number of audio variations to generate (1-8). **Value persists across mode changes and enhancement actions**. Can be set via `--batch_size` CLI argument |
 
 ---
 
-## 高级设置
+## Advanced Settings
 
-### DiT 参数
+### DiT Parameters
 
-| 参数 | 默认值 | 说明 |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| **推理步数** | 8 | 去噪步数。Turbo：1-20，Base：1-200 |
-| **引导比例** | 7.0 | CFG 强度（仅 base 模型）。越高 = 越遵循提示 |
-| **种子** | -1 | 随机种子。批量使用逗号分隔的值 |
-| **随机种子** | ✓ | 勾选时生成随机种子 |
-| **音频格式** | mp3 | 输出格式：mp3、flac |
-| **偏移** | 3.0 | 时间步偏移因子（1.0-5.0）。turbo 推荐 3.0 |
-| **推理方法** | ode | ode（Euler，更快）或 sde（随机）|
-| **自定义时间步** | - | 覆盖时间步（例如"0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0"）|
+| **Inference Steps** | 8 | Denoising steps. Turbo: 1-20, Base: 1-200 |
+| **Guidance Scale** | 7.0 | CFG strength (base model only). Higher = follows prompt more |
+| **Seed** | -1 | Random seed. Use comma-separated values for batches |
+| **Random Seed** | ✓ | When checked, generates random seeds |
+| **Audio Format** | mp3 | Output format: mp3, flac |
+| **Shift** | 3.0 | Timestep shift factor (1.0-5.0). Recommended 3.0 for turbo |
+| **Inference Method** | ode | ode (Euler, faster) or sde (stochastic) |
+| **Custom Timesteps** | - | Override timesteps (e.g., "0.97,0.76,0.615,0.5,0.395,0.28,0.18,0.085,0") |
 
-### 仅 Base 模型参数
+### Base Model Only Parameters
 
-| 参数 | 默认值 | 说明 |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| **使用 ADG** | ✗ | 启用自适应双引导以获得更好的质量 |
-| **CFG 区间开始** | 0.0 | 何时开始应用 CFG（0.0-1.0）|
-| **CFG 区间结束** | 1.0 | 何时停止应用 CFG（0.0-1.0）|
+| **Use ADG** | ✗ | Enable Adaptive Dual Guidance for better quality |
+| **CFG Interval Start** | 0.0 | When to start applying CFG (0.0-1.0) |
+| **CFG Interval End** | 1.0 | When to stop applying CFG (0.0-1.0) |
 
-### LM 参数
+### LM Parameters
 
-| 参数 | 默认值 | 说明 |
+| Parameter | Default | Description |
 |-----------|---------|-------------|
-| **LM 温度** | 0.85 | 采样温度（0.0-2.0）。越高 = 越有创意 |
-| **LM CFG 比例** | 2.0 | LM 引导强度（1.0-3.0）|
-| **LM Top-K** | 0 | Top-K 采样。0 禁用 |
-| **LM Top-P** | 0.9 | 核采样（0.0-1.0）|
-| **LM 负面提示** | "NO USER INPUT" | CFG 的负面提示 |
+| **LM Temperature** | 0.85 | Sampling temperature (0.0-2.0). Higher = more creative |
+| **LM CFG Scale** | 2.0 | LM guidance strength (1.0-3.0) |
+| **LM Top-K** | 0 | Top-K sampling. 0 disables |
+| **LM Top-P** | 0.9 | Nucleus sampling (0.0-1.0) |
+| **LM Negative Prompt** | "NO USER INPUT" | Negative prompt for CFG |
 
-### CoT（思维链）选项
+### CoT (Chain-of-Thought) Options
 
-| 选项 | 默认值 | 说明 |
+| Option | Default | Description |
 |--------|---------|-------------|
-| **CoT Metas** | ✓ | 通过 LM 推理生成元数据 |
-| **CoT Language** | ✓ | 通过 LM 检测人声语言 |
-| **约束解码调试** | ✗ | 启用调试日志 |
+| **CoT Metas** | ✓ | Generate metadata via LM reasoning |
+| **CoT Language** | ✓ | Detect vocal language via LM |
+| **Constrained Decoding Debug** | ✗ | Enable debug logging |
 
-### 生成选项
+### Generation Options
 
-| 选项 | 默认值 | 说明 |
+| Option | Default | Description |
 |--------|---------|-------------|
-| **LM 代码强度** | 1.0 | LM 代码对生成的影响程度（0.0-1.0）|
-| **自动评分** | ✗ | 自动计算质量分数 |
-| **自动 LRC** | ✗ | 自动生成歌词时间戳 |
-| **LM 批处理块大小** | 8 | 每个 LM 批次的最大项目数（GPU 内存）|
+| **LM Codes Strength** | 1.0 | How strongly LM codes influence generation (0.0-1.0) |
+| **Auto Score** | ✗ | Automatically calculate quality scores |
+| **Auto LRC** | ✗ | Automatically generate lyrics timestamps |
+| **LM Batch Chunk Size** | 8 | Max items per LM batch (GPU memory) |
 
-### 主要生成控制
+### Main Generation Controls
 
-| 控制 | 说明 |
+| Control | Description |
 |---------|-------------|
-| **Think** | 启用 5Hz LM 进行代码生成和元数据 |
-| **ParallelThinking** | 启用并行 LM 批处理 |
-| **CaptionRewrite** | 让 LM 增强输入 caption |
-| **AutoGen** | 完成后自动开始下一批次 |
+| **Think** | Enable 5Hz LM for code generation and metadata |
+| **ParallelThinking** | Enable parallel LM batch processing |
+| **CaptionRewrite** | Let LM enhance the input caption |
+| **AutoGen** | Automatically start next batch after completion |
 
 ---
 
-## 结果区域
+## Results Section
 
-### 生成的音频
+### Generated Audio
 
-根据批量大小最多显示 8 个音频样本。每个样本包括：
+Up to 8 audio samples are displayed based on batch size. Each sample includes:
 
-- **音频播放器** - 播放、暂停和下载生成的音频
-- **发送到源** - 将此音频发送到源音频输入以进行进一步处理
-- **保存** - 将音频和元数据保存到 JSON 文件
-- **评分** - 计算基于困惑度的质量分数
-- **LRC** - 生成歌词时间戳（LRC 格式）
+- **Audio Player** - Play, pause, and download the generated audio
+- **Send To Src** - Send this audio to the Source Audio input for further processing
+- **Save** - Save audio and metadata to a JSON file
+- **Score** - Calculate perplexity-based quality score
+- **LRC** - Generate lyrics timestamps (LRC format)
 
-### 详情折叠面板
+### Details Accordion
 
-点击"评分 & LRC & LM 代码"展开并查看：
-- **LM 代码** - 此样本的 5Hz 语义代码
-- **质量分数** - 基于困惑度的质量指标
-- **歌词时间戳** - LRC 格式的时间数据
+Click "Score & LRC & LM Codes" to expand and view:
+- **LM Codes** - The 5Hz semantic codes for this sample
+- **Quality Score** - Perplexity-based quality metric
+- **Lyrics Timestamps** - LRC format timing data
 
-### 批次导航
+### Batch Navigation
 
-| 控制 | 说明 |
+| Control | Description |
 |---------|-------------|
-| **◀ 上一批** | 查看上一批 |
-| **批次指示器** | 显示当前批次位置（例如"批次 1 / 3"）|
-| **下一批状态** | 显示后台生成进度 |
-| **下一批 ▶** | 查看下一批（如果 AutoGen 开启则触发生成）|
+| **◀ Previous** | View the previous batch |
+| **Batch Indicator** | Shows current batch position (e.g., "Batch 1 / 3") |
+| **Next Batch Status** | Shows background generation progress |
+| **Next ▶** | View the next batch (triggers generation if AutoGen is on) |
 
-### 恢复参数
+### Restore Parameters
 
-点击 **应用这些设置到 UI** 将当前批次的所有生成参数恢复到输入字段。适用于迭代优化好的结果。
+Click **Apply These Settings to UI** to restore all generation parameters from the current batch back to the input fields. Useful for iterating on a good result.
 
-### 批次结果
+### Batch Results
 
-"批次结果和生成详情"折叠面板包含：
-- **所有生成的文件** - 下载所有批次的所有文件
-- **生成详情** - 关于生成过程的详细信息
+The "Batch Results & Generation Details" accordion contains:
+- **All Generated Files** - Download all files from all batches
+- **Generation Details** - Detailed information about the generation process
 
 ---
 
-## LoRA 训练
+## LoRA Training
 
-LoRA 训练选项卡提供创建自定义 LoRA 适配器的工具。
+The LoRA Training tab provides tools for creating custom LoRA adapters.
 
-> 📖 **完整的分步教程**（数据准备、标注、预处理、训练和导出），请参阅 [LoRA 训练教程](./LoRA_Training_Tutorial.md)。
+> 📖 **For a comprehensive step-by-step walkthrough** (data preparation, annotation, preprocessing, training, and export), see the [LoRA Training Tutorial](./LoRA_Training_Tutorial.md).
 
-### 数据集构建器选项卡
+### Dataset Builder Tab
 
-#### 步骤 1：加载或扫描
+#### Step 1: Load or Scan
 
-**选项 A：加载现有数据集**
-1. 输入之前保存的数据集 JSON 路径
-2. 点击 **加载**
+**Option A: Load Existing Dataset**
+1. Enter the path to a previously saved dataset JSON
+2. Click **Load**
 
-**选项 B：扫描新目录**
-1. 输入音频文件夹路径
-2. 点击 **扫描** 查找音频文件（wav、mp3、flac、ogg、opus）
+**Option B: Scan New Directory**
+1. Enter the path to your audio folder
+2. Click **Scan** to find audio files (wav, mp3, flac, ogg, opus)
 
-#### 步骤 2：配置数据集
+#### Step 2: Configure Dataset
 
-| 设置 | 说明 |
+| Setting | Description |
 |---------|-------------|
-| **数据集名称** | 您的数据集名称 |
-| **全部纯音乐** | 如果所有曲目都没有人声，请勾选 |
-| **自定义激活标签** | 激活此 LoRA 风格的唯一标签 |
-| **标签位置** | 放置标签的位置：前置、追加或替换 caption |
+| **Dataset Name** | Name for your dataset |
+| **All Instrumental** | Check if all tracks have no vocals |
+| **Custom Activation Tag** | Unique tag to activate this LoRA's style |
+| **Tag Position** | Where to place the tag: Prepend, Append, or Replace caption |
 
-#### 步骤 3：自动标注
+#### Step 3: Auto-Label
 
-点击 **自动标注全部** 为所有音频文件生成元数据：
-- Caption（音乐描述）
+Click **Auto-Label All** to generate metadata for all audio files:
+- Caption (music description)
 - BPM
-- 调性
-- 拍号
+- Key
+- Time Signature
 
-**跳过 Metas** 选项将跳过 LLM 标注并使用 N/A 值。
+**Skip Metas** option will skip LLM labeling and use N/A values.
 
-#### 步骤 4：预览和编辑
+#### Step 4: Preview & Edit
 
-使用滑块选择样本并手动编辑：
+Use the slider to select samples and manually edit:
 - Caption
-- 歌词
-- BPM、调性、拍号
-- 语言
-- 纯音乐标志
+- Lyrics
+- BPM, Key, Time Signature
+- Language
+- Instrumental flag
 
-点击 **保存更改** 更新样本。
+Click **Save Changes** to update the sample.
 
-#### 步骤 5：保存数据集
+#### Step 5: Save Dataset
 
-输入保存路径并点击 **保存数据集** 导出为 JSON。
+Enter a save path and click **Save Dataset** to export as JSON.
 
-#### 步骤 6：预处理
+#### Step 6: Preprocess
 
-将数据集转换为预计算张量以加快训练：
-1. 可选加载现有数据集 JSON
-2. 设置张量输出目录
-3. 点击 **预处理**
+Convert the dataset to pre-computed tensors for fast training:
+1. Optionally load an existing dataset JSON
+2. Set the tensor output directory
+3. Click **Preprocess**
 
-这会将音频编码为 VAE 潜变量，将文本编码为嵌入，并运行条件编码器。
+This encodes audio to VAE latents, text to embeddings, and runs the condition encoder.
 
-### 训练 LoRA 选项卡
+### Train LoRA Tab
 
-#### 数据集选择
+#### Dataset Selection
 
-输入预处理张量目录路径并点击 **加载数据集**。
+Enter the path to preprocessed tensors directory and click **Load Dataset**.
 
-#### LoRA 设置
+#### LoRA Settings
 
-| 设置 | 默认值 | 说明 |
+| Setting | Default | Description |
 |---------|---------|-------------|
-| **LoRA 秩 (r)** | 64 | LoRA 容量。越高 = 容量越大，内存越多 |
-| **LoRA Alpha** | 128 | 缩放因子（通常是秩的 2 倍）|
-| **LoRA Dropout** | 0.1 | 用于正则化的 dropout 率 |
+| **LoRA Rank (r)** | 64 | Capacity of LoRA. Higher = more capacity, more memory |
+| **LoRA Alpha** | 128 | Scaling factor (typically 2x rank) |
+| **LoRA Dropout** | 0.1 | Dropout rate for regularization |
 
-#### 训练参数
+#### Training Parameters
 
-| 设置 | 默认值 | 说明 |
+| Setting | Default | Description |
 |---------|---------|-------------|
-| **学习率** | 1e-4 | 优化学习率 |
-| **最大 Epochs** | 500 | 最大训练 epochs |
-| **批量大小** | 1 | 训练批量大小 |
-| **梯度累积** | 1 | 有效批次 = batch_size × accumulation |
-| **每 N Epochs 保存** | 200 | 检查点保存频率 |
-| **偏移** | 3.0 | turbo 模型的时间步偏移 |
-| **种子** | 42 | 用于可重复性的随机种子 |
+| **Learning Rate** | 1e-4 | Optimization learning rate |
+| **Max Epochs** | 500 | Maximum training epochs |
+| **Batch Size** | 1 | Training batch size |
+| **Gradient Accumulation** | 1 | Effective batch = batch_size × accumulation |
+| **Save Every N Epochs** | 200 | Checkpoint save frequency |
+| **Shift** | 3.0 | Timestep shift for turbo model |
+| **Seed** | 42 | Random seed for reproducibility |
 
-#### 训练控制
+#### Training Controls
 
-- **开始训练** - 开始训练过程
-- **停止训练** - 中断训练
-- **训练进度** - 显示当前 epoch 和损失
-- **训练日志** - 详细训练输出
-- **训练损失图** - 可视化损失曲线
+- **Start Training** - Begin the training process
+- **Stop Training** - Interrupt training
+- **Training Progress** - Shows current epoch and loss
+- **Training Log** - Detailed training output
+- **Training Loss Plot** - Visual loss curve
 
-#### 导出 LoRA
+#### Export LoRA
 
-训练后，导出最终适配器：
-1. 输入导出路径
-2. 点击 **导出 LoRA**
+After training, export the final adapter:
+1. Enter the export path
+2. Click **Export LoRA**
 
----
+#### Performance notes (Windows / low VRAM)
 
-## 技巧与最佳实践
+On Windows or systems with limited VRAM, training and preprocessing can stall or use more memory than expected. The following can help:
 
-### 获得最佳质量
+- **Persistent workers** – Epoch-boundary worker reinitialization on Windows can cause long pauses; the default behavior has been improved (see related fixes) so stalls are less common out of the box.
+- **Offload unused models** – During preprocessing, offloading models that are not needed for the current step (e.g. via **Offload to CPU** in Service Configuration) can greatly reduce VRAM use and avoid spikes that slow or block preprocessing.
+- **Tiled encode** – Using tiled encoding for preprocessing reduces peak VRAM and can turn multi-minute preprocessing into much shorter runs when VRAM is tight.
+- **Batch size** – Lower batch size during training reduces memory use at the cost of longer training; gradient accumulation can keep effective batch size while staying within VRAM limits.
 
-1. **使用 thinking 模式** - 保持"Think"复选框启用以获得 LM 增强的生成
-2. **具体描述 caption** - 包含风格、乐器、情绪和风格细节
-3. **让 LM 检测元数据** - 将 BPM/调性/时长留空以自动检测
-4. **使用批量生成** - 生成 2-4 个变体并选择最好的
-
-### 加快生成速度
-
-1. **使用 turbo 模型** - 选择 `acestep-v15-turbo` 或 `acestep-v15-turbo-shift3`
-2. **保持推理步数为 8** - 这是 turbo 的最佳默认值
-3. **减少批量大小** - 如果需要快速结果，降低批量大小
-4. **禁用 AutoGen** - 手动控制批次生成
-
-### 获得一致结果
-
-1. **设置特定种子** - 取消勾选"随机种子"并输入种子值
-2. **保存好的结果** - 使用"保存"导出参数以便重现
-3. **使用"应用这些设置"** - 从好的批次恢复参数
-
-### 长格式音乐
-
-1. **设置明确的时长** - 以秒为单位指定时长
-2. **使用 repaint 任务** - 初始生成后修复有问题的部分
-3. **链式生成** - 使用"发送到源"在之前的结果上构建
-
-### 风格一致性
-
-1. **训练 LoRA** - 为您的风格创建自定义适配器
-2. **使用参考音频** - 在音频上传中上传风格参考
-3. **使用一致的 caption** - 保持相似的描述性语言
-
-### 故障排除
-
-**没有生成音频：**
-- 检查模型是否已初始化（绿色状态消息）
-- 如果使用 thinking 模式，确保 5Hz LM 已初始化
-- 检查状态输出中的错误消息
-
-**结果质量差：**
-- 增加推理步数（对于 base 模型）
-- 调整引导比例
-- 尝试不同的种子
-- 使 caption 更具体
-
-**显存不足 (OOM)：**
-- 系统包含自动显存管理（显存守卫、自适应 VAE 解码、自动批次减小）。如果仍然 OOM：
-- 手动减少批量大小
-- 启用 CPU 卸载（显存 <20GB 应已自动启用）
-- 启用 INT8 量化（显存 <20GB 应已自动启用）
-- 减少 LM 批处理块大小
-- 详见 [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) 了解各等级推荐设置
-
-**LM 不工作：**
-- 确保初始化期间勾选了"初始化 5Hz LM"（显存 ≤6GB 的 GPU 默认禁用）
-- 检查是否选择了有效的 LM 模型路径（仅显示与等级兼容的模型）
-- 验证 vllm 或 PyTorch 后端可用（显存 <8GB 限制使用 vllm）
-- 如果 LM 复选框灰色不可用，说明您的 GPU 等级不支持 LM — 请使用纯 DiT 模式
+These options are especially useful when preprocessing takes a long time or you see out-of-memory or long pauses between epochs.
 
 ---
 
-## 键盘快捷键
+## Tips and Best Practices
 
-Gradio 界面支持标准 Web 快捷键：
-- **Tab** - 在输入字段之间移动
-- **Enter** - 提交文本输入
-- **Space** - 切换复选框
+### For Best Quality
+
+1. **Use thinking mode** - Keep "Think" checkbox enabled for LM-enhanced generation
+2. **Be specific in captions** - Include genre, instruments, mood, and style details
+3. **Let LM detect metadata** - Leave BPM/Key/Duration empty for auto-detection
+4. **Use batch generation** - Generate 2-4 variations and pick the best
+
+### For Faster Generation
+
+1. **Use turbo model** - Select `empath-v15-turbo` or `empath-v15-turbo-shift3`
+2. **Keep inference steps at 8** - Default is optimal for turbo
+3. **Reduce batch size** - Lower batch size if you need quick results
+4. **Disable AutoGen** - Manual control over batch generation
+
+### For Consistent Results
+
+1. **Set a specific seed** - Uncheck "Random Seed" and enter a seed value
+2. **Save good results** - Use "Save" to export parameters for reproduction
+3. **Use "Apply These Settings"** - Restore parameters from a good batch
+
+### For Long-form Music
+
+1. **Set explicit duration** - Specify duration in seconds
+2. **Use repaint task** - Fix problematic sections after initial generation
+3. **Chain generations** - Use "Send To Src" to build upon previous results
+
+### For Style Consistency
+
+1. **Train a LoRA** - Create a custom adapter for your style
+2. **Use reference audio** - Upload style reference in Audio Uploads
+3. **Use consistent captions** - Maintain similar descriptive language
+
+### Troubleshooting
+
+**No audio generated:**
+- Check that the model is initialized (green status message)
+- Ensure 5Hz LM is initialized if using thinking mode
+- Check the status output for error messages
+
+**Poor quality results:**
+- Increase inference steps (for base model)
+- Adjust guidance scale
+- Try different seeds
+- Make caption more specific
+
+**Out of memory:**
+- The system includes automatic VRAM management (VRAM guard, adaptive VAE decode, auto batch reduction). If OOM still occurs:
+- Reduce batch size manually
+- Enable CPU offloading (should be auto-enabled for GPUs <20GB)
+- Enable INT8 quantization (should be auto-enabled for GPUs <20GB)
+- Reduce LM batch chunk size
+- See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) for recommended settings per tier
+
+**LM not working:**
+- Ensure "Initialize 5Hz LM" was checked during initialization (disabled by default on GPUs ≤6GB)
+- Check that a valid LM model path is selected (only tier-compatible models are shown)
+- Verify vllm or PyTorch backend is available (vllm restricted on GPUs <8GB)
+- If the LM checkbox is grayed out, your GPU tier does not support LM — use DiT-only mode
 
 ---
 
-## 语言支持
+## Keyboard Shortcuts
 
-界面支持多种 UI 语言：
-- **英文** (en)
-- **中文** (zh)
-- **日文** (ja)
-
-在服务配置区域选择您的首选语言。
+The Gradio interface supports standard web shortcuts:
+- **Tab** - Move between input fields
+- **Enter** - Submit text inputs
+- **Space** - Toggle checkboxes
 
 ---
 
-更多信息，请参阅：
-- 主 README：[`../../README.md`](../../README.md)
-- REST API 文档：[`API.md`](API.md)
-- Python 推理 API：[`INFERENCE.md`](INFERENCE.md)
+## Language Support
+
+The interface supports multiple UI languages:
+- **English** (en)
+- **Chinese** (zh)
+- **Japanese** (ja)
+
+Select your preferred language in the Service Configuration section.
+
+---
+
+For more information, see:
+- Main README: [`../../README.md`](../../README.md)
+- REST API Documentation: [`API.md`](API.md)
+- Python Inference API: [`INFERENCE.md`](INFERENCE.md)

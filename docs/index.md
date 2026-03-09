@@ -1,12 +1,12 @@
 ---
 layout: home
 hero:
-  name: ACE-Step 1.5
+  name: Empath 1.5
   text: Open-Source Music Generation
   tagline: Commercial-grade music generation on consumer hardware. Under 2s per song on A100, <4GB VRAM.
   image:
     src: /logo.png
-    alt: ACE-Step
+    alt: Empath
   actions:
     - theme: brand
       text: Get Started
@@ -16,7 +16,7 @@ hero:
       link: /en/Tutorial
     - theme: alt
       text: GitHub
-      link: https://github.com/ace-step/ACE-Step-1.5
+      link: https://github.com/ace-step/Empath-1.5
 
 features:
   - icon: "&#9889;"

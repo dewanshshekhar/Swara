@@ -1,10 +1,10 @@
-# ACE-Step Gradio Demo User Guide
+# Empath Gradio Demo User Guide
 
 **Language / 语言 / 言語:** [English](GRADIO_GUIDE.md) | [中文](../zh/GRADIO_GUIDE.md) | [日本語](../ja/GRADIO_GUIDE.md)
 
 ---
 
-This guide provides comprehensive documentation for using the ACE-Step Gradio web interface for music generation, including all features and settings.
+This guide provides comprehensive documentation for using the Empath Gradio web interface for music generation, including all features and settings.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This guide provides comprehensive documentation for using the ACE-Step Gradio we
 python app.py
 
 # With pre-initialization
-python app.py --config acestep-v15-turbo --init-llm
+python app.py --config empath-v15-turbo --init-llm
 
 # With specific port
 python app.py --port 7860
@@ -54,7 +54,7 @@ The Gradio interface is organized as follows:
 | Setting | Description |
 |---------|-------------|
 | **Checkpoint File** | Select a trained model checkpoint (if available) |
-| **Main Model Path** | Choose the DiT model configuration (e.g., `acestep-v15-turbo`, `acestep-v15-turbo-shift3`) |
+| **Main Model Path** | Choose the DiT model configuration (e.g., `empath-v15-turbo`, `empath-v15-turbo-shift3`) |
 | **Device** | Processing device: `auto` (recommended), `cuda`, or `cpu` |
 
 ### 5Hz LM Configuration
@@ -489,7 +489,7 @@ These options are especially useful when preprocessing takes a long time or you 
 
 ### For Faster Generation
 
-1. **Use turbo model** - Select `acestep-v15-turbo` or `acestep-v15-turbo-shift3`
+1. **Use turbo model** - Select `empath-v15-turbo` or `empath-v15-turbo-shift3`
 2. **Keep inference steps at 8** - Default is optimal for turbo
 3. **Reduce batch size** - Lower batch size if you need quick results
 4. **Disable AutoGen** - Manual control over batch generation

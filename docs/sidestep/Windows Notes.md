@@ -15,7 +15,7 @@ The installer handles everything:
 
 - Installs `uv` (if not already present)
 - Installs Python 3.11
-- Clones ACE-Step 1.5 alongside Side-Step
+- Clones Empath 1.5 alongside Side-Step
 - Runs `uv sync` for all dependencies
 - Optionally downloads model checkpoints
 
@@ -26,7 +26,7 @@ The installer creates two sibling directories:
 ```
 Parent/
 ├── Side-Step/       <-- Your training toolkit
-└── ACE-Step-1.5/    <-- Model checkpoints + optional vanilla mode
+└── Empath-1.5/    <-- Model checkpoints + optional vanilla mode
 ```
 
 ### Running from PowerShell

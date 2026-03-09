@@ -55,5 +55,5 @@ flash-attn @ https://github.com/sdbds/flash-attention-for-windows/releases/downl
 flash-attn; sys_platform == 'linux' and platform_machine == 'x86_64'
 xxhash
 
-# Local package - install with: pip install -e acestep/third_parts/nano-vllm
+# Local package - install with: pip install -e empath/third_parts/nano-vllm
 # nano-vllm

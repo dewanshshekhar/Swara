@@ -1,41 +1,41 @@
-# ACE-Step 1.5 インストールガイド
+# Empath 1.5 Installation Guide
 
-**Language / 语言 / 言語:** [English](../en/INSTALL.md) | [中文](../zh/INSTALL.md) | [日本語](INSTALL.md)
-
----
-
-## 目次
-
-- [動作要件](#動作要件)
-- [クイックスタート（全プラットフォーム）](#クイックスタート全プラットフォーム)
-- [起動スクリプト](#-起動スクリプト)
-- [Windows ポータブルパッケージ](#-windows-ポータブルパッケージ)
-- [AMD / ROCm GPU](#amd--rocm-gpu)
-- [Intel GPU](#intel-gpu)
-- [CPUのみモード](#cpuのみモード)
-- [Linux の注意事項](#linux-の注意事項)
-- [環境変数 (.env)](#環境変数-env)
-- [コマンドラインオプション](#コマンドラインオプション)
-- [モデルダウンロード](#-モデルダウンロード)
-- [どのモデルを選ぶべき？](#-どのモデルを選ぶべき)
-- [開発](#開発)
+**Language / 语言 / 言語:** [English](INSTALL.md) | [中文](../zh/INSTALL.md) | [日本語](../ja/INSTALL.md)
 
 ---
 
-## 動作要件
+## Table of Contents
 
-| 項目 | 要件 |
-|------|------|
-| Python | 3.11-3.12（安定版、プレリリース版は不可）<br>**注意：** Windows 上の ROCm は Python 3.12 が必要です |
-| GPU | CUDA GPU 推奨。MPS / ROCm / Intel XPU / CPU もサポート |
-| VRAM | DiTのみモード ≥4GB、LLM+DiT ≥6GB |
-| ディスク | コアモデルに約10GB |
+- [Requirements](#requirements)
+- [Quick Start (All Platforms)](#quick-start-all-platforms)
+- [Launch Scripts](#-launch-scripts)
+- [Windows Portable Package](#-windows-portable-package)
+- [AMD / ROCm GPUs](#amd--rocm-gpus)
+- [Intel GPUs](#intel-gpus)
+- [CPU-Only Mode](#cpu-only-mode)
+- [Linux Notes](#linux-notes)
+- [Environment Variables (.env)](#environment-variables-env)
+- [Command Line Options](#command-line-options)
+- [Model Download](#-model-download)
+- [Which Model Should I Choose?](#-which-model-should-i-choose)
+- [Development](#development)
 
 ---
 
-## クイックスタート（全プラットフォーム）
+## Requirements
 
-### 1. uv のインストール（パッケージマネージャー）
+| Item | Requirement |
+|------|-------------|
+| Python | 3.11-3.12 (stable release, not pre-release)<br>**Note:** ROCm on Windows requires Python 3.12 |
+| GPU | CUDA GPU recommended; MPS / ROCm / Intel XPU / CPU also supported |
+| VRAM | ≥4GB for DiT-only mode; ≥6GB for LLM+DiT |
+| Disk | ~10GB for core models |
+
+---
+
+## Quick Start (All Platforms)
+
+### 1. Install uv (Package Manager)
 
 ```bash
 # macOS / Linux
@@ -45,155 +45,155 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-### 2. クローン & インストール
+### 2. Clone & Install
 
 ```bash
-git clone https://github.com/ACE-Step/ACE-Step-1.5.git
-cd ACE-Step-1.5
+git clone https://github.com/Empath/Empath-1.5.git
+cd Empath-1.5
 uv sync
 ```
 
-### 3. 起動
+### 3. Launch
 
-**Gradio Web UI（推奨）：**
-
-```bash
-uv run acestep
-```
-
-**REST API サーバー：**
+**Gradio Web UI (Recommended):**
 
 ```bash
-uv run acestep-api
+uv run empath
 ```
 
-**Python を直接使用**（Conda / venv / システム Python）：
+**REST API Server:**
 
 ```bash
-# まず環境をアクティベートしてから：
-python acestep/acestep_v15_pipeline.py          # Gradio UI
-python acestep/api_server.py                     # REST API
+uv run empath-api
 ```
 
-> 初回実行時にモデルが自動ダウンロードされます。http://localhost:7860（Gradio）または http://localhost:8001（API）を開いてください。
+**Using Python directly** (Conda / venv / system Python):
+
+```bash
+# Activate your environment first, then:
+python empath/empath_v15_pipeline.py          # Gradio UI
+python empath/api_server.py                     # REST API
+```
+
+> Models are downloaded automatically on first run. Open http://localhost:7860 (Gradio) or http://localhost:8001 (API).
 
 ---
 
-## 🚀 起動スクリプト
+## 🚀 Launch Scripts
 
-全プラットフォーム対応のすぐに使える起動スクリプトです。これらのスクリプトは環境検出、依存関係のインストール、アプリケーションの起動を自動的に処理します。すべてのスクリプトはデフォルトで起動時に更新チェックを行います（設定変更可能）。
+Ready-to-use launch scripts for all platforms. These scripts handle environment detection, dependency installation, and application startup automatically. All scripts check for updates on startup by default (configurable).
 
-### 利用可能なスクリプト
+### Available Scripts
 
-| プラットフォーム | スクリプト | 説明 |
-|----------|--------|------|
-| **Windows** | `start_gradio_ui.bat` | Gradio Web UI を起動（CUDA） |
-| **Windows** | `start_api_server.bat` | REST API サーバーを起動（CUDA） |
-| **Windows** | `start_gradio_ui_rocm.bat` | Gradio Web UI を起動（AMD ROCm） |
-| **Windows** | `start_api_server_rocm.bat` | REST API サーバーを起動（AMD ROCm） |
-| **Linux** | `start_gradio_ui.sh` | Gradio Web UI を起動（CUDA） |
-| **Linux** | `start_api_server.sh` | REST API サーバーを起動（CUDA） |
-| **macOS** | `start_gradio_ui_macos.sh` | Gradio Web UI を起動（MLX） |
-| **macOS** | `start_api_server_macos.sh` | REST API サーバーを起動（MLX） |
+| Platform | Script | Description |
+|----------|--------|-------------|
+| **Windows** | `start_gradio_ui.bat` | Launch Gradio Web UI (CUDA) |
+| **Windows** | `start_api_server.bat` | Launch REST API Server (CUDA) |
+| **Windows** | `start_gradio_ui_rocm.bat` | Launch Gradio Web UI (AMD ROCm) |
+| **Windows** | `start_api_server_rocm.bat` | Launch REST API Server (AMD ROCm) |
+| **Linux** | `start_gradio_ui.sh` | Launch Gradio Web UI (CUDA) |
+| **Linux** | `start_api_server.sh` | Launch REST API Server (CUDA) |
+| **macOS** | `start_gradio_ui_macos.sh` | Launch Gradio Web UI (MLX) |
+| **macOS** | `start_api_server_macos.sh` | Launch REST API Server (MLX) |
 
 ### Windows
 
 ```bash
-# Gradio Web UI を起動（NVIDIA CUDA）
+# Launch Gradio Web UI (NVIDIA CUDA)
 start_gradio_ui.bat
 
-# REST API サーバーを起動（NVIDIA CUDA）
+# Launch REST API Server (NVIDIA CUDA)
 start_api_server.bat
 
-# Gradio Web UI を起動（AMD ROCm）
+# Launch Gradio Web UI (AMD ROCm)
 start_gradio_ui_rocm.bat
 
-# REST API サーバーを起動（AMD ROCm）
+# Launch REST API Server (AMD ROCm)
 start_api_server_rocm.bat
 ```
 
-> **ROCm ユーザー：** ROCm スクリプト（`start_gradio_ui_rocm.bat`、`start_api_server_rocm.bat`）は `HSA_OVERRIDE_GFX_VERSION`、`ACESTEP_LM_BACKEND=pt`、`MIOPEN_FIND_MODE=FAST` およびその他の ROCm 固有の環境変数を自動設定します。CUDA/ROCm wheel の競合を避けるため、別の `venv_rocm` 仮想環境を使用します。
+> **ROCm users:** The ROCm scripts (`start_gradio_ui_rocm.bat`, `start_api_server_rocm.bat`) auto-set `HSA_OVERRIDE_GFX_VERSION`, `EMPATH_LM_BACKEND=pt`, `MIOPEN_FIND_MODE=FAST` and other ROCm-specific environment variables. They use a separate `venv_rocm` virtual environment to avoid CUDA/ROCm wheel conflicts.
 
 ### Linux
 
 ```bash
-# 実行権限を付与（初回のみ）
+# Make executable (first time only)
 chmod +x start_gradio_ui.sh start_api_server.sh
 
-# Gradio Web UI を起動
+# Launch Gradio Web UI
 ./start_gradio_ui.sh
 
-# REST API サーバーを起動
+# Launch REST API Server
 ./start_api_server.sh
 ```
 
-> **注意：** Git はシステムのパッケージマネージャーでインストールする必要があります（`sudo apt install git`、`sudo yum install git`、`sudo pacman -S git`）。
+> **Note:** Git must be installed via your system package manager (`sudo apt install git`, `sudo yum install git`, `sudo pacman -S git`).
 
-### macOS（Apple Silicon / MLX）
+### macOS (Apple Silicon / MLX)
 
-macOS スクリプトはネイティブの Apple Silicon アクセラレーション（M1/M2/M3/M4）のために **MLX バックエンド**を使用します。
+macOS scripts use the **MLX backend** for native Apple Silicon acceleration (M1/M2/M3/M4).
 
 ```bash
-# 実行権限を付与（初回のみ）
+# Make executable (first time only)
 chmod +x start_gradio_ui_macos.sh start_api_server_macos.sh
 
-# MLX バックエンドで Gradio Web UI を起動
+# Launch Gradio Web UI with MLX backend
 ./start_gradio_ui_macos.sh
 
-# MLX バックエンドで REST API サーバーを起動
+# Launch REST API Server with MLX backend
 ./start_api_server_macos.sh
 ```
 
-macOS スクリプトはネイティブの Apple Silicon アクセラレーションのために `ACESTEP_LM_BACKEND=mlx` と `--backend mlx` を自動設定し、非 arm64 マシンでは PyTorch バックエンドにフォールバックします。
+The macOS scripts automatically set `EMPATH_LM_BACKEND=mlx` and `--backend mlx` for native Apple Silicon acceleration, and fall back to PyTorch backend on non-arm64 machines.
 
-> **注意：** Git は `xcode-select --install` または `brew install git` でインストールしてください。
+> **Note:** Install git via `xcode-select --install` or `brew install git`.
 
-### スクリプトの機能
+### Script Features
 
-- 起動時の更新チェック（デフォルトで有効、設定変更可能）
-- 自動環境検出（ポータブル Python または uv）
-- 必要に応じて `uv` を自動インストール
-- ダウンロードソースの設定（HuggingFace/ModelScope）
-- モデルとパラメータのカスタマイズ
+- Startup update check (enabled by default, configurable)
+- Auto environment detection (portable Python or uv)
+- Auto install `uv` if needed
+- Configurable download source (HuggingFace/ModelScope)
+- Customizable models and parameters
 
-### 設定の変更方法
+### How to Modify Configuration
 
-すべての設定可能なオプションは、各スクリプトの先頭で変数として定義されています。カスタマイズするには、テキストエディタでスクリプトを開き、変数の値を変更してください。
+All configurable options are defined as variables at the top of each script. To customize, open the script with a text editor and modify the variable values.
 
-**例：UI 言語を中国語に変更し、1.7B LM モデルを使用する**
+**Example: Change UI language to Chinese and use the 1.7B LM model**
 
 <table>
 <tr><th>Windows (.bat)</th><th>Linux / macOS (.sh)</th></tr>
 <tr><td>
 
-`start_gradio_ui.bat` で以下の行を見つけます：
+Find these lines in `start_gradio_ui.bat`:
 ```batch
 set LANGUAGE=en
-set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-0.6B
+set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-0.6B
 ```
-以下のように変更します：
+Change to:
 ```batch
 set LANGUAGE=zh
-set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-1.7B
+set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-1.7B
 ```
 
 </td><td>
 
-`start_gradio_ui.sh` で以下の行を見つけます：
+Find these lines in `start_gradio_ui.sh`:
 ```bash
 LANGUAGE="en"
-LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-0.6B"
+LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-0.6B"
 ```
-以下のように変更します：
+Change to:
 ```bash
 LANGUAGE="zh"
-LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-1.7B"
+LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-1.7B"
 ```
 
 </td></tr>
 </table>
 
-**例：起動時の更新チェックを無効にする**
+**Example: Disable startup update check**
 
 <table>
 <tr><th>Windows (.bat)</th><th>Linux / macOS (.sh)</th></tr>
@@ -214,28 +214,28 @@ CHECK_UPDATE="false"
 </td></tr>
 </table>
 
-**例：コメントアウトされたオプションを有効にする** — コメントプレフィックス（.bat は `REM`、.sh は `#`）を削除します：
+**Example: Enable a commented-out option** — remove the comment prefix (`REM` for .bat, `#` for .sh):
 
 <table>
 <tr><th>Windows (.bat)</th><th>Linux / macOS (.sh)</th></tr>
 <tr><td>
 
-変更前：
+Before:
 ```batch
 REM set SHARE=--share
 ```
-変更後：
+After:
 ```batch
 set SHARE=--share
 ```
 
 </td><td>
 
-変更前：
+Before:
 ```bash
 # SHARE="--share"
 ```
-変更後：
+After:
 ```bash
 SHARE="--share"
 ```
@@ -243,31 +243,31 @@ SHARE="--share"
 </td></tr>
 </table>
 
-**主な設定可能オプション：**
+**Common configurable options:**
 
-| オプション | Gradio UI | API サーバー | 説明 |
-|--------|:---------:|:----------:|------|
-| `LANGUAGE` | ✅ | — | UI 言語：`en`、`zh`、`he`、`ja` |
-| `PORT` | ✅ | ✅ | サーバーポート（デフォルト：7860 / 8001） |
-| `SERVER_NAME` / `HOST` | ✅ | ✅ | バインドアドレス（`127.0.0.1` または `0.0.0.0`） |
-| `CHECK_UPDATE` | ✅ | ✅ | 起動時の更新チェック（`true` / `false`） |
-| `CONFIG_PATH` | ✅ | — | DiT モデル（`acestep-v15-turbo` など） |
-| `LM_MODEL_PATH` | ✅ | ✅ | LM モデル（`acestep-5Hz-lm-0.6B` / `1.7B` / `4B`） |
-| `DOWNLOAD_SOURCE` | ✅ | ✅ | ダウンロードソース（`huggingface` / `modelscope`） |
-| `SHARE` | ✅ | — | 公開 Gradio リンクを作成 |
-| `INIT_LLM` | ✅ | — | LLM の強制オン/オフ（`true` / `false` / `auto`） |
-| `OFFLOAD_TO_CPU` | ✅ | — | 低 VRAM GPU 向け CPU オフロード |
+| Option | Gradio UI | API Server | Description |
+|--------|:---------:|:----------:|-------------|
+| `LANGUAGE` | ✅ | — | UI language: `en`, `zh`, `he`, `ja` |
+| `PORT` | ✅ | ✅ | Server port (default: 7860 / 8001) |
+| `SERVER_NAME` / `HOST` | ✅ | ✅ | Bind address (`127.0.0.1` or `0.0.0.0`) |
+| `CHECK_UPDATE` | ✅ | ✅ | Startup update check (`true` / `false`) |
+| `CONFIG_PATH` | ✅ | — | DiT model (`empath-v15-turbo`, etc.) |
+| `LM_MODEL_PATH` | ✅ | ✅ | LM model (`empath-5Hz-lm-0.6B` / `1.7B` / `4B`) |
+| `DOWNLOAD_SOURCE` | ✅ | ✅ | Download source (`huggingface` / `modelscope`) |
+| `SHARE` | ✅ | — | Create public Gradio link |
+| `INIT_LLM` | ✅ | — | Force LLM on/off (`true` / `false` / `auto`) |
+| `OFFLOAD_TO_CPU` | ✅ | — | CPU offload for low-VRAM GPUs |
 
-### 更新 & メンテナンスツール
+### Update & Maintenance Tools
 
-| スクリプト（Windows） | スクリプト（Linux/macOS） | 用途 |
-|-------------------|----------------------|------|
-| `check_update.bat` | `check_update.sh` | GitHub から更新をチェック |
-| `merge_config.bat` | `merge_config.sh` | 更新後にバックアップされた設定をマージ |
-| `install_uv.bat` | `install_uv.sh` | uv パッケージマネージャーをインストール |
-| `quick_test.bat` | `quick_test.sh` | 環境セットアップをテスト |
+| Script (Windows) | Script (Linux/macOS) | Purpose |
+|-------------------|----------------------|---------|
+| `check_update.bat` | `check_update.sh` | Check and update from GitHub |
+| `merge_config.bat` | `merge_config.sh` | Merge backed-up configurations after update |
+| `install_uv.bat` | `install_uv.sh` | Install uv package manager |
+| `quick_test.bat` | `quick_test.sh` | Test environment setup |
 
-**更新ワークフロー：**
+**Update workflow:**
 
 ```bash
 # Windows                          # Linux / macOS
@@ -277,279 +277,372 @@ merge_config.bat                    ./merge_config.sh
 
 ---
 
-## 🪟 Windows ポータブルパッケージ
+## 🪟 Windows Portable Package
 
-Windows ユーザー向けに、依存関係がプリインストールされたポータブルパッケージを提供しています：
+For Windows users, we provide a portable package with pre-installed dependencies:
 
-1. ダウンロードして解凍：[ACE-Step-1.5.7z](https://files.acemusic.ai/acemusic/win/ACE-Step-1.5.7z)
-2. `python_embedded` に全依存関係がプリインストール済み
-3. **要件：** CUDA 12.8
+1. Download and extract: [Empath-1.5.7z](https://files.acemusic.ai/acemusic/win/Empath-1.5.7z)
+2. The package includes `python_embedded` with all dependencies pre-installed
+3. **Requirements:** CUDA 12.8
 
-### クイックスタートスクリプト
+### Quick Start Scripts
 
-| スクリプト | 説明 |
-|------------|------|
-| `start_gradio_ui.bat` | Gradio Web UI を起動 |
-| `start_api_server.bat` | REST API サーバーを起動 |
+| Script | Description |
+|--------|-------------|
+| `start_gradio_ui.bat` | Launch Gradio Web UI |
+| `start_api_server.bat` | Launch REST API Server |
 
-両スクリプトは自動環境検出、自動 `uv` インストール、ダウンロードソース設定、Git 更新チェック（オプション）、モデル・パラメータのカスタマイズに対応しています。
+Both scripts support auto environment detection, auto `uv` install, configurable download source, optional Git update check, and customizable models/parameters.
 
-### 設定
+### Configuration
 
-**`start_gradio_ui.bat`：**
+**`start_gradio_ui.bat`:**
 
 ```batch
-REM UI言語 (en, zh, he, ja)
-set LANGUAGE=ja
+REM UI language (en, zh, he, ja)
+set LANGUAGE=zh
 
-REM ダウンロードソース (auto, huggingface, modelscope)
-set DOWNLOAD_SOURCE=--download-source huggingface
+REM Download source (auto, huggingface, modelscope)
+set DOWNLOAD_SOURCE=--download-source modelscope
 
-REM Git更新チェック (true/false)
+REM Git update check (true/false)
 set CHECK_UPDATE=true
 
-REM モデル設定
-set CONFIG_PATH=--config_path acestep-v15-turbo
-set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-1.7B
+REM Model configuration
+set CONFIG_PATH=--config_path empath-v15-turbo
+set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-1.7B
 ```
 
-### 更新 & メンテナンス
+**`start_api_server.bat`:**
 
-| スクリプト | 用途 |
-|------------|------|
-| `check_update.bat` | GitHub から更新をチェック |
-| `merge_config.bat` | 更新後にバックアップされた設定をマージ |
-| `install_uv.bat` | uv パッケージマネージャーをインストール |
-| `quick_test.bat` | 環境セットアップをテスト |
+```batch
+REM LLM initialization via environment variable
+REM set EMPATH_INIT_LLM=true   # Force enable LLM
+REM set EMPATH_INIT_LLM=false  # Force disable LLM (DiT-only mode)
+```
+
+### Update & Maintenance
+
+| Script | Purpose |
+|--------|---------|
+| `check_update.bat` | Check and update from GitHub |
+| `merge_config.bat` | Merge backed-up configurations after update |
+| `install_uv.bat` | Install uv package manager |
+| `quick_test.bat` | Test environment setup |
+| `test_git_update.bat` | Test Git update functionality |
+
+**Update workflow:**
+
+```bash
+check_update.bat          # 1. Check for updates (requires PortableGit/)
+merge_config.bat          # 2. Merge settings back if conflicts occur
+```
+
+### Portable Git Support
+
+Place a `PortableGit/` folder in your package to enable auto-updates:
+
+```batch
+set CHECK_UPDATE=true     # in start_gradio_ui.bat or start_api_server.bat
+```
+
+Features: 10s timeout protection, smart conflict detection & backup, automatic rollback on failure, directory structure preserved in backups.
+
+### Environment Detection Priority
+
+1. `python_embedded\python.exe` (if exists)
+2. `uv run empath` (if uv is installed)
+3. Auto-install uv via winget or PowerShell
 
 ---
 
-## AMD / ROCm GPU
+## AMD / ROCm GPUs
 
-> ⚠️ `uv run acestep` は CUDA PyTorch wheels をインストールするため、既存の ROCm 環境を上書きする可能性があります。
+> ⚠️ `uv run empath` installs CUDA PyTorch wheels and may overwrite an existing ROCm setup.
 
-### 推奨ワークフロー
+### Windows - ROCm 7.2 (Python 3.12 Required)
+
+**Important:** AMD ROCm 7.2 on Windows requires **Python 3.12** (AMD officially provides Python 3.12 wheels only).
 
 ```bash
-# 1. 仮想環境を作成してアクティベート
+# 1. Ensure you have Python 3.12 installed
+python --version  # Should show Python 3.12.x
+
+# 2. Create and activate a virtual environment
+python -m venv venv_rocm
+venv_rocm\Scripts\activate
+
+# 3. Follow the installation steps in requirements-rocm.txt
+# This installs ROCm SDK and PyTorch wheels from AMD's repository
+
+# 4. Install dependencies
+pip install -r requirements-rocm.txt
+
+# 5. Launch with the ROCm-specific launcher
+start_gradio_ui_rocm.bat
+# OR
+start_api_server_rocm.bat
+```
+
+See [`requirements-rocm.txt`](../../requirements-rocm.txt) for detailed ROCm 7.2 installation steps.
+
+### Linux - ROCm 6.0+ (Python 3.11 or 3.12)
+
+```bash
+# 1. Create and activate a virtual environment
 python -m venv .venv
 source .venv/bin/activate
 
-# 2. ROCm 対応 PyTorch をインストール
+# 2. Install ROCm-compatible PyTorch
 pip install torch --index-url https://download.pytorch.org/whl/rocm6.0
 
-# 3. ACE-Step をインストール
+# 3. Install Empath
 pip install -e .
 
-# 4. サービスを起動
-python -m acestep.acestep_v15_pipeline --port 7680
+# 4. Start the service
+python -m empath.empath_v15_pipeline --port 7680
 ```
 
-### GPU 検出のトラブルシューティング
+> **Note:** `torchcodec` is not available for AMD ROCm GPUs due to CUDA-specific dependencies. Empath automatically uses `soundfile` as a fallback for audio I/O, which provides full functionality on ROCm platforms.
 
-「No GPU detected, running on CPU」と表示される場合：
+### GPU Detection Troubleshooting
 
-1. 診断ツールを実行：`python scripts/check_gpu.py`
-2. RDNA3 GPU の場合、`HSA_OVERRIDE_GFX_VERSION` を設定：
+If you see "No GPU detected, running on CPU" with an AMD GPU:
 
-| GPU | 値 |
-|-----|---|
+1. Run the diagnostic tool: `python scripts/check_gpu.py`
+2. For RDNA3 GPUs, set `HSA_OVERRIDE_GFX_VERSION`:
+
+| GPU | Value |
+|-----|-------|
 | RX 7900 XT/XTX, RX 9070 XT | `export HSA_OVERRIDE_GFX_VERSION=11.0.0` |
 | RX 7800 XT, RX 7700 XT | `export HSA_OVERRIDE_GFX_VERSION=11.0.1` |
 | RX 7600 | `export HSA_OVERRIDE_GFX_VERSION=11.0.2` |
 
-3. Windows では `start_gradio_ui_rocm.bat` / `start_api_server_rocm.bat` を使用
-4. ROCm インストールを確認：`rocm-smi`
+3. On Windows, use `start_gradio_ui_rocm.bat` / `start_api_server_rocm.bat` which set required environment variables automatically.
+4. Verify ROCm installation: `rocm-smi` should list your GPU.
 
-### Linux（cachy-os / RDNA4）
+### Linux (cachy-os / RDNA4)
 
-詳細は [ACE-Step1.5-Rocm-Manual-Linux.md](../en/ACE-Step1.5-Rocm-Manual-Linux.md) を参照してください。
-
----
-
-## Intel GPU
-
-| 項目 | 詳細 |
-|------|------|
-| テスト済みデバイス | Windows ノートPC、Ultra 9 285H 内蔵グラフィックス |
-| オフロード | デフォルトで無効 |
-| コンパイル & 量子化 | デフォルトで有効 |
-| LLM 推論 | サポート（`acestep-5Hz-lm-0.6B` でテスト済み） |
-| nanovllm アクセラレーション | Intel GPU では未サポート |
-| テスト環境 | PyTorch 2.8.0（[Intel Extension for PyTorch](https://pytorch-extension.intel.com/?request=platform)） |
-
-> 注意：2分以上の音声生成時、LLM 推論速度が低下する場合があります。Intel ディスクリート GPU は動作が期待されますが、まだテストされていません。
+See [Empath1.5-Rocm-Manual-Linux.md](Empath1.5-Rocm-Manual-Linux.md) for a detailed ROCm manual tested with RDNA4 on cachy-os.
 
 ---
 
-## CPUのみモード
+## Intel GPUs
 
-ACE-Step は CPU で**推論のみ**実行できますが、速度は大幅に遅くなります。
+| Item | Detail |
+|------|--------|
+| Tested Device | Windows laptop with Ultra 9 285H integrated graphics |
+| Offload | Disabled by default |
+| Compile & Quantization | Enabled by default |
+| LLM Inference | Supported (tested with `empath-5Hz-lm-0.6B`) |
+| nanovllm acceleration | NOT supported on Intel GPUs |
+| Test Environment | PyTorch 2.8.0 from [Intel Extension for PyTorch](https://pytorch-extension.intel.com/?request=platform) |
 
-- CPU でのトレーニング（LoRA を含む）は**推奨されません**。
-- 低 VRAM システムでは、DiTのみモード（LLM 無効）がサポートされています。
-
-GPU がない場合：
-- クラウド GPU プロバイダーの利用
-- 推論のみのワークフロー
-- `ACESTEP_INIT_LLM=false` で DiTのみモードを使用
+> **Note:** LLM inference speed may decrease when generating audio longer than 2 minutes. Intel discrete GPUs are expected to work but not yet tested.
+> 
+> **Audio I/O:** `torchcodec` is not available for Intel XPU GPUs. Empath automatically uses `soundfile` as a fallback for audio I/O, which provides full functionality on Intel platforms.
 
 ---
 
-## Linux の注意事項
+## CPU-Only Mode
 
-### Python 3.11 プレリリース版の問題
+Empath can run on CPU for **inference only**, but performance will be significantly slower.
 
-一部の Linux ディストリビューション（Ubuntu を含む）には Python 3.11.0rc1 プレリリース版が同梱されており、vLLM バックエンドでセグメンテーションフォルトを引き起こす可能性があります。
+- Training (including LoRA) on CPU is **not recommended**.
+- For low-VRAM systems, DiT-only mode (LLM disabled) is supported.
 
-**推奨：** 安定版 Python（≥ 3.11.12）を使用してください。Ubuntu では deadsnakes PPA からインストールできます。
+If you do not have a GPU, consider:
+- Using cloud GPU providers
+- Running inference-only workflows
+- Using DiT-only mode with `EMPATH_INIT_LLM=false`
 
-Python のアップグレードができない場合、PyTorch バックエンドを使用：
+---
+
+## Linux Notes
+
+### Python 3.11 Pre-Release Issue
+
+Some Linux distributions (including Ubuntu) ship Python 3.11.0rc1, which is a **pre-release** build. This can cause segmentation faults with the vLLM backend.
+
+**Recommendation:** Use a stable Python release (≥ 3.11.12). On Ubuntu, install via the deadsnakes PPA.
+
+If upgrading Python is not possible, use the PyTorch backend:
 
 ```bash
-uv run acestep --backend pt
+uv run empath --backend pt
 ```
 
 ---
 
-## 環境変数 (.env)
+## Environment Variables (.env)
+
+The `.env` file provides a centralized way to configure Empath. Settings in `.env` are:
+- Used by Python scripts (CLI, API server, Gradio UI)
+- **Now also used by launcher scripts** (`start_gradio_ui.bat`, `start_gradio_ui.sh`, etc.)
+- **Preserved across repository updates** (unlike hardcoded values in launcher scripts)
 
 ```bash
-cp .env.example .env   # コピーして編集
+cp .env.example .env   # Copy and edit
 ```
 
-### 主要な変数
+### Benefits of Using .env
 
-| 変数 | 値 | 説明 |
-|------|---|------|
-| `ACESTEP_INIT_LLM` | `auto` / `true` / `false` | LLM 初期化モード |
-| `ACESTEP_CONFIG_PATH` | モデル名 | DiT モデルパス |
-| `ACESTEP_LM_MODEL_PATH` | モデル名 | LM モデルパス |
-| `ACESTEP_DOWNLOAD_SOURCE` | `auto` / `huggingface` / `modelscope` | ダウンロードソース |
-| `ACESTEP_API_KEY` | 文字列 | API 認証キー |
+✅ **Survives Updates**: Your custom model paths and settings won't be overwritten when you update Empath  
+✅ **Cross-Platform**: Same configuration works on Windows, Linux, and macOS  
+✅ **Version Control Safe**: `.env` is in `.gitignore`, so your personal settings stay private
 
-### LLM 初期化 (`ACESTEP_INIT_LLM`)
+### Key Variables
 
-処理フロー：`GPU 検出 → ACESTEP_INIT_LLM オーバーライド → モデル読み込み`
+| Variable | Values | Description |
+|----------|--------|-------------|
+| `EMPATH_INIT_LLM` | `auto` / `true` / `false` | LLM initialization mode |
+| `EMPATH_CONFIG_PATH` | model name | DiT model path |
+| `EMPATH_LM_MODEL_PATH` | model name | LM model path |
+| `EMPATH_DOWNLOAD_SOURCE` | `auto` / `huggingface` / `modelscope` | Download source |
+| `EMPATH_API_KEY` | string | API authentication key |
+| `PORT` | number | Server port (default: 7860) |
+| `SERVER_NAME` | IP address | Server host (default: 127.0.0.1) |
+| `LANGUAGE` | `en` / `zh` / `he` / `ja` | UI language (default: en) |
 
-| 値 | 動作 |
-|----|------|
-| `auto`（または空） | GPU 自動検出結果を使用（推奨） |
-| `true` / `1` / `yes` | GPU 検出後に LLM を強制有効化（OOM の可能性あり） |
-| `false` / `0` / `no` | 強制無効化、純粋な DiT モード |
+### LLM Initialization (`EMPATH_INIT_LLM`)
 
-**シナリオ別 `.env` の例：**
+Processing flow: `GPU Detection → EMPATH_INIT_LLM Override → Model Loading`
 
-```bash
-# 自動モード（推奨）
-ACESTEP_INIT_LLM=auto
+| Value | Behavior |
+|-------|----------|
+| `auto` (or empty) | Use GPU auto-detection result (recommended) |
+| `true` / `1` / `yes` | Force enable LLM after GPU detection (may cause OOM) |
+| `false` / `0` / `no` | Force disable for pure DiT mode |
 
-# 低 VRAM GPU で強制有効化
-ACESTEP_INIT_LLM=true
-ACESTEP_LM_MODEL_PATH=acestep-5Hz-lm-0.6B
-
-# LLM を無効化して高速生成
-ACESTEP_INIT_LLM=false
-```
-
----
-
-## コマンドラインオプション
-
-### Gradio UI (`acestep`)
-
-| オプション | デフォルト | 説明 |
-|------------|-----------|------|
-| `--port` | 7860 | サーバーポート |
-| `--server-name` | 127.0.0.1 | サーバーアドレス（ネットワークアクセスには `0.0.0.0`） |
-| `--share` | false | 公開 Gradio リンクを作成 |
-| `--language` | en | UI 言語：`en`、`zh`、`he`、`ja` |
-| `--init_service` | false | 起動時にモデルを自動初期化 |
-| `--init_llm` | auto | LLM 初期化：`true` / `false` / 省略で自動 |
-| `--config_path` | auto | DiT モデル（例：`acestep-v15-turbo`） |
-| `--lm_model_path` | auto | LM モデル（例：`acestep-5Hz-lm-1.7B`） |
-| `--offload_to_cpu` | auto | CPU オフロード（GPU ティアに基づいて自動設定） |
-| `--download-source` | auto | モデルソース：`auto` / `huggingface` / `modelscope` |
-| `--enable-api` | false | Gradio UI と同時に REST API エンドポイントを有効化 |
-
-**例：**
+**Example `.env` for different scenarios:**
 
 ```bash
-# ネットワーク公開 + 日本語 UI
-uv run acestep --server-name 0.0.0.0 --share --language ja
+# Auto mode (recommended)
+EMPATH_INIT_LLM=auto
 
-# 起動時にモデルを事前初期化
-uv run acestep --init_service true --config_path acestep-v15-turbo
+# Force enable on low VRAM GPU
+EMPATH_INIT_LLM=true
+EMPATH_LM_MODEL_PATH=empath-5Hz-lm-0.6B
 
-# ModelScope からダウンロード
-uv run acestep --download-source modelscope
+# Force disable LLM for faster generation
+EMPATH_INIT_LLM=false
 ```
 
 ---
 
-## 📥 モデルダウンロード
+## Command Line Options
 
-初回実行時にモデルが [HuggingFace](https://huggingface.co/ACE-Step/Ace-Step1.5) または [ModelScope](https://modelscope.cn/organization/ACE-Step) から自動ダウンロードされます。
+### Gradio UI (`empath`)
 
-### CLI ダウンロード
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--port` | 7860 | Server port |
+| `--server-name` | 127.0.0.1 | Server address (use `0.0.0.0` for network access) |
+| `--share` | false | Create public Gradio link |
+| `--language` | en | UI language: `en`, `zh`, `he`, `ja` |
+| `--batch_size` | None | Default batch size for generation (1 to GPU-dependent max). When not specified, defaults to `min(2, GPU_max)` |
+| `--init_service` | false | Auto-initialize models on startup |
+| `--init_llm` | auto | LLM init: `true` / `false` / omit for auto |
+| `--config_path` | auto | DiT model (e.g., `empath-v15-turbo`) |
+| `--lm_model_path` | auto | LM model (e.g., `empath-5Hz-lm-1.7B`) |
+| `--offload_to_cpu` | auto | CPU offload (auto-enabled if VRAM < 20GB) |
+| `--download-source` | auto | Model source: `auto` / `huggingface` / `modelscope` |
+| `--enable-api` | false | Enable REST API alongside Gradio UI |
+| `--api-key` | none | API key for authentication |
+| `--auth-username` | none | Gradio authentication username |
+| `--auth-password` | none | Gradio authentication password |
+
+**Examples:**
 
 ```bash
-uv run acestep-download                              # メインモデルをダウンロード
-uv run acestep-download --all                         # 全モデルをダウンロード
-uv run acestep-download --download-source modelscope  # ModelScope から
-uv run acestep-download --model acestep-v15-sft       # 特定のモデル
-uv run acestep-download --list                        # 利用可能な全モデルを一覧表示
+# Public access with Chinese UI
+uv run empath --server-name 0.0.0.0 --share --language zh
+
+# Pre-initialize models on startup
+uv run empath --init_service true --config_path empath-v15-turbo
+
+# Set default batch size to 4
+uv run empath --batch_size 4
+
+# Enable API endpoints with authentication
+uv run empath --enable-api --api-key sk-your-secret-key --port 8001
+
+# Use ModelScope as download source
+uv run empath --download-source modelscope
 ```
-
-### 手動ダウンロード (huggingface-cli)
-
-```bash
-# メインモデル（vae, Qwen3-Embedding-0.6B, acestep-v15-turbo, acestep-5Hz-lm-1.7B）
-huggingface-cli download ACE-Step/Ace-Step1.5 --local-dir ./checkpoints
-
-# オプションモデル
-huggingface-cli download ACE-Step/acestep-5Hz-lm-0.6B --local-dir ./checkpoints/acestep-5Hz-lm-0.6B
-huggingface-cli download ACE-Step/acestep-5Hz-lm-4B --local-dir ./checkpoints/acestep-5Hz-lm-4B
-```
-
-### 利用可能なモデル
-
-| モデル | 説明 | HuggingFace |
-|--------|------|-------------|
-| **Ace-Step1.5**（メイン） | コア：vae, Qwen3-Embedding-0.6B, acestep-v15-turbo, acestep-5Hz-lm-1.7B | [リンク](https://huggingface.co/ACE-Step/Ace-Step1.5) |
-| acestep-5Hz-lm-0.6B | 軽量 LM（0.6B パラメータ） | [リンク](https://huggingface.co/ACE-Step/acestep-5Hz-lm-0.6B) |
-| acestep-5Hz-lm-4B | 大規模 LM（4B パラメータ） | [リンク](https://huggingface.co/ACE-Step/acestep-5Hz-lm-4B) |
-| acestep-v15-base | ベース DiT モデル | [リンク](https://huggingface.co/ACE-Step/acestep-v15-base) |
-| acestep-v15-sft | SFT DiT モデル | [リンク](https://huggingface.co/ACE-Step/acestep-v15-sft) |
-| acestep-v15-turbo-shift1 | Turbo DiT（shift1） | [リンク](https://huggingface.co/ACE-Step/acestep-v15-turbo-shift1) |
-| acestep-v15-turbo-shift3 | Turbo DiT（shift3） | [リンク](https://huggingface.co/ACE-Step/acestep-v15-turbo-shift3) |
-| acestep-v15-turbo-continuous | Turbo DiT（continuous shift 1-5） | [リンク](https://huggingface.co/ACE-Step/acestep-v15-turbo-continuous) |
 
 ---
 
-## 💡 どのモデルを選ぶべき？
+## 📥 Model Download
 
-ACE-Step は GPU の VRAM に自動適応します。UI は検出された GPU ティアに基づいてすべての設定（LM モデル、バックエンド、オフロード、量子化）を事前構成します：
+Models are automatically downloaded from [HuggingFace](https://huggingface.co/Empath/Empath1.5) or [ModelScope](https://modelscope.cn/organization/Empath) on first run.
 
-| GPU VRAM | 推奨 LM モデル | バックエンド | 備考 |
-|----------|---------------|-------------|------|
-| **≤6GB** | なし（DiTのみ） | — | LM はデフォルトで無効；INT8 量子化 + 完全 CPU オフロード |
-| **6-8GB** | `acestep-5Hz-lm-0.6B` | `pt` | 軽量 LM、PyTorch バックエンド |
-| **8-16GB** | `0.6B` / `1.7B` | `vllm` | 8-12GB は 0.6B、12-16GB は 1.7B |
-| **16-24GB** | `acestep-5Hz-lm-1.7B` | `vllm` | 20GB+ で 4B 利用可能；20GB+ でオフロード不要 |
-| **≥24GB** | `acestep-5Hz-lm-4B` | `vllm` | 最高品質、すべてのモデルがオフロードなしで動作 |
+### CLI Download
 
-> 📖 GPU 互換性の詳細（ティアテーブル、時間制限、バッチサイズ、アダプティブ UI デフォルト、メモリ最適化）は [GPU 互換性ガイド](GPU_COMPATIBILITY.md) を参照してください。
+```bash
+uv run empath-download                              # Download main model
+uv run empath-download --all                         # Download all models
+uv run empath-download --download-source modelscope  # From ModelScope
+uv run empath-download --model empath-v15-sft       # Specific model
+uv run empath-download --list                        # List all available
+```
+
+Or with Python directly:
+
+```bash
+python -m empath.model_downloader                    # Download main model
+python -m empath.model_downloader --all              # Download all models
+```
+
+### Manual Download (huggingface-cli)
+
+```bash
+# Main model (vae, Qwen3-Embedding-0.6B, empath-v15-turbo, empath-5Hz-lm-1.7B)
+huggingface-cli download Empath/Empath1.5 --local-dir ./checkpoints
+
+# Optional models
+huggingface-cli download Empath/empath-5Hz-lm-0.6B --local-dir ./checkpoints/empath-5Hz-lm-0.6B
+huggingface-cli download Empath/empath-5Hz-lm-4B --local-dir ./checkpoints/empath-5Hz-lm-4B
+```
+
+### Available Models
+
+| Model | Description | HuggingFace |
+|-------|-------------|-------------|
+| **Empath1.5** (Main) | Core: vae, Qwen3-Embedding-0.6B, empath-v15-turbo, empath-5Hz-lm-1.7B | [Link](https://huggingface.co/Empath/Empath1.5) |
+| empath-5Hz-lm-0.6B | Lightweight LM (0.6B params) | [Link](https://huggingface.co/Empath/empath-5Hz-lm-0.6B) |
+| empath-5Hz-lm-4B | Large LM (4B params) | [Link](https://huggingface.co/Empath/empath-5Hz-lm-4B) |
+| empath-v15-base | Base DiT model | [Link](https://huggingface.co/Empath/empath-v15-base) |
+| empath-v15-sft | SFT DiT model | [Link](https://huggingface.co/Empath/empath-v15-sft) |
+| empath-v15-turbo-shift1 | Turbo DiT with shift1 | [Link](https://huggingface.co/Empath/empath-v15-turbo-shift1) |
+| empath-v15-turbo-shift3 | Turbo DiT with shift3 | [Link](https://huggingface.co/Empath/empath-v15-turbo-shift3) |
+| empath-v15-turbo-continuous | Turbo DiT with continuous shift (1-5) | [Link](https://huggingface.co/Empath/empath-v15-turbo-continuous) |
 
 ---
 
-## 開発
+## 💡 Which Model Should I Choose?
+
+Empath automatically adapts to your GPU's VRAM. The UI pre-configures all settings (LM model, backend, offloading, quantization) based on your detected GPU tier:
+
+| Your GPU VRAM | Recommended LM Model | Backend | Notes |
+|---------------|---------------------|---------|-------|
+| **≤6GB** | None (DiT only) | — | LM disabled by default; INT8 quantization + full CPU offload |
+| **6-8GB** | `empath-5Hz-lm-0.6B` | `pt` | Lightweight LM with PyTorch backend |
+| **8-16GB** | `0.6B` / `1.7B` | `vllm` | 0.6B for 8-12GB, 1.7B for 12-16GB |
+| **16-24GB** | `empath-5Hz-lm-1.7B` | `vllm` | 4B available on 20GB+; no offload on 20GB+ |
+| **≥24GB** | `empath-5Hz-lm-4B` | `vllm` | Best quality, all models fit without offload |
+
+> 📖 For detailed GPU compatibility information (tier table, duration limits, batch sizes, adaptive UI defaults, memory optimization), see [GPU Compatibility Guide](GPU_COMPATIBILITY.md).
+
+---
+
+## Development
 
 ```bash
-# 依存関係を追加
+# Add dependencies
 uv add package-name
 uv add --dev package-name
 
-# 全依存関係を更新
+# Update all dependencies
 uv sync --upgrade
 ```
