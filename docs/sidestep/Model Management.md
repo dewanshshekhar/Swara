@@ -1,19 +1,19 @@
 
 ## Checkpoint Directory Structure
 
-ACE-Step models are organized as subdirectories under a root `checkpoints/` folder. Each model variant has its own folder with a `config.json` and weight files:
+Empath models are organized as subdirectories under a root `checkpoints/` folder. Each model variant has its own folder with a `config.json` and weight files:
 
 ```text
 checkpoints/
-  acestep-v15-turbo/     # Turbo (8-step accelerated)
+  empath-v15-turbo/     # Turbo (8-step accelerated)
     config.json
     modeling.py
     model.safetensors
     silence_latent.pt
-  acestep-v15-base/      # Base (full diffusion)
+  empath-v15-base/      # Base (full diffusion)
     config.json
     ...
-  acestep-v15-sft/       # SFT (supervised fine-tune)
+  empath-v15-sft/       # SFT (supervised fine-tune)
     config.json
     ...
   vae/                   # VAE encoder/decoder (shared)
@@ -35,7 +35,7 @@ If you downloaded weights manually, make sure the folder names match what the mo
 
 Side-Step's model discovery automatically classifies models:
 
-- **Official models**: Folder names starting with `acestep-v15-` (e.g., `acestep-v15-turbo`). These are auto-detected with correct timestep parameters.
+- **Official models**: Folder names starting with `empath-v15-` (e.g., `empath-v15-turbo`). These are auto-detected with correct timestep parameters.
 - **Custom models / fine-tunes**: Any other folder containing a `config.json`. Side-Step will ask which base model they descend from.
 
 ### How Discovery Works

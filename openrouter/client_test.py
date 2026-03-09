@@ -1,5 +1,5 @@
 """
-ACE-Step OpenRouter API 客户端测试代码
+Empath OpenRouter API 客户端测试代码
 
 使用 requests 库测试 API 的各个端点和功能模式。
 
@@ -502,7 +502,7 @@ def test_error_handling(base_url: str, api_key: Optional[str] = None) -> bool:
 # =============================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description="ACE-Step OpenRouter API 客户端测试")
+    parser = argparse.ArgumentParser(description="Empath OpenRouter API 客户端测试")
     parser.add_argument(
         "--base-url",
         default=os.getenv("OPENROUTER_BASE_URL", DEFAULT_BASE_URL),
@@ -525,7 +525,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print("ACE-Step OpenRouter API 客户端测试")
+    print("Empath OpenRouter API 客户端测试")
     print("=" * 60)
     print(f"Base URL: {args.base_url}")
     print(f"API Key: {'已设置' if args.api_key else '未设置'}")

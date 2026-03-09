@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ACE-Step Gradio Web UI Launcher - Linux AMD ROCm
+# Empath Gradio Web UI Launcher - Linux AMD ROCm
 # For AMD RX 7000/6000 series GPUs on Linux
 # Requires: ROCm 6.x+ and ROCm PyTorch from https://pytorch.org/
 #
@@ -34,23 +34,23 @@ _load_env_file() {
         value="${value%"${value##*[![:space:]]}"}"
 
         case "$key" in
-            ACESTEP_CONFIG_PATH)
+            EMPATH_CONFIG_PATH)
                 [[ -n "$value" ]] && CONFIG_PATH="--config_path $value"
                 ;;
-            ACESTEP_LM_MODEL_PATH)
+            EMPATH_LM_MODEL_PATH)
                 [[ -n "$value" ]] && LM_MODEL_PATH="--lm_model_path $value"
                 ;;
-            ACESTEP_INIT_LLM)
+            EMPATH_INIT_LLM)
                 if [[ -n "$value" && "$value" != "auto" ]]; then
                     INIT_LLM="--init_llm $value"
                 fi
                 ;;
-            ACESTEP_DOWNLOAD_SOURCE)
+            EMPATH_DOWNLOAD_SOURCE)
                 if [[ -n "$value" && "$value" != "auto" ]]; then
                     DOWNLOAD_SOURCE="--download-source $value"
                 fi
                 ;;
-            ACESTEP_API_KEY)
+            EMPATH_API_KEY)
                 [[ -n "$value" ]] && API_KEY="--api-key $value"
                 ;;
             PORT)
@@ -75,7 +75,7 @@ _load_env_file
 _load_manual() {
     echo -e "\033[1;36m"
     echo "======================================================"
-    echo "            ACE-Step Manual Launch Mode"
+    echo "            Empath Manual Launch Mode"
     echo "======================================================"
     echo
 
@@ -112,25 +112,25 @@ _load_manual() {
 
     echo
     echo "-------------------- Select DiT Model --------------------"
-    echo "1) acestep-v15-base"
-    echo "2) acestep-v15-sft"
-    echo "3) acestep-v15-turbo (Recommended)"
-    echo "4) acestep-v15-turbo-rl"
+    echo "1) empath-v15-base"
+    echo "2) empath-v15-sft"
+    echo "3) empath-v15-turbo (Recommended)"
+    echo "4) empath-v15-turbo-rl"
     echo
     while true; do
         read -rp "Enter selection (1-4): " DIT_CHOICE
         case "$DIT_CHOICE" in
             1)
-                CONFIG_PATH="--config_path acestep-v15-base"
+                CONFIG_PATH="--config_path empath-v15-base"
                 break ;;
             2)
-                CONFIG_PATH="--config_path acestep-v15-sft"
+                CONFIG_PATH="--config_path empath-v15-sft"
                 break ;;
             3)
-                CONFIG_PATH="--config_path acestep-v15-turbo"
+                CONFIG_PATH="--config_path empath-v15-turbo"
                 break ;;
             4)
-                CONFIG_PATH="--config_path acestep-v15-turbo-rl"
+                CONFIG_PATH="--config_path empath-v15-turbo-rl"
                 break ;;
             *)
                 echo "Invalid input. Please enter a number between 1 and 4." ;;
@@ -139,24 +139,24 @@ _load_manual() {
 
     echo
     echo "-------------------- Select LM Model --------------------"
-    echo "1) acestep-5Hz-lm-0.6B (Recommended)"
-    echo "2) acestep-5Hz-lm-1.7B"
-    echo "3) acestep-5Hz-lm-4B"
+    echo "1) empath-5Hz-lm-0.6B (Recommended)"
+    echo "2) empath-5Hz-lm-1.7B"
+    echo "3) empath-5Hz-lm-4B"
     echo "4) Launch without LM Model"
     echo
     while true; do
         read -rp "Enter selection (1-4): " LM_CHOICE
         case "$LM_CHOICE" in
             1)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-0.6B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-0.6B"
                 INIT_LLM="--init_llm true"
                 break ;;
             2)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-1.7B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-1.7B"
                 INIT_LLM="--init_llm true"
                 break ;;
             3)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-4B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-4B"
                 INIT_LLM="--init_llm true"
                 break ;;
             4)
@@ -193,7 +193,7 @@ _load_manual
 
 # ==================== ROCm Configuration ====================
 # Force PyTorch LM backend (bypasses nano-vllm flash_attn dependency)
-export ACESTEP_LM_BACKEND="pt"
+export EMPATH_LM_BACKEND="pt"
 
 # RDNA3 GPU architecture override (RX 7900 XT/XTX, RX 7800 XT, etc.)
 # Change to 11.0.1 for gfx1101 (RX 7700 XT, RX 7800 XT)
@@ -218,8 +218,8 @@ SHARE="${SHARE:-}"
 : "${LANGUAGE:=en}"
 
 # ==================== Model Configuration ====================
-: "${CONFIG_PATH:=--config_path acestep-v15-turbo}"
-: "${LM_MODEL_PATH:=--lm_model_path acestep-5Hz-lm-4B}"
+: "${CONFIG_PATH:=--config_path empath-v15-turbo}"
+: "${LM_MODEL_PATH:=--lm_model_path empath-5Hz-lm-4B}"
 
 # CPU offload: required for 4B LM on GPUs with <=20GB VRAM
 # Disable if using 1.7B/0.6B LM or if your GPU has >=24GB VRAM
@@ -319,7 +319,7 @@ _startup_update_check() {
 _startup_update_check
 
 echo "============================================"
-echo "  ACE-Step 1.5 - Linux AMD ROCm Edition"
+echo "  Empath 1.5 - Linux AMD ROCm Edition"
 echo "============================================"
 echo
 
@@ -359,7 +359,7 @@ print(f'HIP: {hip}' if hip else 'WARNING: Not a ROCm build')
 fi
 echo
 
-echo "Starting ACE-Step Gradio Web UI..."
+echo "Starting Empath Gradio Web UI..."
 echo "Server will be available at: http://${SERVER_NAME}:${PORT}"
 echo
 
@@ -378,4 +378,4 @@ CMD="--port $PORT --server-name $SERVER_NAME --language $LANGUAGE"
 [[ -n "$AUTH_USERNAME" ]] && CMD="$CMD $AUTH_USERNAME"
 [[ -n "$AUTH_PASSWORD" ]] && CMD="$CMD $AUTH_PASSWORD"
 
-cd "$SCRIPT_DIR" && python3 -u acestep/acestep_v15_pipeline.py $CMD
+cd "$SCRIPT_DIR" && python3 -u empath/empath_v15_pipeline.py $CMD

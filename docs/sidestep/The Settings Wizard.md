@@ -11,7 +11,7 @@ These are always shown regardless of mode.
 
 | Setting | Default | What it does | Why you'd change it |
 |---|---|---|---|
-| Checkpoint directory | From settings or `./checkpoints` | Where model weights live | Point to your ACE-Step checkout or custom weights |
+| Checkpoint directory | From settings or `./checkpoints` | Where model weights live | Point to your Empath checkout or custom weights |
 | Model | Interactive picker | Which model variant to train on | Pick base, turbo, sft, or a community fine-tune |
 | Dataset directory | *(none)* | Folder with preprocessed `.pt` files | Always required -- your training data |
 | Output directory | *(none)* | Where adapter weights and logs are saved | Always required -- pick a descriptive name |

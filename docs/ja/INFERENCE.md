@@ -1,82 +1,82 @@
-# ACE-Step 推論 API ドキュメント
+# Empath Inference API Documentation
 
-**Language / 语言 / 言語:** [English](../en/INFERENCE.md) | [中文](../zh/INFERENCE.md) | [日本語](INFERENCE.md)
-
----
-
-本ドキュメントはACE-Step推論APIの包括的なドキュメントを提供し、サポートされているすべてのタスクタイプのパラメータ仕様を含みます。
-
-## 目次
-
-- [クイックスタート](#クイックスタート)
-- [API概要](#api概要)
-- [GenerationParamsパラメータ](#generationparamsパラメータ)
-- [GenerationConfigパラメータ](#generationconfigパラメータ)
-- [タスクタイプ](#タスクタイプ)
-- [ヘルパー関数](#ヘルパー関数)
-- [完全な例](#完全な例)
-- [ベストプラクティス](#ベストプラクティス)
+**Language / 语言 / 言語:** [English](INFERENCE.md) | [中文](../zh/INFERENCE.md) | [日本語](../ja/INFERENCE.md)
 
 ---
 
-## クイックスタート
+This document provides comprehensive documentation for the Empath inference API, including parameter specifications for all supported task types.
 
-### 基本的な使用法
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [API Overview](#api-overview)
+- [GenerationParams Parameters](#generationparams-parameters)
+- [GenerationConfig Parameters](#generationconfig-parameters)
+- [Task Types](#task-types)
+- [Helper Functions](#helper-functions)
+- [Complete Examples](#complete-examples)
+- [Best Practices](#best-practices)
+
+---
+
+## Quick Start
+
+### Basic Usage
 
 ```python
-from acestep.handler import AceStepHandler
-from acestep.llm_inference import LLMHandler
-from acestep.inference import GenerationParams, GenerationConfig, generate_music
+from empath.handler import AceStepHandler
+from empath.llm_inference import LLMHandler
+from empath.inference import GenerationParams, GenerationConfig, generate_music
 
-# ハンドラーの初期化
+# Initialize handlers
 dit_handler = AceStepHandler()
 llm_handler = LLMHandler()
 
-# サービスの初期化
+# Initialize services
 dit_handler.initialize_service(
     project_root="/path/to/project",
-    config_path="acestep-v15-turbo",
+    config_path="empath-v15-turbo",
     device="cuda"
 )
 
 llm_handler.initialize(
     checkpoint_dir="/path/to/checkpoints",
-    lm_model_path="acestep-5Hz-lm-0.6B",
+    lm_model_path="empath-5Hz-lm-0.6B",
     backend="vllm",
     device="cuda"
 )
 
-# 生成パラメータの設定
+# Configure generation parameters
 params = GenerationParams(
-    caption="重低音のアップビートなエレクトロニックダンスミュージック",
+    caption="upbeat electronic dance music with heavy bass",
     bpm=128,
     duration=30,
 )
 
-# 生成設定の構成
+# Configure generation settings
 config = GenerationConfig(
     batch_size=2,
     audio_format="flac",
 )
 
-# 音楽を生成
+# Generate music
 result = generate_music(dit_handler, llm_handler, params, config, save_dir="/path/to/output")
 
-# 結果にアクセス
+# Access results
 if result.success:
     for audio in result.audios:
-        print(f"生成完了：{audio['path']}")
-        print(f"Key：{audio['key']}")
-        print(f"Seed：{audio['params']['seed']}")
+        print(f"Generated: {audio['path']}")
+        print(f"Key: {audio['key']}")
+        print(f"Seed: {audio['params']['seed']}")
 else:
-    print(f"エラー：{result.error}")
+    print(f"Error: {result.error}")
 ```
 
 ---
 
-## API概要
+## API Overview
 
-### メイン関数
+### Main Functions
 
 #### generate_music
 
@@ -91,7 +91,7 @@ def generate_music(
 ) -> GenerationResult
 ```
 
-ACE-Stepモデルを使用して音楽を生成するメイン関数。
+Main function for generating music using the Empath model.
 
 #### understand_music
 
@@ -108,7 +108,7 @@ def understand_music(
 ) -> UnderstandResult
 ```
 
-オーディオセマンティックコードを分析し、メタデータ（caption、lyrics、BPM、キーなど）を抽出します。
+Analyze audio semantic codes and extract metadata (caption, lyrics, BPM, key, etc.).
 
 #### create_sample
 
@@ -127,7 +127,7 @@ def create_sample(
 ) -> CreateSampleResult
 ```
 
-自然言語の説明から完全な音楽サンプル（caption、lyrics、メタデータ）を生成します。
+Generate a complete music sample (caption, lyrics, metadata) from a natural language description.
 
 #### format_sample
 
@@ -146,56 +146,56 @@ def format_sample(
 ) -> FormatSampleResult
 ```
 
-ユーザー提供のcaptionとlyricsをフォーマット・強化し、構造化されたメタデータを生成します。
+Format and enhance user-provided caption and lyrics, generating structured metadata.
 
-### 設定オブジェクト
+### Configuration Objects
 
-APIは2つの設定データクラスを使用します：
+The API uses two configuration dataclasses:
 
-**GenerationParams** - すべての音楽生成パラメータを含む：
+**GenerationParams** - Contains all music generation parameters:
 
 ```python
 @dataclass
 class GenerationParams:
-    # タスクと指示
+    # Task & Instruction
     task_type: str = "text2music"
     instruction: str = "Fill the audio semantic mask based on the given conditions:"
     
-    # オーディオアップロード
+    # Audio Uploads
     reference_audio: Optional[str] = None
     src_audio: Optional[str] = None
     
-    # LMコードヒント
+    # LM Codes Hints
     audio_codes: str = ""
     
-    # テキスト入力
+    # Text Inputs
     caption: str = ""
     lyrics: str = ""
     instrumental: bool = False
     
-    # メタデータ
+    # Metadata
     vocal_language: str = "unknown"
     bpm: Optional[int] = None
     keyscale: str = ""
     timesignature: str = ""
     duration: float = -1.0
     
-    # 高度な設定
+    # Advanced Settings
     inference_steps: int = 8
     seed: int = -1
     guidance_scale: float = 7.0
     use_adg: bool = False
     cfg_interval_start: float = 0.0
     cfg_interval_end: float = 1.0
-    shift: float = 1.0                    # 新規：タイムステップシフト係数
-    infer_method: str = "ode"             # 新規：拡散推論方法
-    timesteps: Optional[List[float]] = None  # 新規：カスタムタイムステップ
+    shift: float = 1.0                    # NEW: Timestep shift factor
+    infer_method: str = "ode"             # NEW: Diffusion inference method
+    timesteps: Optional[List[float]] = None  # NEW: Custom timesteps
     
     repainting_start: float = 0.0
     repainting_end: float = -1
     audio_cover_strength: float = 1.0
     
-    # 5Hz言語モデルパラメータ
+    # 5Hz Language Model Parameters
     thinking: bool = True
     lm_temperature: float = 0.85
     lm_cfg_scale: float = 2.0
@@ -208,7 +208,7 @@ class GenerationParams:
     use_cot_language: bool = True
     use_constrained_decoding: bool = True
     
-    # CoT生成値（LMによって自動入力）
+    # CoT Generated Values (auto-filled by LM)
     cot_bpm: Optional[int] = None
     cot_keyscale: str = ""
     cot_timesignature: str = ""
@@ -218,7 +218,7 @@ class GenerationParams:
     cot_lyrics: str = ""
 ```
 
-**GenerationConfig** - バッチと出力設定を含む：
+**GenerationConfig** - Contains batch and output configuration:
 
 ```python
 @dataclass
@@ -232,259 +232,334 @@ class GenerationConfig:
     audio_format: str = "flac"
 ```
 
-### 結果オブジェクト
+### Result Objects
 
-**GenerationResult** - 音楽生成の結果：
+**GenerationResult** - Result of music generation:
 
 ```python
 @dataclass
 class GenerationResult:
-    # オーディオ出力
-    audios: List[Dict[str, Any]]  # オーディオ辞書のリスト
+    # Audio Outputs
+    audios: List[Dict[str, Any]]  # List of audio dictionaries
     
-    # 生成情報
-    status_message: str           # 生成からのステータスメッセージ
-    extra_outputs: Dict[str, Any] # 追加出力（latents、masks、lm_metadata、time_costs）
+    # Generation Information
+    status_message: str           # Status message from generation
+    extra_outputs: Dict[str, Any] # Extra outputs (latents, masks, lm_metadata, time_costs)
     
-    # 成功ステータス
-    success: bool                 # 生成が成功したかどうか
-    error: Optional[str]          # 失敗した場合のエラーメッセージ
+    # Success Status
+    success: bool                 # Whether generation succeeded
+    error: Optional[str]          # Error message if failed
 ```
 
-**オーディオ辞書構造：**
+**Audio Dictionary Structure:**
 
-`audios` リストの各アイテムには以下が含まれます：
+Each item in `audios` list contains:
 
 ```python
 {
-    "path": str,           # 保存されたオーディオへのファイルパス
-    "tensor": Tensor,      # オーディオテンソル [channels, samples]、CPU、float32
-    "key": str,            # ユニークなオーディオキー（パラメータに基づくUUID）
-    "sample_rate": int,    # サンプルレート（デフォルト：48000）
-    "params": Dict,        # このオーディオの生成パラメータ（seed、audio_codesなどを含む）
+    "path": str,           # File path to saved audio
+    "tensor": Tensor,      # Audio tensor [channels, samples], CPU, float32
+    "key": str,            # Unique audio key (UUID based on params)
+    "sample_rate": int,    # Sample rate (default: 48000)
+    "params": Dict,        # Generation params for this audio (includes seed, audio_codes, etc.)
 }
+```
+
+**UnderstandResult** - Result of music understanding:
+
+```python
+@dataclass
+class UnderstandResult:
+    # Metadata Fields
+    caption: str = ""
+    lyrics: str = ""
+    bpm: Optional[int] = None
+    duration: Optional[float] = None
+    keyscale: str = ""
+    language: str = ""
+    timesignature: str = ""
+    
+    # Status
+    status_message: str = ""
+    success: bool = True
+    error: Optional[str] = None
+```
+
+**CreateSampleResult** - Result of sample creation:
+
+```python
+@dataclass
+class CreateSampleResult:
+    # Metadata Fields
+    caption: str = ""
+    lyrics: str = ""
+    bpm: Optional[int] = None
+    duration: Optional[float] = None
+    keyscale: str = ""
+    language: str = ""
+    timesignature: str = ""
+    instrumental: bool = False
+    
+    # Status
+    status_message: str = ""
+    success: bool = True
+    error: Optional[str] = None
+```
+
+**FormatSampleResult** - Result of sample formatting:
+
+```python
+@dataclass
+class FormatSampleResult:
+    # Metadata Fields
+    caption: str = ""
+    lyrics: str = ""
+    bpm: Optional[int] = None
+    duration: Optional[float] = None
+    keyscale: str = ""
+    language: str = ""
+    timesignature: str = ""
+    
+    # Status
+    status_message: str = ""
+    success: bool = True
+    error: Optional[str] = None
 ```
 
 ---
 
-## GenerationParamsパラメータ
+## GenerationParams Parameters
 
-### テキスト入力
+### Text Inputs
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `caption` | `str` | `""` | 希望する音楽のテキスト説明。「リラックスしたピアノ音楽」のような単純なプロンプトや、ジャンル、ムード、楽器などを含む詳細な説明が可能。最大512文字。|
-| `lyrics` | `str` | `""` | ボーカル音楽の歌詞テキスト。インストゥルメンタルトラックには `"[Instrumental]"` を使用。複数言語をサポート。最大4096文字。|
-| `instrumental` | `bool` | `False` | Trueの場合、歌詞に関係なくインストゥルメンタル音楽を生成。|
+| `caption` | `str` | `""` | Text description of the desired music. Can be a simple prompt like "relaxing piano music" or detailed description with genre, mood, instruments, etc. Max 512 characters. |
+| `lyrics` | `str` | `""` | Lyrics text for vocal music. Use `"[Instrumental]"` for instrumental tracks. Supports multiple languages. Max 4096 characters. |
+| `instrumental` | `bool` | `False` | If True, generate instrumental music regardless of lyrics. |
 
-### 音楽メタデータ
+### Music Metadata
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `bpm` | `Optional[int]` | `None` | 1分あたりのビート数（30-300）。`None` でLM経由の自動検出を有効化。|
-| `keyscale` | `str` | `""` | 音楽キー（例：「C Major」、「Am」、「F# minor」）。空文字列で自動検出を有効化。|
-| `timesignature` | `str` | `""` | 拍子記号（2は'2/4'、3は'3/4'、4は'4/4'、6は'6/8'）。空文字列で自動検出を有効化。|
-| `vocal_language` | `str` | `"unknown"` | ボーカルの言語コード（ISO 639-1）。サポート：`"en"`、`"zh"`、`"ja"`、`"es"`、`"fr"` など。自動検出には `"unknown"` を使用。|
-| `duration` | `float` | `-1.0` | 目標オーディオ長（秒）（10-600）。<= 0またはNoneの場合、モデルが歌詞の長さに基づいて自動選択。|
+| `bpm` | `Optional[int]` | `None` | Beats per minute (30-300). `None` enables auto-detection via LM. |
+| `keyscale` | `str` | `""` | Musical key (e.g., "C Major", "Am", "F# minor"). Empty string enables auto-detection. |
+| `timesignature` | `str` | `""` | Time signature (2 for '2/4', 3 for '3/4', 4 for '4/4', 6 for '6/8'). Empty string enables auto-detection. |
+| `vocal_language` | `str` | `"unknown"` | Language code for vocals (ISO 639-1). Supported: `"en"`, `"zh"`, `"ja"`, `"es"`, `"fr"`, etc. Use `"unknown"` for auto-detection. |
+| `duration` | `float` | `-1.0` | Target audio length in seconds (10-600). If <= 0 or None, model chooses automatically based on lyrics length. |
 
-### 生成パラメータ
+### Generation Parameters
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `inference_steps` | `int` | `8` | デノイズステップ数。Turboモデル：1-20（推奨8）。Baseモデル：1-200（推奨32-64）。高い = 品質向上だが遅い。|
-| `guidance_scale` | `float` | `7.0` | 分類器フリーガイダンススケール（1.0-15.0）。高い値はテキストプロンプトへの忠実性を増加。非turboモデルのみサポート。典型的な範囲：5.0-9.0。|
-| `seed` | `int` | `-1` | 再現性のためのランダムシード。ランダムシードには `-1`、固定シードには任意の正の整数を使用。|
+| `inference_steps` | `int` | `8` | Number of denoising steps. Turbo model: 1-20 (recommended 8). Base model: 1-200 (recommended 32-64). Higher = better quality but slower. |
+| `guidance_scale` | `float` | `7.0` | Classifier-free guidance scale (1.0-15.0). Higher values increase adherence to text prompt. Only supported for non-turbo model. Typical range: 5.0-9.0. |
+| `seed` | `int` | `-1` | Random seed for reproducibility. Use `-1` for random seed, or any positive integer for fixed seed. |
 
-### 高度なDiTパラメータ
+### Advanced DiT Parameters
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `use_adg` | `bool` | `False` | 適応デュアルガイダンスを使用（baseモデルのみ）。速度を犠牲にして品質を向上。|
-| `cfg_interval_start` | `float` | `0.0` | CFG適用開始比率（0.0-1.0）。分類器フリーガイダンスの適用開始タイミングを制御。|
-| `cfg_interval_end` | `float` | `1.0` | CFG適用終了比率（0.0-1.0）。分類器フリーガイダンスの適用終了タイミングを制御。|
-| `shift` | `float` | `1.0` | タイムステップシフト係数（範囲1.0-5.0、デフォルト1.0）。!= 1.0の場合、タイムステップに `t = shift * t / (1 + (shift - 1) * t)` を適用。turboモデルには3.0推奨。|
-| `infer_method` | `str` | `"ode"` | 拡散推論方法。`"ode"`（Euler）はより高速で決定的。`"sde"`（確率的）は分散のある異なる結果を生成する可能性あり。|
-| `timesteps` | `Optional[List[float]]` | `None` | カスタムタイムステップ、1.0から0.0の浮動小数点リスト（例：`[0.97, 0.76, 0.615, 0.5, 0.395, 0.28, 0.18, 0.085, 0]`）。提供された場合、`inference_steps` と `shift` をオーバーライド。|
+| `use_adg` | `bool` | `False` | Use Adaptive Dual Guidance (base model only). Improves quality at the cost of speed. |
+| `cfg_interval_start` | `float` | `0.0` | CFG application start ratio (0.0-1.0). Controls when to start applying classifier-free guidance. |
+| `cfg_interval_end` | `float` | `1.0` | CFG application end ratio (0.0-1.0). Controls when to stop applying classifier-free guidance. |
+| `shift` | `float` | `1.0` | Timestep shift factor (range 1.0-5.0, default 1.0). When != 1.0, applies `t = shift * t / (1 + (shift - 1) * t)` to timesteps. Recommended 3.0 for turbo models. |
+| `infer_method` | `str` | `"ode"` | Diffusion inference method. `"ode"` (Euler) is faster and deterministic. `"sde"` (stochastic) may produce different results with variance. |
+| `timesteps` | `Optional[List[float]]` | `None` | Custom timesteps as a list of floats from 1.0 to 0.0 (e.g., `[0.97, 0.76, 0.615, 0.5, 0.395, 0.28, 0.18, 0.085, 0]`). If provided, overrides `inference_steps` and `shift`. |
 
-### タスク固有パラメータ
+### Task-Specific Parameters
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `task_type` | `str` | `"text2music"` | 生成タスクタイプ。詳細は[タスクタイプ](#タスクタイプ)セクションを参照。|
-| `instruction` | `str` | `"Fill the audio semantic mask based on the given conditions:"` | タスク固有の指示プロンプト。|
-| `reference_audio` | `Optional[str]` | `None` | スタイル転送または継続タスク用の参照オーディオファイルパス。|
-| `src_audio` | `Optional[str]` | `None` | オーディオ間タスク（cover、repaintなど）用のソースオーディオファイルパス。|
-| `audio_codes` | `str` | `""` | 事前抽出された5Hzオーディオセマンティックコード文字列。高度な使用のみ。|
-| `repainting_start` | `float` | `0.0` | リペイント開始時間（秒）（repaint/legoタスク用）。|
-| `repainting_end` | `float` | `-1` | リペイント終了時間（秒）。オーディオの終端には `-1` を使用。|
-| `audio_cover_strength` | `float` | `1.0` | オーディオカバー/コードの影響強度（0.0-1.0）。スタイル転送タスクには小さい値（0.2）を設定。|
+| `task_type` | `str` | `"text2music"` | Generation task type. See [Task Types](#task-types) section for details. |
+| `instruction` | `str` | `"Fill the audio semantic mask based on the given conditions:"` | Task-specific instruction prompt. |
+| `reference_audio` | `Optional[str]` | `None` | Path to reference audio file for style transfer or continuation tasks. |
+| `src_audio` | `Optional[str]` | `None` | Path to source audio file for audio-to-audio tasks (cover, repaint, etc.). |
+| `audio_codes` | `str` | `""` | Pre-extracted 5Hz audio semantic codes as a string. Advanced use only. |
+| `repainting_start` | `float` | `0.0` | Repainting start time in seconds (for repaint/lego tasks). |
+| `repainting_end` | `float` | `-1` | Repainting end time in seconds. Use `-1` for end of audio. |
+| `audio_cover_strength` | `float` | `1.0` | Strength of audio cover/codes influence (0.0-1.0). Set smaller (0.2) for style transfer tasks. |
 
-### 5Hz言語モデルパラメータ
+### 5Hz Language Model Parameters
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `thinking` | `bool` | `True` | セマンティック/音楽メタデータとコード用の5Hz言語モデル「思考の連鎖」推論を有効化。|
-| `lm_temperature` | `float` | `0.85` | LMサンプリング温度（0.0-2.0）。高い = より創造的/多様、低い = より保守的。|
-| `lm_cfg_scale` | `float` | `2.0` | LM分類器フリーガイダンススケール。高い = プロンプトへのより強い忠実性。|
-| `lm_top_k` | `int` | `0` | LM top-kサンプリング。`0` でtop-kフィルタリングを無効化。典型的な値：40-100。|
-| `lm_top_p` | `float` | `0.9` | LM核サンプリング（0.0-1.0）。`1.0` で核サンプリングを無効化。典型的な値：0.9-0.95。|
-| `lm_negative_prompt` | `str` | `"NO USER INPUT"` | LMガイダンス用のネガティブプロンプト。不要な特性を避けるのに役立つ。|
-| `use_cot_metas` | `bool` | `True` | LM CoT推論を使用してメタデータを生成（BPM、キー、duration など）。|
-| `use_cot_caption` | `bool` | `True` | LM CoT推論を使用してユーザーcaptionを改良。|
-| `use_cot_language` | `bool` | `True` | LM CoT推論を使用してボーカル言語を検出。|
-| `use_cot_lyrics` | `bool` | `False` | （将来の使用のために予約）LM CoTを使用して歌詞を生成/改良。|
-| `use_constrained_decoding` | `bool` | `True` | 構造化されたLM出力のための制約付きデコーディングを有効化。|
+| `thinking` | `bool` | `True` | Enable 5Hz Language Model "Chain-of-Thought" reasoning for semantic/music metadata and codes. |
+| `lm_temperature` | `float` | `0.85` | LM sampling temperature (0.0-2.0). Higher = more creative/diverse, lower = more conservative. |
+| `lm_cfg_scale` | `float` | `2.0` | LM classifier-free guidance scale. Higher = stronger adherence to prompt. |
+| `lm_top_k` | `int` | `0` | LM top-k sampling. `0` disables top-k filtering. Typical values: 40-100. |
+| `lm_top_p` | `float` | `0.9` | LM nucleus sampling (0.0-1.0). `1.0` disables nucleus sampling. Typical values: 0.9-0.95. |
+| `lm_negative_prompt` | `str` | `"NO USER INPUT"` | Negative prompt for LM guidance. Helps avoid unwanted characteristics. |
+| `use_cot_metas` | `bool` | `True` | Generate metadata using LM CoT reasoning (BPM, key, duration, etc.). |
+| `use_cot_caption` | `bool` | `True` | Refine user caption using LM CoT reasoning. |
+| `use_cot_language` | `bool` | `True` | Detect vocal language using LM CoT reasoning. |
+| `use_cot_lyrics` | `bool` | `False` | (Reserved for future use) Generate/refine lyrics using LM CoT. |
+| `use_constrained_decoding` | `bool` | `True` | Enable constrained decoding for structured LM output. |
+
+### CoT Generated Values
+
+These fields are automatically populated by the LM when CoT reasoning is enabled:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `cot_bpm` | `Optional[int]` | `None` | LM-generated BPM value. |
+| `cot_keyscale` | `str` | `""` | LM-generated key/scale. |
+| `cot_timesignature` | `str` | `""` | LM-generated time signature. |
+| `cot_duration` | `Optional[float]` | `None` | LM-generated duration. |
+| `cot_vocal_language` | `str` | `"unknown"` | LM-detected vocal language. |
+| `cot_caption` | `str` | `""` | LM-refined caption. |
+| `cot_lyrics` | `str` | `""` | LM-generated/refined lyrics. |
 
 ---
 
-## GenerationConfigパラメータ
+## GenerationConfig Parameters
 
-| パラメータ | 型 | デフォルト | 説明 |
+| Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `batch_size` | `int` | `2` | 並列生成するサンプル数（1-8）。高い値はより多くのGPUメモリを必要とする。|
-| `allow_lm_batch` | `bool` | `False` | LMでのバッチ処理を許可。`batch_size >= 2` かつ `thinking=True` の場合により高速。|
-| `use_random_seed` | `bool` | `True` | ランダムシードを使用するかどうか。`True` で毎回異なる結果、`False` で再現可能な結果。|
-| `seeds` | `Optional[List[int]]` | `None` | バッチ生成用のシードリスト。提供された場合、batch_sizeより少なければランダムシードでパディング。単一のintも可。|
-| `lm_batch_chunk_size` | `int` | `8` | LM推論チャンクあたりの最大バッチサイズ（GPUメモリ制約）。|
-| `constrained_decoding_debug` | `bool` | `False` | 制約付きデコーディングのデバッグログを有効化。|
-| `audio_format` | `str` | `"flac"` | 出力オーディオ形式。オプション：`"mp3"`、`"wav"`、`"flac"`。高速保存のためデフォルトはFLAC。|
+| `batch_size` | `int` | `2` | Number of samples to generate in parallel (1-8). Higher values require more GPU memory. |
+| `allow_lm_batch` | `bool` | `False` | Allow batch processing in LM. Faster when `batch_size >= 2` and `thinking=True`. |
+| `use_random_seed` | `bool` | `True` | Whether to use random seed. `True` for different results each time, `False` for reproducible results. |
+| `seeds` | `Optional[List[int]]` | `None` | List of seeds for batch generation. If provided, will be padded with random seeds if fewer than batch_size. Can also be single int. |
+| `lm_batch_chunk_size` | `int` | `8` | Maximum batch size per LM inference chunk (GPU memory constraint). |
+| `constrained_decoding_debug` | `bool` | `False` | Enable debug logging for constrained decoding. |
+| `audio_format` | `str` | `"flac"` | Output audio format. Options: `"mp3"`, `"wav"`, `"flac"`. Default is FLAC for fast saving. |
 
 ---
 
-## タスクタイプ
+## Task Types
 
-ACE-Stepは6種類の生成タスクタイプをサポートし、それぞれ特定のユースケースに最適化されています。
+Empath supports 6 different generation task types, each optimized for specific use cases.
 
-### 1. Text2Music（デフォルト）
+### 1. Text2Music (Default)
 
-**目的**：テキスト説明とオプションのメタデータから音楽を生成。
+**Purpose**: Generate music from text descriptions and optional metadata.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="text2music",
-    caption="エレキギターのエネルギッシュなロック音楽",
-    lyrics="[Instrumental]",  # または実際の歌詞
+    caption="energetic rock music with electric guitar",
+    lyrics="[Instrumental]",  # or actual lyrics
     bpm=140,
     duration=30,
 )
 ```
 
-**必須**：
-- `caption` または `lyrics`（少なくとも1つ）
+**Required**:
+- `caption` or `lyrics` (at least one)
 
-**オプションだが推奨**：
-- `bpm`：テンポを制御
-- `keyscale`：音楽キーを制御
-- `timesignature`：リズム構造を制御
-- `duration`：長さを制御
-- `vocal_language`：ボーカル特性を制御
+**Optional but Recommended**:
+- `bpm`: Controls tempo
+- `keyscale`: Controls musical key
+- `timesignature`: Controls rhythm structure
+- `duration`: Controls length
+- `vocal_language`: Controls vocal characteristics
 
-**ユースケース**：
-- テキスト説明から音楽を生成
-- プロンプトからバッキングトラックを作成
-- 歌詞付きの曲を生成
+**Use Cases**:
+- Generate music from text descriptions
+- Create backing tracks from prompts
+- Generate songs with lyrics
 
 ---
 
 ### 2. Cover
 
-**目的**：既存のオーディオを構造を維持しながらスタイル/音色を変更して変換。
+**Purpose**: Transform existing audio while maintaining structure but changing style/timbre.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="cover",
     src_audio="original_song.mp3",
-    caption="ジャズピアノバージョン",
+    caption="jazz piano version",
     audio_cover_strength=0.8,  # 0.0-1.0
 )
 ```
 
-**必須**：
-- `src_audio`：ソースオーディオファイルパス
-- `caption`：希望するスタイル/変換の説明
+**Required**:
+- `src_audio`: Path to source audio file
+- `caption`: Description of desired style/transformation
 
-**オプション**：
-- `audio_cover_strength`：元のオーディオの影響を制御
-  - `1.0`：元の構造を強く維持
-  - `0.5`：バランスの取れた変換
-  - `0.1`：緩やかな解釈
-- `lyrics`：新しい歌詞（ボーカルを変更する場合）
+**Optional**:
+- `audio_cover_strength`: Controls influence of original audio
+  - `1.0`: Strong adherence to original structure
+  - `0.5`: Balanced transformation
+  - `0.1`: Loose interpretation
+- `lyrics`: New lyrics (if changing vocals)
 
-**ユースケース**：
-- 異なるスタイルのカバーを作成
-- メロディを維持しながら楽器編成を変更
-- ジャンル変換
+**Use Cases**:
+- Create covers in different styles
+- Change instrumentation while keeping melody
+- Genre transformation
 
 ---
 
 ### 3. Repaint
 
-**目的**：オーディオの特定の時間セグメントを再生成し、残りは変更しない。
+**Purpose**: Regenerate a specific time segment of audio while keeping the rest unchanged.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="repaint",
     src_audio="original.mp3",
-    repainting_start=10.0,  # 秒
-    repainting_end=20.0,    # 秒
-    caption="ピアノソロでスムーズなトランジション",
+    repainting_start=10.0,  # seconds
+    repainting_end=20.0,    # seconds
+    caption="smooth transition with piano solo",
 )
 ```
 
-**必須**：
-- `src_audio`：ソースオーディオファイルパス
-- `repainting_start`：開始時間（秒）
-- `repainting_end`：終了時間（秒）（ファイル終端には `-1` を使用）
-- `caption`：リペイントセクションの希望するコンテンツの説明
+**Required**:
+- `src_audio`: Path to source audio file
+- `repainting_start`: Start time in seconds
+- `repainting_end`: End time in seconds (use `-1` for end of file)
+- `caption`: Description of desired content for repainted section
 
-**ユースケース**：
-- 生成された音楽の特定セクションを修正
-- 曲の一部にバリエーションを追加
-- スムーズなトランジションを作成
-- 問題のあるセグメントを置き換え
+**Use Cases**:
+- Fix specific sections of generated music
+- Add variations to parts of a song
+- Create smooth transitions
+- Replace problematic segments
 
 ---
 
-### 4. Lego（Baseモデルのみ）
+### 4. Lego (Base Model Only)
 
-**目的**：既存のオーディオのコンテキストで特定の楽器トラックを生成。
+**Purpose**: Generate a specific instrument track in context of existing audio.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="lego",
     src_audio="backing_track.mp3",
     instruction="Generate the guitar track based on the audio context:",
-    caption="ブルージーな感じのリードギターメロディ",
+    caption="lead guitar melody with bluesy feel",
     repainting_start=0.0,
     repainting_end=-1,
 )
 ```
 
-**必須**：
-- `src_audio`：ソース/バッキングオーディオパス
-- `instruction`：トラックタイプを指定する必要あり（例：「Generate the {TRACK_NAME} track...」）
-- `caption`：希望するトラック特性の説明
+**Required**:
+- `src_audio`: Path to source/backing audio
+- `instruction`: Must specify the track type (e.g., "Generate the {TRACK_NAME} track...")
+- `caption`: Description of desired track characteristics
 
-**利用可能なトラック**：
-- `"vocals"`、`"backing_vocals"`、`"drums"`、`"bass"`、`"guitar"`、`"keyboard"`、
-- `"percussion"`、`"strings"`、`"synth"`、`"fx"`、`"brass"`、`"woodwinds"`
+**Available Tracks**:
+- `"vocals"`, `"backing_vocals"`, `"drums"`, `"bass"`, `"guitar"`, `"keyboard"`, 
+- `"percussion"`, `"strings"`, `"synth"`, `"fx"`, `"brass"`, `"woodwinds"`
 
-**ユースケース**：
-- 特定の楽器トラックを追加
-- バッキングトラック上に追加の楽器をレイヤー
-- マルチトラック作品を反復的に作成
+**Use Cases**:
+- Add specific instrument tracks
+- Layer additional instruments over backing tracks
+- Create multi-track compositions iteratively
 
 ---
 
-### 5. Extract（Baseモデルのみ）
+### 5. Extract (Base Model Only)
 
-**目的**：ミックスオーディオから特定の楽器トラックを抽出/分離。
+**Purpose**: Extract/isolate a specific instrument track from mixed audio.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="extract",
@@ -493,54 +568,54 @@ params = GenerationParams(
 )
 ```
 
-**必須**：
-- `src_audio`：ミックスオーディオファイルパス
-- `instruction`：抽出するトラックを指定する必要あり
+**Required**:
+- `src_audio`: Path to mixed audio file
+- `instruction`: Must specify track to extract
 
-**利用可能なトラック**：Legoタスクと同じ
+**Available Tracks**: Same as Lego task
 
-**ユースケース**：
-- ステム分離
-- 特定の楽器を分離
-- リミックスを作成
-- 個別トラックを分析
+**Use Cases**:
+- Stem separation
+- Isolate specific instruments
+- Create remixes
+- Analyze individual tracks
 
 ---
 
-### 6. Complete（Baseモデルのみ）
+### 6. Complete (Base Model Only)
 
-**目的**：指定された楽器で部分的なトラックを完成/拡張。
+**Purpose**: Complete/extend partial tracks with specified instruments.
 
-**主要パラメータ**：
+**Key Parameters**:
 ```python
 params = GenerationParams(
     task_type="complete",
     src_audio="incomplete_track.mp3",
     instruction="Complete the input track with drums, bass, guitar:",
-    caption="ロックスタイルの完成",
+    caption="rock style completion",
 )
 ```
 
-**必須**：
-- `src_audio`：不完全/部分的なトラックのパス
-- `instruction`：追加するトラックを指定する必要あり
-- `caption`：希望するスタイルの説明
+**Required**:
+- `src_audio`: Path to incomplete/partial track
+- `instruction`: Must specify which tracks to add
+- `caption`: Description of desired style
 
-**ユースケース**：
-- 不完全な作品をアレンジ
-- バッキングトラックを追加
-- 音楽アイデアを自動完成
+**Use Cases**:
+- Arrange incomplete compositions
+- Add backing tracks
+- Auto-complete musical ideas
 
 ---
 
-## ヘルパー関数
+## Helper Functions
 
 ### understand_music
 
-オーディオコードを分析して音楽についてのメタデータを抽出。
+Analyze audio codes to extract metadata about the music.
 
 ```python
-from acestep.inference import understand_music
+from empath.inference import understand_music
 
 result = understand_music(
     llm_handler=llm_handler,
@@ -550,47 +625,47 @@ result = understand_music(
 )
 
 if result.success:
-    print(f"Caption：{result.caption}")
-    print(f"歌詞：{result.lyrics}")
-    print(f"BPM：{result.bpm}")
-    print(f"キー：{result.keyscale}")
-    print(f"長さ：{result.duration}秒")
-    print(f"言語：{result.language}")
+    print(f"Caption: {result.caption}")
+    print(f"Lyrics: {result.lyrics}")
+    print(f"BPM: {result.bpm}")
+    print(f"Key: {result.keyscale}")
+    print(f"Duration: {result.duration}s")
+    print(f"Language: {result.language}")
 else:
-    print(f"エラー：{result.error}")
+    print(f"Error: {result.error}")
 ```
 
-**ユースケース**：
-- 既存の音楽を分析
-- オーディオコードからメタデータを抽出
-- 生成パラメータをリバースエンジニアリング
+**Use Cases**:
+- Analyze existing music
+- Extract metadata from audio codes
+- Reverse-engineer generation parameters
 
 ---
 
 ### create_sample
 
-自然言語の説明から完全な音楽サンプルを生成。これは「シンプルモード」/「インスピレーションモード」機能です。
+Generate a complete music sample from a natural language description. This is the "Simple Mode" / "Inspiration Mode" feature.
 
 ```python
-from acestep.inference import create_sample
+from empath.inference import create_sample
 
 result = create_sample(
     llm_handler=llm_handler,
-    query="静かな夜のための柔らかいベンガルのラブソング",
+    query="a soft Bengali love song for a quiet evening",
     instrumental=False,
-    vocal_language="bn",  # オプション：ベンガル語に制限
+    vocal_language="bn",  # Optional: constrain to Bengali
     temperature=0.85,
 )
 
 if result.success:
-    print(f"Caption：{result.caption}")
-    print(f"歌詞：{result.lyrics}")
-    print(f"BPM：{result.bpm}")
-    print(f"長さ：{result.duration}秒")
-    print(f"キー：{result.keyscale}")
-    print(f"インストゥルメンタルか：{result.instrumental}")
+    print(f"Caption: {result.caption}")
+    print(f"Lyrics: {result.lyrics}")
+    print(f"BPM: {result.bpm}")
+    print(f"Duration: {result.duration}s")
+    print(f"Key: {result.keyscale}")
+    print(f"Is Instrumental: {result.instrumental}")
     
-    # generate_musicと一緒に使用
+    # Use with generate_music
     params = GenerationParams(
         caption=result.caption,
         lyrics=result.lyrics,
@@ -600,140 +675,527 @@ if result.success:
         vocal_language=result.language,
     )
 else:
-    print(f"エラー：{result.error}")
+    print(f"Error: {result.error}")
 ```
+
+**Parameters**:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `query` | `str` | required | Natural language description of desired music |
+| `instrumental` | `bool` | `False` | Whether to generate instrumental music |
+| `vocal_language` | `Optional[str]` | `None` | Constrain lyrics to specific language (e.g., "en", "zh", "bn") |
+| `temperature` | `float` | `0.85` | Sampling temperature |
+| `top_k` | `Optional[int]` | `None` | Top-k sampling (None disables) |
+| `top_p` | `Optional[float]` | `None` | Top-p sampling (None disables) |
+| `repetition_penalty` | `float` | `1.0` | Repetition penalty |
+| `use_constrained_decoding` | `bool` | `True` | Use FSM-based constrained decoding |
 
 ---
 
 ### format_sample
 
-ユーザー提供のcaptionとlyricsをフォーマット・強化し、構造化されたメタデータを生成。
+Format and enhance user-provided caption and lyrics, generating structured metadata.
 
 ```python
-from acestep.inference import format_sample
+from empath.inference import format_sample
 
 result = format_sample(
     llm_handler=llm_handler,
-    caption="ラテンポップ、レゲトン",
+    caption="Latin pop, reggaeton",
     lyrics="[Verse 1]\nBailando en la noche...",
-    user_metadata={"bpm": 95},  # オプション：特定の値を制約
+    user_metadata={"bpm": 95},  # Optional: constrain specific values
     temperature=0.85,
 )
 
 if result.success:
-    print(f"強化されたCaption：{result.caption}")
-    print(f"フォーマットされた歌詞：{result.lyrics}")
-    print(f"BPM：{result.bpm}")
-    print(f"長さ：{result.duration}秒")
-    print(f"キー：{result.keyscale}")
-    print(f"検出された言語：{result.language}")
+    print(f"Enhanced Caption: {result.caption}")
+    print(f"Formatted Lyrics: {result.lyrics}")
+    print(f"BPM: {result.bpm}")
+    print(f"Duration: {result.duration}s")
+    print(f"Key: {result.keyscale}")
+    print(f"Detected Language: {result.language}")
 else:
-    print(f"エラー：{result.error}")
+    print(f"Error: {result.error}")
 ```
+
+**Parameters**:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `caption` | `str` | required | User's caption/description |
+| `lyrics` | `str` | required | User's lyrics with structure tags |
+| `user_metadata` | `Optional[Dict]` | `None` | Constrain specific metadata values (bpm, duration, keyscale, timesignature, language) |
+| `temperature` | `float` | `0.85` | Sampling temperature |
+| `top_k` | `Optional[int]` | `None` | Top-k sampling (None disables) |
+| `top_p` | `Optional[float]` | `None` | Top-p sampling (None disables) |
+| `repetition_penalty` | `float` | `1.0` | Repetition penalty |
+| `use_constrained_decoding` | `bool` | `True` | Use FSM-based constrained decoding |
 
 ---
 
-## ベストプラクティス
+## Complete Examples
 
-### 1. Captionの書き方
+### Example 1: Simple Text-to-Music Generation
 
-**良いCaption**：
 ```python
-# 具体的で説明的
-caption="重低音とシンセサイザーリードのアップビートなエレクトロニックダンスミュージック"
+from empath.inference import GenerationParams, GenerationConfig, generate_music
 
-# ムードとジャンルを含む
-caption="アコースティックギターと柔らかいボーカルのメランコリックなインディーフォーク"
+params = GenerationParams(
+    task_type="text2music",
+    caption="calm ambient music with soft piano and strings",
+    duration=60,
+    bpm=80,
+    keyscale="C Major",
+)
 
-# 楽器を指定
-caption="ピアノ、アップライトベース、ブラシドラムのジャズトリオ"
+config = GenerationConfig(
+    batch_size=2,  # Generate 2 variations
+    audio_format="flac",
+)
+
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+
+if result.success:
+    for i, audio in enumerate(result.audios, 1):
+        print(f"Variation {i}: {audio['path']}")
 ```
 
-**避けるべき**：
+### Example 2: Song Generation with Lyrics
+
 ```python
-# 曖昧すぎる
-caption="良い音楽"
+params = GenerationParams(
+    task_type="text2music",
+    caption="pop ballad with emotional vocals",
+    lyrics="""Verse 1:
+Walking down the street today
+Thinking of the words you used to say
+Everything feels different now
+But I'll find my way somehow
 
-# 矛盾
-caption="速い遅い音楽"  # テンポの矛盾
+Chorus:
+I'm moving on, I'm staying strong
+This is where I belong
+""",
+    vocal_language="en",
+    bpm=72,
+    duration=45,
+)
+
+config = GenerationConfig(batch_size=1)
+
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
 ```
 
-### 2. パラメータチューニング
+### Example 3: Using Custom Timesteps
 
-**最高品質のために**：
-- baseモデルを使用し、`inference_steps=64` 以上
-- `use_adg=True` を有効化
-- `guidance_scale=7.0-9.0` を設定
-- より良いタイムステップ分布のために `shift=3.0` を設定
-- ロスレスオーディオ形式を使用（`audio_format="wav"`）
+```python
+params = GenerationParams(
+    task_type="text2music",
+    caption="jazz fusion with complex harmonies",
+    # Custom 9-step schedule
+    timesteps=[0.97, 0.76, 0.615, 0.5, 0.395, 0.28, 0.18, 0.085, 0],
+    thinking=True,
+)
 
-**速度のために**：
-- turboモデルを使用し、`inference_steps=8`
-- ADGを無効化（`use_adg=False`）
-- `infer_method="ode"`（デフォルト）を使用
-- 圧縮形式を使用（`audio_format="mp3"`）またはデフォルトのFLAC
+config = GenerationConfig(batch_size=1)
 
-**一貫性のために**：
-- configで `use_random_seed=False` を設定
-- 固定 `seeds` リストまたはparamsで単一 `seed` を使用
-- `lm_temperature` を低く保つ（0.7-0.85）
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+```
 
-**多様性のために**：
-- configで `use_random_seed=True` を設定
-- `lm_temperature` を増加（0.9-1.1）
-- バリエーションのために `batch_size > 1` を使用
+### Example 4: Using Shift Parameter (Turbo Model)
 
-### 3. Durationガイドライン
+```python
+params = GenerationParams(
+    task_type="text2music",
+    caption="upbeat electronic dance music",
+    inference_steps=8,
+    shift=3.0,  # Recommended for turbo models
+    infer_method="ode",
+)
 
-- **インストゥルメンタル**：30-180秒が適切
-- **歌詞付き**：自動検出を推奨（`duration=-1` を設定またはデフォルトのまま）
-- **短いクリップ**：最小10-20秒
-- **長尺**：最大600秒（10分）
+config = GenerationConfig(batch_size=2)
 
-### 4. LMの使用
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+```
 
-**LMを有効にする場合（`thinking=True`）**：
-- 自動メタデータ検出が必要
-- caption改良が欲しい
-- 最小限の入力から生成
-- 多様な出力が必要
+### Example 5: Simple Mode with create_sample
 
-**LMを無効にする場合（`thinking=False`）**：
-- すでに正確なメタデータがある
-- より高速な生成が必要
-- パラメータの完全な制御が欲しい
+```python
+from empath.inference import create_sample, GenerationParams, GenerationConfig, generate_music
+
+# Step 1: Create sample from description
+sample = create_sample(
+    llm_handler=llm_handler,
+    query="energetic K-pop dance track with catchy hooks",
+    vocal_language="ko",
+)
+
+if sample.success:
+    # Step 2: Generate music using the sample
+    params = GenerationParams(
+        caption=sample.caption,
+        lyrics=sample.lyrics,
+        bpm=sample.bpm,
+        duration=sample.duration,
+        keyscale=sample.keyscale,
+        vocal_language=sample.language,
+        thinking=True,
+    )
+    
+    config = GenerationConfig(batch_size=2)
+    result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+```
+
+### Example 6: Format and Enhance User Input
+
+```python
+from empath.inference import format_sample, GenerationParams, GenerationConfig, generate_music
+
+# Step 1: Format user input
+formatted = format_sample(
+    llm_handler=llm_handler,
+    caption="rock ballad",
+    lyrics="[Verse]\nIn the darkness I find my way...",
+)
+
+if formatted.success:
+    # Step 2: Generate with enhanced input
+    params = GenerationParams(
+        caption=formatted.caption,
+        lyrics=formatted.lyrics,
+        bpm=formatted.bpm,
+        duration=formatted.duration,
+        keyscale=formatted.keyscale,
+        thinking=True,
+        use_cot_metas=False,  # Already formatted, skip metas CoT
+    )
+    
+    config = GenerationConfig(batch_size=2)
+    result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+```
+
+### Example 7: Style Cover with LM Reasoning
+
+```python
+params = GenerationParams(
+    task_type="cover",
+    src_audio="original_pop_song.mp3",
+    caption="orchestral symphonic arrangement",
+    audio_cover_strength=0.7,
+    thinking=True,  # Enable LM for metadata
+    use_cot_metas=True,
+)
+
+config = GenerationConfig(batch_size=1)
+
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+
+# Access LM-generated metadata
+if result.extra_outputs.get("lm_metadata"):
+    lm_meta = result.extra_outputs["lm_metadata"]
+    print(f"LM detected BPM: {lm_meta.get('bpm')}")
+    print(f"LM detected Key: {lm_meta.get('keyscale')}")
+```
+
+### Example 8: Batch Generation with Specific Seeds
+
+```python
+params = GenerationParams(
+    task_type="text2music",
+    caption="epic cinematic trailer music",
+)
+
+config = GenerationConfig(
+    batch_size=4,           # Generate 4 variations
+    seeds=[42, 123, 456],   # Specify 3 seeds, 4th will be random
+    use_random_seed=False,  # Use provided seeds
+    lm_batch_chunk_size=2,  # Process 2 at a time (GPU memory)
+)
+
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+
+if result.success:
+    print(f"Generated {len(result.audios)} variations")
+    for audio in result.audios:
+        print(f"  Seed {audio['params']['seed']}: {audio['path']}")
+```
+
+### Example 9: High-Quality Generation (Base Model)
+
+```python
+params = GenerationParams(
+    task_type="text2music",
+    caption="intricate jazz fusion with complex harmonies",
+    inference_steps=64,     # High quality
+    guidance_scale=8.0,
+    use_adg=True,           # Adaptive Dual Guidance
+    cfg_interval_start=0.0,
+    cfg_interval_end=1.0,
+    shift=3.0,              # Timestep shift
+    seed=42,                # Reproducible results
+)
+
+config = GenerationConfig(
+    batch_size=1,
+    use_random_seed=False,
+    audio_format="wav",     # Lossless format
+)
+
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+```
+
+### Example 10: Understand Audio from Codes
+
+```python
+from empath.inference import understand_music
+
+# Analyze audio codes (e.g., from a previous generation)
+result = understand_music(
+    llm_handler=llm_handler,
+    audio_codes="<|audio_code_10695|><|audio_code_54246|>...",
+    temperature=0.85,
+)
+
+if result.success:
+    print(f"Detected Caption: {result.caption}")
+    print(f"Detected Lyrics: {result.lyrics}")
+    print(f"Detected BPM: {result.bpm}")
+    print(f"Detected Key: {result.keyscale}")
+    print(f"Detected Duration: {result.duration}s")
+    print(f"Detected Language: {result.language}")
+```
 
 ---
 
-## トラブルシューティング
+## Best Practices
 
-### よくある問題
+### 1. Caption Writing
 
-**問題**：メモリ不足（OOM）エラー
-- **解決策**：システムは VRAM ガード（バッチ自動削減）とアダプティブ VAE デコード（CPU フォールバック）により、ほとんどの OOM シナリオを自動処理します。それでも OOM が発生する場合：`batch_size` を減らす、`inference_steps` を減らす、CPU オフロード（`offload_to_cpu=True`）を有効化、または INT8 量子化を有効化してください。各 VRAM ティアの推奨設定は [GPU_COMPATIBILITY.md](../ja/GPU_COMPATIBILITY.md) を参照してください。
+**Good Captions**:
+```python
+# Specific and descriptive
+caption="upbeat electronic dance music with heavy bass and synthesizer leads"
 
-**問題**：結果の品質が悪い
-- **解決策**：`inference_steps` を増やす、`guidance_scale` を調整、baseモデルを使用
+# Include mood and genre
+caption="melancholic indie folk with acoustic guitar and soft vocals"
 
-**問題**：結果がプロンプトと一致しない
-- **解決策**：captionをより具体的に、`guidance_scale` を増やす、LM改良を有効化（`thinking=True`）
+# Specify instruments
+caption="jazz trio with piano, upright bass, and brush drums"
+```
 
-**問題**：生成が遅い
-- **解決策**：turboモデルを使用、`inference_steps` を減らす、ADGを無効化
+**Avoid**:
+```python
+# Too vague
+caption="good music"
 
-**問題**：LMがコードを生成しない
-- **解決策**：`llm_handler` が初期化されていることを確認、`thinking=True` と `use_cot_metas=True` を確認
+# Contradictory
+caption="fast slow music"  # Conflicting tempos
+```
 
-**問題**：シードが尊重されない
-- **解決策**：configで `use_random_seed=False` を設定し、`seeds` リストまたはparamsで `seed` を提供
+### 2. Parameter Tuning
 
-**問題**：カスタムタイムステップが機能しない
-- **解決策**：タイムステップが1.0から0.0の浮動小数点リストで、適切に順序付けられていることを確認
+**For Best Quality**:
+- Use base model with `inference_steps=64` or higher
+- Enable `use_adg=True`
+- Set `guidance_scale=7.0-9.0`
+- Set `shift=3.0` for better timestep distribution
+- Use lossless audio format (`audio_format="wav"`)
+
+**For Speed**:
+- Use turbo model with `inference_steps=8`
+- Disable ADG (`use_adg=False`)
+- Use `infer_method="ode"` (default)
+- Use compressed format (`audio_format="mp3"`) or default FLAC
+
+**For Consistency**:
+- Set `use_random_seed=False` in config
+- Use fixed `seeds` list or single `seed` in params
+- Keep `lm_temperature` lower (0.7-0.85)
+
+**For Diversity**:
+- Set `use_random_seed=True` in config
+- Increase `lm_temperature` (0.9-1.1)
+- Use `batch_size > 1` for variations
+
+### 3. Duration Guidelines
+
+- **Instrumental**: 30-180 seconds works well
+- **With Lyrics**: Auto-detection recommended (set `duration=-1` or leave default)
+- **Short clips**: 10-20 seconds minimum
+- **Long form**: Up to 600 seconds (10 minutes) maximum
+
+### 4. LM Usage
+
+**When to Enable LM (`thinking=True`)**:
+- Need automatic metadata detection
+- Want caption refinement
+- Generating from minimal input
+- Need diverse outputs
+
+**When to Disable LM (`thinking=False`)**:
+- Have precise metadata already
+- Need faster generation
+- Want full control over parameters
+
+### 5. Batch Processing
+
+```python
+# Efficient batch generation
+config = GenerationConfig(
+    batch_size=8,           # Max supported
+    allow_lm_batch=True,    # Enable for speed (when thinking=True)
+    lm_batch_chunk_size=4,  # Adjust based on GPU memory
+)
+```
+
+### 6. Error Handling
+
+```python
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+
+if not result.success:
+    print(f"Generation failed: {result.error}")
+    print(f"Status: {result.status_message}")
+else:
+    # Process successful result
+    for audio in result.audios:
+        path = audio['path']
+        key = audio['key']
+        seed = audio['params']['seed']
+        # ... process audio files
+```
+
+### 7. Memory Management
+
+Empath 1.5 includes automatic VRAM management that adapts to your GPU:
+
+- **Automatic tier detection**: The system detects available VRAM and selects optimal settings (see [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md))
+- **VRAM guard**: Before each inference, the system estimates VRAM requirements and automatically reduces `batch_size` if needed
+- **Adaptive VAE decode**: Three-tier fallback — GPU tiled decode → GPU decode with CPU offload → full CPU decode
+- **Auto chunk sizing**: VAE decode chunk size adapts to free VRAM (64/128/256/512/1024/1536)
+- **Duration/batch clamping**: Values exceeding your tier's limits are automatically clamped with a warning
+
+For manual tuning:
+- Reduce `batch_size` if OOM errors persist
+- Reduce `lm_batch_chunk_size` for LM operations on low-VRAM GPUs
+- Enable `offload_to_cpu=True` during initialization for GPUs with <20GB VRAM
+- Enable `quantization="int8_weight_only"` for GPUs with <20GB VRAM
+
+### 8. Accessing Time Costs
+
+```python
+result = generate_music(dit_handler, llm_handler, params, config, save_dir="/output")
+
+if result.success:
+    time_costs = result.extra_outputs.get("time_costs", {})
+    print(f"LM Phase 1 Time: {time_costs.get('lm_phase1_time', 0):.2f}s")
+    print(f"LM Phase 2 Time: {time_costs.get('lm_phase2_time', 0):.2f}s")
+    print(f"DiT Total Time: {time_costs.get('dit_total_time_cost', 0):.2f}s")
+    print(f"Pipeline Total: {time_costs.get('pipeline_total_time', 0):.2f}s")
+```
 
 ---
 
-詳細については以下を参照：
-- メインREADME：[`../../README.md`](../../README.md)
-- REST APIドキュメント：[`API.md`](API.md)
-- Gradioデモガイド：[`GRADIO_GUIDE.md`](GRADIO_GUIDE.md)
-- プロジェクトリポジトリ：[ACE-Step-1.5](https://github.com/yourusername/ACE-Step-1.5)
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: Out of memory errors
+- **Solution**: The system should automatically handle most OOM scenarios via VRAM guard (batch reduction) and adaptive VAE decode (CPU fallback). If OOM still occurs: reduce `batch_size`, reduce `inference_steps`, enable CPU offloading (`offload_to_cpu=True`), or enable INT8 quantization. See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md) for recommended settings per VRAM tier.
+
+**Issue**: Poor quality results
+- **Solution**: Increase `inference_steps`, adjust `guidance_scale`, use base model
+
+**Issue**: Results don't match prompt
+- **Solution**: Make caption more specific, increase `guidance_scale`, enable LM refinement (`thinking=True`)
+
+**Issue**: Slow generation
+- **Solution**: Use turbo model, reduce `inference_steps`, disable ADG
+
+**Issue**: LM not generating codes
+- **Solution**: Verify `llm_handler` is initialized, check `thinking=True` and `use_cot_metas=True`
+
+**Issue**: Seeds not being respected
+- **Solution**: Set `use_random_seed=False` in config and provide `seeds` list or `seed` in params
+
+**Issue**: Custom timesteps not working
+- **Solution**: Ensure timesteps are a list of floats from 1.0 to 0.0, properly ordered
+
+---
+
+## API Reference Summary
+
+### GenerationParams Fields
+
+See [GenerationParams Parameters](#generationparams-parameters) for complete documentation.
+
+### GenerationConfig Fields
+
+See [GenerationConfig Parameters](#generationconfig-parameters) for complete documentation.
+
+### GenerationResult Fields
+
+```python
+@dataclass
+class GenerationResult:
+    # Audio Outputs
+    audios: List[Dict[str, Any]]
+    # Each audio dict contains:
+    #   - "path": str (file path)
+    #   - "tensor": Tensor (audio data)
+    #   - "key": str (unique identifier)
+    #   - "sample_rate": int (48000)
+    #   - "params": Dict (generation params with seed, audio_codes, etc.)
+    
+    # Generation Information
+    status_message: str
+    extra_outputs: Dict[str, Any]
+    # extra_outputs contains:
+    #   - "lm_metadata": Dict (LM-generated metadata)
+    #   - "time_costs": Dict (timing information)
+    #   - "latents": Tensor (intermediate latents, if available)
+    #   - "masks": Tensor (attention masks, if available)
+    
+    # Success Status
+    success: bool
+    error: Optional[str]
+```
+
+---
+
+## Version History
+
+- **v1.5.2**: Current version
+  - Added `shift` parameter for timestep shifting
+  - Added `infer_method` parameter for ODE/SDE selection
+  - Added `timesteps` parameter for custom timestep schedules
+  - Added `understand_music()` function for audio analysis
+  - Added `create_sample()` function for simple mode generation
+  - Added `format_sample()` function for input enhancement
+  - Added `UnderstandResult`, `CreateSampleResult`, `FormatSampleResult` dataclasses
+
+- **v1.5.1**: Previous version
+  - Split `GenerationConfig` into `GenerationParams` and `GenerationConfig`
+  - Renamed parameters for consistency (`key_scale` → `keyscale`, `time_signature` → `timesignature`, `audio_duration` → `duration`, `use_llm_thinking` → `thinking`, `audio_code_string` → `audio_codes`)
+  - Added `instrumental` parameter
+  - Added `use_constrained_decoding` parameter
+  - Added CoT auto-filled fields (`cot_*`)
+  - Changed default `audio_format` to "flac"
+  - Changed default `batch_size` to 2
+  - Changed default `thinking` to True
+  - Simplified `GenerationResult` structure with unified `audios` list
+  - Added unified `time_costs` in `extra_outputs`
+
+- **v1.5**: Initial version
+  - Introduced `GenerationConfig` and `GenerationResult` dataclasses
+  - Simplified parameter passing
+  - Added comprehensive documentation
+
+---
+
+For more information, see:
+- Main README: [`../../README.md`](../../README.md)
+- REST API Documentation: [`API.md`](API.md)
+- Gradio Demo Guide: [`GRADIO_GUIDE.md`](GRADIO_GUIDE.md)
+- Project repository: [Empath-1.5](https://github.com/yourusername/Empath-1.5)

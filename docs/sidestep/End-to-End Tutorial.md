@@ -131,9 +131,9 @@ Open `http://localhost:6006` in your browser. Watch for:
 
 After training completes, your adapter is saved in `./output/my_lora/final/`.
 
-### In ACE-Step Gradio
+### In Empath Gradio
 
-1. Start ACE-Step's Gradio UI.
+1. Start Empath's Gradio UI.
 2. In **Service Configuration**, find the **LoRA Adapter** section.
 3. Enter the path to your adapter:
    ```
@@ -176,7 +176,7 @@ uv run train.py    # wizard mode, load a preset at the start
 
 ### Test intermediate checkpoints
 
-Every checkpoint is inference-ready. Point ACE-Step at any checkpoint directory to hear how your LoRA sounds at different training stages:
+Every checkpoint is inference-ready. Point Empath at any checkpoint directory to hear how your LoRA sounds at different training stages:
 
 ```
 ./output/my_lora/checkpoints/epoch_50
@@ -198,7 +198,7 @@ Every checkpoint is inference-ready. Point ACE-Step at any checkpoint directory 
 | Preprocess | `uv run train.py fixed --preprocess --audio-dir ./my_audio --tensor-output ./my_tensors ...` | `./my_tensors/*.pt` |
 | Train | `uv run train.py fixed --dataset-dir ./my_tensors --output-dir ./output/my_lora ...` | `./output/my_lora/final/` |
 | Monitor | `tensorboard --logdir ./output/my_lora/runs` | Browser at localhost:6006 |
-| Inference | Load `./output/my_lora/final` in ACE-Step Gradio | Generated audio |
+| Inference | Load `./output/my_lora/final` in Empath Gradio | Generated audio |
 
 ---
 

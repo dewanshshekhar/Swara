@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ACE-Step Gradio Web UI Launcher - Linux (CUDA)
-# This script launches the Gradio web interface for ACE-Step
+# Empath Gradio Web UI Launcher - Linux (CUDA)
+# This script launches the Gradio web interface for Empath
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -28,23 +28,23 @@ _load_env_file() {
         
         # Map .env variable names to script variables
         case "$key" in
-            ACESTEP_CONFIG_PATH)
+            EMPATH_CONFIG_PATH)
                 [[ -n "$value" ]] && CONFIG_PATH="--config_path $value"
                 ;;
-            ACESTEP_LM_MODEL_PATH)
+            EMPATH_LM_MODEL_PATH)
                 [[ -n "$value" ]] && LM_MODEL_PATH="--lm_model_path $value"
                 ;;
-            ACESTEP_INIT_LLM)
+            EMPATH_INIT_LLM)
                 if [[ -n "$value" && "$value" != "auto" ]]; then
                     INIT_LLM="--init_llm $value"
                 fi
                 ;;
-            ACESTEP_DOWNLOAD_SOURCE)
+            EMPATH_DOWNLOAD_SOURCE)
                 if [[ -n "$value" && "$value" != "auto" ]]; then
                     DOWNLOAD_SOURCE="--download-source $value"
                 fi
                 ;;
-            ACESTEP_API_KEY)
+            EMPATH_API_KEY)
                 [[ -n "$value" ]] && API_KEY="--api-key $value"
                 ;;
             PORT)
@@ -56,7 +56,7 @@ _load_env_file() {
             LANGUAGE)
                 [[ -n "$value" ]] && LANGUAGE="$value"
                 ;;
-            ACESTEP_BATCH_SIZE)
+            EMPATH_BATCH_SIZE)
                 [[ -n "$value" ]] && BATCH_SIZE="--batch_size $value"
                 ;;
         esac
@@ -72,7 +72,7 @@ _load_env_file
 _load_manual() {
     echo -e "\033[1;36m"
     echo "======================================================"
-    echo "            ACE-Step Manual Launch Mode"
+    echo "            Empath Manual Launch Mode"
     echo "======================================================"
     echo
 
@@ -109,25 +109,25 @@ _load_manual() {
 
     echo
     echo "-------------------- Select DiT Model --------------------"
-    echo "1) acestep-v15-base"
-    echo "2) acestep-v15-sft"
-    echo "3) acestep-v15-turbo (Recommended)"
-    echo "4) acestep-v15-turbo-rl"
+    echo "1) empath-v15-base"
+    echo "2) empath-v15-sft"
+    echo "3) empath-v15-turbo (Recommended)"
+    echo "4) empath-v15-turbo-rl"
     echo
     while true; do
         read -rp "Enter selection (1-4): " DIT_CHOICE
         case "$DIT_CHOICE" in
             1)
-                CONFIG_PATH="--config_path acestep-v15-base"
+                CONFIG_PATH="--config_path empath-v15-base"
                 break ;;
             2)
-                CONFIG_PATH="--config_path acestep-v15-sft"
+                CONFIG_PATH="--config_path empath-v15-sft"
                 break ;;
             3)
-                CONFIG_PATH="--config_path acestep-v15-turbo"
+                CONFIG_PATH="--config_path empath-v15-turbo"
                 break ;;
             4)
-                CONFIG_PATH="--config_path acestep-v15-turbo-rl"
+                CONFIG_PATH="--config_path empath-v15-turbo-rl"
                 break ;;
             *)
                 echo "Invalid input. Please enter a number between 1 and 4." ;;
@@ -136,24 +136,24 @@ _load_manual() {
 
     echo
     echo "-------------------- Select LM Model --------------------"
-    echo "1) acestep-5Hz-lm-0.6B (Recommended)"
-    echo "2) acestep-5Hz-lm-1.7B"
-    echo "3) acestep-5Hz-lm-4B"
+    echo "1) empath-5Hz-lm-0.6B (Recommended)"
+    echo "2) empath-5Hz-lm-1.7B"
+    echo "3) empath-5Hz-lm-4B"
     echo "4) Launch without LM Model"
     echo
     while true; do
         read -rp "Enter selection (1-4): " LM_CHOICE
         case "$LM_CHOICE" in
             1)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-0.6B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-0.6B"
                 INIT_LLM="--init_llm true"
                 break ;;
             2)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-1.7B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-1.7B"
                 INIT_LLM="--init_llm true"
                 break ;;
             3)
-                LM_MODEL_PATH="--lm_model_path acestep-5Hz-lm-4B"
+                LM_MODEL_PATH="--lm_model_path empath-5Hz-lm-4B"
                 INIT_LLM="--init_llm true"
                 break ;;
             4)
@@ -209,8 +209,8 @@ BATCH_SIZE="${BATCH_SIZE:-}"
 # BATCH_SIZE="--batch_size 4"
 
 # Model settings
-: "${CONFIG_PATH:=--config_path acestep-v15-turbo}"
-: "${LM_MODEL_PATH:=--lm_model_path acestep-5Hz-lm-0.6B}"
+: "${CONFIG_PATH:=--config_path empath-v15-turbo}"
+: "${LM_MODEL_PATH:=--lm_model_path empath-5Hz-lm-0.6B}"
 # OFFLOAD_TO_CPU="--offload_to_cpu true"
 OFFLOAD_TO_CPU="${OFFLOAD_TO_CPU:-}"
 
@@ -316,7 +316,7 @@ _startup_update_check() {
 }
 _startup_update_check
 
-echo "Starting ACE-Step Gradio Web UI..."
+echo "Starting Empath Gradio Web UI..."
 echo "Server will be available at: http://${SERVER_NAME}:${PORT}"
 echo
 
@@ -341,7 +341,7 @@ if ! command -v uv &>/dev/null; then
     echo "uv package manager not found!"
     echo "========================================"
     echo
-    echo "ACE-Step requires the uv package manager."
+    echo "Empath requires the uv package manager."
     echo
     read -rp "Install uv now? (Y/N): " INSTALL_UV
 
@@ -386,7 +386,7 @@ if ! command -v uv &>/dev/null; then
         echo
         echo "Installation cancelled."
         echo
-        echo "To use ACE-Step, please install uv:"
+        echo "To use Empath, please install uv:"
         echo "  curl -LsSf https://astral.sh/uv/install.sh | sh"
         echo
         exit 1
@@ -430,32 +430,32 @@ if [[ ! -d "$SCRIPT_DIR/.venv" ]]; then
     echo
 fi
 
-echo "Starting ACE-Step Gradio UI..."
+echo "Starting Empath Gradio UI..."
 echo
 
 # Build command with optional parameters
-ACESTEP_ARGS="acestep --port $PORT --server-name $SERVER_NAME --language $LANGUAGE"
-[[ -n "$SHARE" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $SHARE"
-[[ -n "$CONFIG_PATH" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $CONFIG_PATH"
-[[ -n "$LM_MODEL_PATH" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $LM_MODEL_PATH"
-[[ -n "$OFFLOAD_TO_CPU" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $OFFLOAD_TO_CPU"
-[[ -n "$INIT_LLM" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $INIT_LLM"
-[[ -n "$DOWNLOAD_SOURCE" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $DOWNLOAD_SOURCE"
-[[ -n "$INIT_SERVICE" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $INIT_SERVICE"
-[[ -n "$BATCH_SIZE" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $BATCH_SIZE"
-[[ -n "$ENABLE_API" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $ENABLE_API"
-[[ -n "$API_KEY" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $API_KEY"
-[[ -n "$AUTH_USERNAME" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $AUTH_USERNAME"
-[[ -n "$AUTH_PASSWORD" ]] && ACESTEP_ARGS="$ACESTEP_ARGS $AUTH_PASSWORD"
+EMPATH_ARGS="empath --port $PORT --server-name $SERVER_NAME --language $LANGUAGE"
+[[ -n "$SHARE" ]] && EMPATH_ARGS="$EMPATH_ARGS $SHARE"
+[[ -n "$CONFIG_PATH" ]] && EMPATH_ARGS="$EMPATH_ARGS $CONFIG_PATH"
+[[ -n "$LM_MODEL_PATH" ]] && EMPATH_ARGS="$EMPATH_ARGS $LM_MODEL_PATH"
+[[ -n "$OFFLOAD_TO_CPU" ]] && EMPATH_ARGS="$EMPATH_ARGS $OFFLOAD_TO_CPU"
+[[ -n "$INIT_LLM" ]] && EMPATH_ARGS="$EMPATH_ARGS $INIT_LLM"
+[[ -n "$DOWNLOAD_SOURCE" ]] && EMPATH_ARGS="$EMPATH_ARGS $DOWNLOAD_SOURCE"
+[[ -n "$INIT_SERVICE" ]] && EMPATH_ARGS="$EMPATH_ARGS $INIT_SERVICE"
+[[ -n "$BATCH_SIZE" ]] && EMPATH_ARGS="$EMPATH_ARGS $BATCH_SIZE"
+[[ -n "$ENABLE_API" ]] && EMPATH_ARGS="$EMPATH_ARGS $ENABLE_API"
+[[ -n "$API_KEY" ]] && EMPATH_ARGS="$EMPATH_ARGS $API_KEY"
+[[ -n "$AUTH_USERNAME" ]] && EMPATH_ARGS="$EMPATH_ARGS $AUTH_USERNAME"
+[[ -n "$AUTH_PASSWORD" ]] && EMPATH_ARGS="$EMPATH_ARGS $AUTH_PASSWORD"
 
-cd "$SCRIPT_DIR" && uv run $ACESTEP_ARGS || {
+cd "$SCRIPT_DIR" && uv run $EMPATH_ARGS || {
     echo
     echo "[Retry] Online dependency resolution failed, retrying in offline mode..."
     echo
-    uv run --offline $ACESTEP_ARGS || {
+    uv run --offline $EMPATH_ARGS || {
         echo
         echo "========================================"
-        echo "[Error] Failed to start ACE-Step"
+        echo "[Error] Failed to start Empath"
         echo "========================================"
         echo
         echo "Both online and offline modes failed."

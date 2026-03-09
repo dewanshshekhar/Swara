@@ -1,523 +1,528 @@
-# ACE-Step 1.5 终极指南（必读）
+# Empath 1.5 Ultimate Guide (Must Read)
 
-大家好，我是ACE-Step 的开发者，龚俊民。我将通过这篇教程，带你了解 ACE-Step 1.5 的设计哲学与使用方法。
-
-## 心智模型
-
-在开始之前，我们需要先建立正确的心智模型，以便做好预期管理。
-
-### 以人为中心的设计
-
-这个模型不是为**一键生成**而设计的，而是为**以人为中心的生成**而设计的。
-
-理解这个区别至关重要。
-
-### 什么是一键生成？
-
-你输入提示词，点击生成，听几个版本，选一个听起来不错的，拿来用。换一个人输入同样的提示词，大概率得到相似的结果。
-
-这种模式下，你和 AI 是**甲方与乙方**的关系。你带着明确的目的而来，脑海中已有一个模糊的预期，希望 AI 交付一个接近那个预期的成品。本质上，它和去 Google 搜索、去 Spotify 找歌没有太大区别——只是多了一点定制化。
-
-AI 是一种服务，而不是创意的启发者。
-
-Suno、Udio、MiniMax、Mureka——这些平台都是这样的设计初衷。它们可以把模型堆大，作为服务保障交付即可。你生成的音乐受他们的协议约束；你无法在本地运行，无法微调做个性化的探索；如果他们暗中改变模型或条款，你只能接受。
-
-### 什么是以人为中心的生成？
-
-如果我们弱化 AI 那一层，强化人那一层——让更多的人的意志、创意、灵感赋予 AI 生命——这就是以人为中心的生成。
-
-不同于一键生成的强目的性，以人为中心的生成更具备**玩**的性质。它更像一场交互的游戏，你和模型是**合作者**的关系。
-
-工作流是这样的：你先抛出一些灵感种子，得到几首歌，从中选择感兴趣的方向继续迭代——
-- 调整 prompt 重新生成
-- 用 **Cover** 保持结构、调整细节
-- 用 **Repaint** 做局部修改
-- 用 **Add Layer** 增减乐器层次
-
-这时，AI 对你而言不是服务者，而是**启发者**。
-
-### 这种设计需要满足什么条件？
-
-要让以人为中心的生成真正成立，模型必须满足几个关键条件：
-
-**首先，必须开源、本地可运行、可训练。**
-
-这不是技术洁癖，而是所有权的问题。当你使用闭源平台，你不拥有模型，你生成的作品也受制于他们的协议。版本更新、条款变更、服务下线——这些都不在你的掌控之中。
-
-而当模型开源且可本地运行，一切都不同了：**你永远拥有这个模型，你也永远拥有你和模型一起创造的所有产物。** 没有第三方协议的困扰，没有平台风险，你可以微调、可以魔改、可以基于它构建属于自己的创作系统，你的作品将永远属于你。他就像是你买的一个乐器，你可以随时随地使用它，也可以随时随地调整它。
-
-**其次，必须快。**
-
-人的时间是宝贵的，但更重要的是——**慢的生成会破坏心流**。
-
-以人为中心的工作流的核心是「试一试、听一听、再调整」的快速循环。如果每次生成都要等几分钟，你的灵感会在等待中消散，「玩」的体验会退化成「等」的煎熬。
-
-因此，我们专门为此优化了 ACE-Step：在保证质量的前提下，让生成速度足够快，快到能够承载一个流畅的人机对话节奏。
-
-### 有限游戏 vs 无限游戏
-
-一键生成是一场**有限游戏**——目标明确，结果导向，结束即终点。某种程度上，它冷酷地掏空了音乐产业，取代了许多人的工作。
-
-以人为中心的生成是一场**无限游戏**——因为乐趣藏在过程之中，而过程永无止境。
-
-我们的愿景是民主化 AI 音乐生成。让 ACE-Step 成为你口袋里的一个大玩具，让音乐回归 **Play** 本身——是融入创意的「玩」，而不只是点击播放的「Play」。
+**Language / 语言 / 言語:** [English](Tutorial.md) | [中文](../zh/Tutorial.md) | [日本語](../ja/Tutorial.md)
 
 ---
 
-## 骑象人的隐喻
+Hello everyone, I'm Gong Junmin, the developer of Empath. Through this tutorial, I'll guide you through the design philosophy and usage of Empath 1.5.
 
-> 推荐阅读：[The Complete Guide to Mastering Suno](https://www.notion.so/The-Complete-Guide-to-Mastering-Suno-Advanced-Strategies-for-Professional-Music-Generation-2d6ae744ebdf8024be42f6645f884221)——这篇博文教程能帮助你建立理解 AI 音乐的基础认知。
+## Mental Models
 
-AI 音乐生成，就像心理学中那个著名的**骑象人隐喻**。
+Before we begin, we need to establish the correct mental models to set proper expectations.
 
-意识骑在潜意识上，人骑在大象上。你可以给出方向，但你无法让大象精准地、即时地执行你的每一个指令。它有自己的惯性，自己的脾气，自己的意志。
+### Human-Centered Design
 
-这只大象，就是音乐生成模型。
+This model is not designed for **one-click generation**, but for **human-centered generation**.
 
-### 冰山模型
+Understanding this distinction is crucial.
 
-音频和语义之间的联系，隐藏着一座冰山。
+### What is One-Click Generation?
 
-我们能用语言描述的东西——风格、乐器、音色、情绪、场景、起承转合、歌词内容、演唱方式——这些都是我们熟悉的词汇，是我们能触及的部分。但它们加在一起，仍然只是音频这座冰山浮出海面的很小一角。
+You input a prompt, click generate, listen to a few versions, pick one that sounds good, and use it. If someone else inputs the same prompt, they'll likely get similar results.
 
-最精准的控制是什么？是你拿着预期的音频输入，模型原封不动地返回输出。
+In this mode, you and AI have a **client-vendor** relationship. You come with a clear purpose, with a vague expectation in mind, hoping AI delivers a product close to that expectation. Essentially, it's not much different from searching on Google or finding songs on Spotify—just with a bit more customization.
 
-而只要你用的是文字描述、是参考、是提示——模型就一定有自己的发挥空间。这不是 bug，这是本质。
+AI is a service, not a creative inspirer.
 
-### 大象是什么？
+Suno, Udio, MiniMax, Mureka—these platforms are all designed with this philosophy. They can scale up models as services to ensure delivery. Your generated music is bound by their agreements; you can't run it locally, can't fine-tune for personalized exploration; if they secretly change models or terms, you can only accept it.
 
-这只大象是无数元素的融合体：数据的分布、模型的规模、算法的设计、标注的偏差、评估的偏差——**它是人类音乐历史与工程权衡的抽象结晶。**
+### What is Human-Centered Generation?
 
-其中任意一个要素的偏差，都会导致它无法精准地反映你的品味和预期。
+If we weaken the AI layer and strengthen the human layer—letting more human will, creativity, and inspiration give life to AI—this is human-centered generation.
 
-当然，我们可以扩大数据规模、提升算法效率、提高标注精度、扩大模型容量、引入更专业的评估体系——这些都是作为模型开发者可以优化的方向。
+Unlike the strong purposefulness of one-click generation, human-centered generation has more of a **playful** nature. It's more like an interactive game where you and the model are **collaborators**.
 
-但即使有一天，技术上我们做到了「完美」，还有一个根本问题无法回避：**品味。**
+The workflow is like this: you throw out some inspiration seeds, get a few songs, choose interesting directions from them to continue iterating—
+- Adjust prompts to regenerate
+- Use **Cover** to maintain structure and adjust details
+- Use **Repaint** for local modifications
+- Use **Add Layer** to add or remove instrument layers
 
-### 品味与期望
+At this point, AI is not a servant to you, but an **inspirer**.
 
-品味因人而异。
+### What Conditions Must This Design Meet?
 
-如果一个音乐生成模型试图取悦所有听众，它的输出将趋向于人类音乐历史的流行平均值——**这将平庸至极。**
+For human-centered generation to truly work, the model must meet several key conditions:
 
-是人赋予声音以意义以情感以经历以生命，赋予它们文化符号的价值。是少数艺术家群体创造了独特的品味，然后带动普通人去消费、去追随，小众才变成了大众流行。这些少数派的先锋艺术家，便成为了传奇。
+**First, it must be open-source, locally runnable, and trainable.**
 
-所以，当你发现模型的输出「不对味」时，这有时可能不是模型的问题——**而是你的品味恰好不在那个「平均」上。** 这是好事。
+This isn't technical purism, but a matter of ownership. When you use closed-source platforms, you don't own the model, and your generated works are bound by their agreements. Version updates, term changes, service shutdowns—none of these are under your control.
 
-这意味着：**你需要学会引导这只大象，而不是期待它自动懂你。**
+But when the model is open-source and locally runnable, everything changes: **You forever own this model, and you forever own all the creations you make with it.** No third-party agreement hassles, no platform risks, you can fine-tune, modify, and build your own creative system based on it. Your works will forever belong to you. It's like buying an instrument—you can use it anytime, anywhere, and adjust it anytime, anywhere.
+
+**Second, it must be fast.**
+
+Human time is precious, but more importantly—**slow generation breaks flow state**.
+
+The core of human-centered workflow is the rapid cycle of "try, listen, adjust." If each generation takes minutes, your inspiration dissipates while waiting, and the "play" experience degrades into the "wait" ordeal.
+
+Therefore, we specifically optimized Empath for this: while ensuring quality, we made generation fast enough to support a smooth human-machine dialogue rhythm.
+
+### Finite Game vs Infinite Game
+
+One-click generation is a **finite game**—clear goals, result-oriented, ends at the finish line. To some extent, it coldly hollows out the music industry, replacing many people's jobs.
+
+Human-centered generation is an **infinite game**—because the fun lies in the process, and the process never ends.
+
+Our vision is to democratize AI music generation. Let Empath become a big toy in your pocket, let music return to **Play** itself—the creative "play," not just clicking play.
 
 ---
 
-## 认识象群：模型架构与选择
+## The Elephant Rider Metaphor
 
-现在你已经理解了「大象」这个隐喻。但实际上——
+> Recommended reading: [The Complete Guide to Mastering Suno](https://www.notion.so/The-Complete-Guide-to-Mastering-Suno-Advanced-Strategies-for-Professional-Music-Generation-2d6ae744ebdf8024be42f6645f884221)—this blog tutorial can help you establish the foundational understanding of AI music.
 
-**这不是一只大象，而是一整个象群——大大小小的象，组成了一个家族。** 🐘🐘🐘🐘
+AI music generation is like the famous **elephant rider metaphor** in psychology.
 
-### 架构原理：两个大脑
+Consciousness rides on the subconscious, humans ride on elephants. You can give directions, but you can't make the elephant precisely and instantly execute every command. It has its own inertia, its own temperament, its own will.
 
-ACE-Step 1.5 采用**混合架构**，有两个核心组件协同工作：
+This elephant is the music generation model.
+
+### The Iceberg Model
+
+Between audio and semantics lies a hidden iceberg.
+
+What we can describe with language—style, instruments, timbre, emotion, scenes, progression, lyrics, vocal style—these are familiar words, the parts we can touch. But together, they're still just a tiny tip of the audio iceberg above the water.
+
+What's the most precise control? You input the expected audio, and the model returns it unchanged.
+
+But as long as you're using text descriptions, references, prompts—the model will have room to play. This isn't a bug, it's the nature of things.
+
+### What is the Elephant?
+
+This elephant is a fusion of countless elements: data distribution, model scale, algorithm design, annotation bias, evaluation bias—**it's an abstract crystallization of human music history and engineering trade-offs.**
+
+Any deviation in these elements will cause it to fail to accurately reflect your taste and expectations.
+
+Of course, we can expand data scale, improve algorithm efficiency, increase annotation precision, expand model capacity, introduce more professional evaluation systems—these are all directions we can optimize as model developers.
+
+But even if one day we achieve technical "perfection," there's still a fundamental problem we can't avoid: **taste.**
+
+### Taste and Expectations
+
+Taste varies from person to person.
+
+If a music generation model tries to please all listeners, its output will tend toward the popular average of human music history—**this will be extremely mediocre.**
+
+It's humans who give sound meaning, emotion, experience, life, and cultural symbolic value. It's a small group of artists who create unique tastes, then drive ordinary people to consume and follow, turning niche into mainstream popularity. These pioneering minority artists become legends.
+
+So when you find the model's output "not to your taste," this might not be the model's problem—**but rather your taste happens to be outside that "average."** This is a good thing.
+
+This means: **You need to learn to guide this elephant, not expect it to automatically understand you.**
+
+---
+
+## Knowing the Elephant Herd: Model Architecture and Selection
+
+Now you understand the "elephant" metaphor. But actually—
+
+**This isn't one elephant, but an entire herd—elephants large and small, forming a family.** 🐘🐘🐘🐘
+
+### Architecture Principles: Two Brains
+
+Empath 1.5 uses a **hybrid architecture** with two core components working together:
 
 ```
-用户输入 → [5Hz LM] → 语义蓝图 → [DiT] → 音频
+User Input → [5Hz LM] → Semantic Blueprint → [DiT] → Audio
               ↓
-         元数据推理
-         Caption 优化
-         结构规划
+         Metadata Inference
+         Caption Optimization
+         Structure Planning
 ```
 
-**5Hz LM（语言模型）—— 规划者（可选）**
+**5Hz LM (Language Model) — Planner (Optional)**
 
-LM 是「全能规划器」，负责理解你的意图并制定计划：
-- 通过 **Chain-of-Thought** 推理音乐元数据（BPM、调性、时长等）
-- 优化和扩展你的 caption——这是对你意图的理解和补充
-- 生成**语义 codes**——隐式包含作曲旋律、配器编排、以及少许音色信息
+The LM is an "omni-capable planner" responsible for understanding your intent and making plans:
+- Infers music metadata (BPM, key, duration, etc.) through **Chain-of-Thought**
+- Optimizes and expands your caption—understanding and supplementing your intent
+- Generates **semantic codes**—implicitly containing composition melody, orchestration, and some timbre information
 
-LM 学到的是训练数据中的**世界知识**。它是一个提升可用性、帮你快速生成原型的规划者。
+The LM learns **world knowledge** from training data. It's a planner that improves usability and helps you quickly generate prototypes.
 
-**但 LM 不是必须的。**
+**But the LM is not required.**
 
-如果你非常清楚自己想要什么，或者已经有了明确的规划目标——你完全可以不用 `thinking` 模式，跳过 LM 的规划步骤。
+If you're very clear about what you want, or already have a clear planning goal—you can completely skip the LM planning step by not using `thinking` mode.
 
-比如在 **Cover 模式**中，你用参考音频来约束作曲、和弦、结构，直接让 DiT 去生成。这时，**你取代了 LM 的工作**——你自己成为了规划者。
-再比如，在 **Repaint 模式**中，你将参考音频作为上下文，限定音色、混音和细节，让 DiT 直接对局部进行调整。此时，DiT 更像是你的灵感激发伙伴，既可以帮助你进行创意脑暴，也可以用于修复局部的不和谐。
+For example, in **Cover mode**, you use reference audio to constrain composition, chords, and structure, letting DiT generate directly. Here, **you replace the LM's work**—you become the planner yourself.
 
-**DiT（Diffusion Transformer）—— 执行者**
+Another example: in **Repaint mode**, you use reference audio as context, constraining timbre, mixing, and details, letting DiT directly adjust locally. Here, DiT is more like your creative brainstorming partner, helping with creative ideation and fixing local disharmony.
 
-DiT 是「音频工匠」，负责将规划变为现实：
-- 接收 LM 生成的语义 codes 和条件
-- 通过**扩散过程**从噪声中逐步「雕刻」出音频
-- 决定最终的音色、混音、细节
+**DiT (Diffusion Transformer) — Executor**
 
-**为什么这样设计？**
+DiT is the "audio craftsman," responsible for turning plans into reality:
+- Receives semantic codes and conditions generated by LM
+- Gradually "carves" audio from noise through the **diffusion process**
+- Decides final timbre, mixing, details
 
-传统方法让扩散模型直接从文本生成音频，但文本到音频的映射太模糊。ACE-Step 引入 LM 作为中间层：
-- LM 擅长理解语义、做规划
-- DiT 擅长生成高保真音频
-- 两者配合，各司其职
+**Why this design?**
 
-### 选择规划者：LM 模型
+Traditional methods let diffusion models generate audio directly from text, but text-to-audio mapping is too vague. Empath introduces LM as an intermediate layer:
+- LM excels at understanding semantics and planning
+- DiT excels at generating high-fidelity audio
+- They work together, each doing their part
 
-LM 有四种选择：**无 LM**（关闭 thinking 模式）、**0.6B**、**1.7B**、**4B**。
+### Choosing the Planner: LM Models
 
-它们的训练数据完全一致，区别纯粹在于**知识容量**：
-- 模型越大，世界知识越丰富
-- 模型越大，记忆能力越强（比如记住参考音频的旋律）
-- 模型越大，在长尾的风格或乐器中表现也相对更好
+LM has four options: **No LM** (disable thinking mode), **0.6B**, **1.7B**, **4B**.
 
-| 选择 | 速度 | 世界知识 | 记忆能力 | 适用场景 |
-|------|:----:|:--------:|:--------:|----------|
-| 无 LM | ⚡⚡⚡⚡ | — | — | 你自己做规划（如 Cover 模式） |
-| `0.6B` | ⚡⚡⚡ | 基础 | 弱 | 低显存（< 8GB）、快速原型 |
-| `1.7B` | ⚡⚡ | 中等 | 中等 | **默认推荐** |
-| `4B` | ⚡ | 丰富 | 强 | 复杂任务、高质量生成 |
+Their training data is completely identical; the difference is purely in **knowledge capacity**:
+- Larger models have richer world knowledge
+- Larger models have stronger memory (e.g., remembering reference audio melodies)
+- Larger models perform relatively better on long-tail styles or instruments
 
-**如何选择？**
+| Choice | Speed | World Knowledge | Memory | Use Cases |
+|--------|:-----:|:---------------:|:------:|-----------|
+| No LM | ⚡⚡⚡⚡ | — | — | You do the planning (e.g., Cover mode) |
+| `0.6B` | ⚡⚡⚡ | Basic | Weak | Low VRAM (< 8GB), rapid prototyping |
+| `1.7B` | ⚡⚡ | Medium | Medium | **Default recommendation** |
+| `4B` | ⚡ | Rich | Strong | Complex tasks, high-quality generation |
 
-根据你的硬件条件：
-- **显存 < 8GB** → 无 LM 或 `0.6B`
-- **显存 8–16GB** → `1.7B`（默认）
-- **显存 > 16GB** → `1.7B` 或 `4B`
+**How to choose?**
 
-### 选择执行者：DiT 模型
+Based on your hardware:
+- **VRAM < 8GB** → No LM or `0.6B`
+- **VRAM 8–16GB** → `1.7B` (default)
+- **VRAM > 16GB** → `1.7B` or `4B`
 
-有了规划方案，还需要选择执行者。DiT 是 ACE-Step 1.5 最核心的部分——它承载各种任务，决定如何解读 LM 生成的 codes。
+### Choosing the Executor: DiT Models
 
-我们开源了 **4 个 Turbo 模型**、**1 个 SFT 模型**、**1 个 Base 模型**。
+With a planning scheme, you still need to choose an executor. DiT is the core of Empath 1.5—it handles various tasks and decides how to interpret LM-generated codes.
 
-#### Turbo 系列（推荐日常使用）
+We've open-sourced **4 Turbo models**, **1 SFT model**, and **1 Base model**.
 
-Turbo 模型经过蒸馏训练，只需 8 步即可生成高质量音频。四个变体的核心差别在于**蒸馏时的 shift 超参配置**。
+#### Turbo Series (Recommended for Daily Use)
 
-**什么是 shift？**
+Turbo models are trained with distillation, generating high-quality audio in just 8 steps. The core difference between the four variants is the **shift hyperparameter configuration during distillation**.
 
-shift 决定了 DiT 去噪时的「注意力分配」：
-- **shift 越大** → 更多精力花在早期去噪（从纯噪声中建立大结构），**语义更强**，整体框架更清晰
-- **shift 越小** → 去噪步数分配更均匀，**细节更多**，但细节也可能是噪音
+**What is shift?**
 
-简单理解：高 shift 像「先画轮廓再填细节」，低 shift 像「边画边修」。
+Shift determines the "attention allocation" during DiT denoising:
+- **Larger shift** → More effort spent on early denoising (building large structure from pure noise), **stronger semantics**, clearer overall framework
+- **Smaller shift** → More even step distribution, **more details**, but details might also be noise
 
-| 模型 | 蒸馏配置 | 特点 |
-|------|----------|------|
-| `turbo`（默认） | 在 shift 1, 2, 3 上联合蒸馏 | **创造性与语义兼顾最佳**，经过充分测试，推荐首选 |
-| `turbo-shift1` | 仅在 shift=1 上蒸馏 | 细节更丰富，但语义会弱一些 |
-| `turbo-shift3` | 仅在 shift=3 上蒸馏 | 音色更清晰丰富，但会显得「干」，配器偏极简 |
-| `turbo-continuous` | 实验性，支持 shift 1–5 连续调节 | 调参最灵活，但未经充分测试 |
+Simple understanding: high shift is like "draw outline first then fill details," low shift is like "draw and fix simultaneously."
 
-你可以根据目标音乐风格选择，也许你会发现自己对某个变体有偏好。**我们推荐从默认 turbo 开始**——它是最平衡、最经得起考验的选择。
+| Model | Distillation Config | Characteristics |
+|-------|---------------------|-----------------|
+| `turbo` (default) | Joint distillation on shift 1, 2, 3 | **Best balance of creativity and semantics**, thoroughly tested, recommended first choice |
+| `turbo-shift1` | Distilled only on shift=1 | Richer details, but semantics weaker |
+| `turbo-shift3` | Distilled only on shift=3 | Clearer, richer timbre, but may sound "dry," minimal orchestration |
+| `turbo-continuous` | Experimental, supports continuous shift 1–5 | Most flexible tuning, but not thoroughly tested |
 
-#### SFT 模型
+You can choose based on target music style—you might find you prefer a certain variant. **We recommend starting with default turbo**—it's the most balanced and proven choice.
 
-与 Turbo 相比，SFT 模型有两个显著特点：
-- **支持 CFG**（Classifier-Free Guidance），可以精细调节 prompt 遵循程度
-- **步数更多**（50 步），给模型更多时间「思考」
+#### SFT Model
 
-代价是：步数多意味着误差累积，音质清晰度可能略逊于 Turbo。但它的**细节表现和语义解析会更好**。
+Compared to Turbo, SFT model has two notable features:
+- **Supports CFG** (Classifier-Free Guidance), allowing fine-tuning of prompt adherence
+- **More steps** (50 steps), giving the model more time to "think"
 
-如果你不在乎推理时间，喜欢调 CFG 和步数，且偏好那种丰富的细节感——SFT 是一个好选择。LM 生成的 codes 同样可以作用于 SFT 模型。
+The cost: more steps mean error accumulation, audio clarity may be slightly inferior to Turbo. But its **detail expression and semantic parsing will be better**.
 
-#### Base 模型
+If you don't care about inference time, like tuning CFG and steps, and prefer that rich detail feel—SFT is a good choice. LM-generated codes can also work with SFT models.
 
-Base 是**任务的集大成者**，比 SFT 和 Turbo 多出三个独占任务：
+#### Base Model
 
-| 任务 | 说明 |
-|------|------|
-| `extract` | 从混合轨道中抽取单个音轨（如分离人声） |
-| `lego` | 给已有轨道添加新轨道（如给吉他加鼓） |
-| `complete` | 给单轨添加混合伴奏（如给人声加吉他+鼓的伴奏） |
+Base is the **master of all tasks**, with three exclusive tasks beyond SFT and Turbo:
 
-此外，Base 的**可塑性最强**。如果你有大规模数据微调的需求，推荐从 Base 开始实验，训练专属你的 SFT 模型。
+| Task | Description |
+|------|-------------|
+| `extract` | Extract single tracks from mixed audio (e.g., separate vocals) |
+| `lego` | Add new tracks to existing tracks (e.g., add drums to guitar) |
+| `complete` | Add mixed accompaniment to single track (e.g., add guitar+drums accompaniment to vocals) |
 
-#### 创建专属你的自定义模型
+Additionally, Base has the **strongest plasticity**. If you have large-scale fine-tuning needs, we recommend starting experiments with Base to train your own SFT model.
 
-除了官方模型，你还可以用 **LoRA 微调**创建专属你的自定义模型。
+#### Creating Your Custom Model
 
-我们会发布一个示例 LoRA 模型——用 20 多首「新年快乐」主题的歌曲训练，专门适合表达节日氛围。这只是一个起点。
+Beyond official models, you can also use **LoRA fine-tuning** to create your custom model.
 
-**自定义模型意味着什么？**
+We'll release an example LoRA model—trained on 20+ "Happy New Year" themed songs, specifically suited for expressing festive atmosphere. This is just a starting point.
 
-你可以用专属的数据配方，重塑 DiT 的能力和偏好：
-- 喜欢某种特定的音色风格？用那类歌曲训练
-- 想让模型更擅长某种曲风？收集相关数据微调
-- 有自己独特的审美品味？把它「教」给模型
+**What does a custom model mean?**
 
-这极大拓展了**定制化和可玩性**——用你的审美品味，训练出专属你的模型。
+You can reshape DiT's capabilities and preferences with your own data recipe:
+- Like a specific timbre style? Train with that type of songs
+- Want the model better at a certain genre? Collect related data for fine-tuning
+- Have your own unique aesthetic taste? "Teach" it to the model
 
-> 关于 LoRA 训练的详细指南，请参阅 [LoRA 训练教程](./LoRA_Training_Tutorial.md)。你也可以使用 Gradio UI 中的「LoRA Training」标签页进行一键训练。
+This greatly expands **customization and playability**—train a model unique to you with your aesthetic taste.
 
-#### DiT 选择总结
+> For the detailed LoRA training guide, see the [LoRA Training Tutorial](./LoRA_Training_Tutorial.md). You can also use the "LoRA Training" tab in Gradio UI for one-click training.
 
-| 模型 | 步数 | CFG | 速度 | 独占任务 | 推荐场景 |
-|------|:----:|:---:|:----:|----------|----------|
-| `turbo`（默认） | 8 | ❌ | ⚡⚡⚡ | — | 日常使用，快速迭代 |
-| `sft` | 50 | ✅ | ⚡ | — | 追求细节，喜欢调参 |
-| `base` | 50 | ✅ | ⚡ | extract, lego, complete | 特殊任务，大规模微调 |
+#### DiT Selection Summary
 
-### 组合搭配
+| Model | Steps | CFG | Speed | Exclusive Tasks | Recommended Scenarios |
+|-------|:-----:|:---:|:-----:|-----------------|----------------------|
+| `turbo` (default) | 8 | ❌ | ⚡⚡⚡ | — | Daily use, rapid iteration |
+| `sft` | 50 | ✅ | ⚡ | — | Pursuing details, like tuning |
+| `base` | 50 | ✅ | ⚡ | extract, lego, complete | Special tasks, large-scale fine-tuning |
 
-默认配置是 **turbo + 1.7B LM**，适合大多数场景。
+### Combination Strategies
 
-| 需求 | 推荐组合 |
-|------|----------|
-| 最快速度 | `turbo` + 无 LM 或 `0.6B` |
-| 日常使用 | `turbo` + `1.7B`（默认） |
-| 追求细节 | `sft` + `1.7B` 或 `4B` |
-| 特殊任务 | `base`|
-| 大规模微调 | `base`|
-| 低显存（< 4GB） | `turbo` + 无 LM + CPU offload |
+Default configuration is **turbo + 1.7B LM**, suitable for most scenarios.
 
-### 下载模型
+| Need | Recommended Combination |
+|------|------------------------|
+| Fastest speed | `turbo` + No LM or `0.6B` |
+| Daily use | `turbo` + `1.7B` (default) |
+| Pursuing details | `sft` + `1.7B` or `4B` |
+| Special tasks | `base` |
+| Large-scale fine-tuning | `base` |
+| Low VRAM (< 4GB) | `turbo` + No LM + CPU offload |
+
+### Downloading Models
 
 ```bash
-# 下载默认模型（turbo + 1.7B LM）
-uv run acestep-download
+# Download default models (turbo + 1.7B LM)
+uv run empath-download
 
-# 下载全部模型
-uv run acestep-download --all
+# Download all models
+uv run empath-download --all
 
-# 下载特定模型
-uv run acestep-download --model acestep-v15-base
-uv run acestep-download --model acestep-5Hz-lm-0.6B
+# Download specific model
+uv run empath-download --model empath-v15-base
+uv run empath-download --model empath-5Hz-lm-0.6B
 
-# 查看可用模型
-uv run acestep-download --list
+# List available models
+uv run empath-download --list
 ```
 
-你需要把模型下载在一个`checkpoints`的文件夹中，方便识别。
+You need to download models into a `checkpoints` folder for easy identification.
 
 ---
 
-## 引导大象：你能控制什么？
+## Guiding the Elephant: What Can You Control?
 
-现在你已经认识了这群大象，接下来让我们学习如何与它们沟通。
+Now that you know this herd of elephants, let's learn how to communicate with them.
 
-每一次生成，结果都由三类因素共同决定：**输入控制**、**推理超参**和**随机因素**。
+Each generation is determined by three types of factors: **input control**, **inference hyperparameters**, and **random factors**.
 
-### 一、输入控制：你想要什么？
+### I. Input Control: What Do You Want?
 
-这是你与模型沟通「创意意图」的部分——你想生成什么样的音乐。
+This is the part where you communicate "creative intent" with the model—what kind of music you want to generate.
 
-| 类别 | 参数 | 作用 |
-|------|------|------|
-| **任务类型** | `task_type` | 决定生成模式：text2music、cover、repaint、lego、extract、complete |
-| **文本输入** | `caption` | 对音乐整体要素的描述：风格、乐器、情绪、氛围、音色、演唱者性别、起承转合等 |
-| | `lyrics` | 时序要素的描述：歌词内容、音乐结构演进、演唱者变化、人声/乐器演奏方式、开始/结束方式、发声方式等（纯音乐填 `[Instrumental]`） |
-| **音乐元数据** | `bpm` | 速度（30–300） |
-| | `keyscale` | 调性（如 C Major、Am） |
-| | `timesignature` | 拍号（4/4、3/4、6/8） |
-| | `vocal_language` | 人声语言 |
-| | `duration` | 目标时长（秒） |
-| **音频参考** | `reference_audio` | 音色或风格的全局参考（用于 cover、风格迁移） |
-| | `src_audio` | 源音频，用于非 text2music 任务（text2music 默认静音，无需输入） |
-| | `audio_codes` | Cover模式下输入模型的语义 codes（高级用法：复用 codes 生成变体、将歌曲转 codes 拓展衍生、拼接组合像 DJ 一样混搭） |
-| **区间控制** | `repainting_start/end` | 操作的时间区间（repaint 重绘区域 / lego 新增分轨区域） |
-
----
-
-#### 关于 Caption：最重要的输入
-
-**Caption 是影响生成音乐最重要的因素。**
-
-它支持多种输入形式：简单的风格词、逗号分隔的 tags、复杂的自然语言描述。我们在训练中兼容了各种各样的格式，确保文本形式不会显著影响模型表现。
-
-**我们提供了至少 5 种方式帮你写好 caption：**
-
-1. **随机骰子** — 点击 UI 中的随机按钮，看看样例的 caption 是怎么写的。你可以把这个规范化的 caption 作为模板，让 LLM 帮你改写成想要的形式。
-
-2. **Format 自动改写** — 我们支持用 `format` 功能，把你手写的简单 caption 自动扩展成复杂描述。
-
-3. **CoT 重写** — 如果初始化了 LM，无论是否开启 `thinking` 模式，我们都支持通过 Chain-of-Thought 为你重写和扩展 caption（除非你在设置中主动关闭，或没有初始化 LM）。
-
-4. **音频转 Caption** — 我们的 LM 支持将你输入的音频转换为 caption。虽然精度有限，但模糊的方向是对的——足以作为起点。
-
-5. **Simple 模式** — 只需输入一句简单的歌曲描述，LM 会自动为你生成完整的 caption、lyrics 和 metas 样本——适合快速起步。
-
-无论哪种方式，它们都解决了一个现实问题：**作为普通人，我们的音乐词汇是贫瘠的。**
-
-如果你想让生成的音乐更有趣、更符合预期，**Prompting 始终是最优选项**——它带来的边际收益和惊喜最大。
-
-**Caption 写作的常用维度：**
-
-| 维度 | 示例 |
-|------|------|
-| **风格/流派** | pop, rock, jazz, electronic, hip-hop, R&B, folk, classical, lo-fi, synthwave |
-| **情绪/氛围** | melancholic, uplifting, energetic, dreamy, dark, nostalgic, euphoric, intimate |
-| **乐器** | acoustic guitar, piano, synth pads, 808 drums, strings, brass, electric bass |
-| **音色质感** | warm, bright, crisp, muddy, airy, punchy, lush, raw, polished |
-| **时代参考** | 80s synth-pop, 90s grunge, 2010s EDM, vintage soul, modern trap |
-| **制作风格** | lo-fi, high-fidelity, live recording, studio-polished, bedroom pop |
-| **人声特点** | female vocal, male vocal, breathy, powerful, falsetto, raspy, choir |
-| **速度/节奏** | slow tempo, mid-tempo, fast-paced, groovy, driving, laid-back |
-| **结构提示** | building intro, catchy chorus, dramatic bridge, fade-out ending |
-
-**一些实用原则：**
-
-1. **具体优于模糊** — 「sad piano ballad with female breathy vocal」比「a sad song」效果好。
-
-2. **组合多个维度** — 单一维度的描述会让模型有太多发挥空间，组合风格+情绪+乐器+音色能更精准地锚定你想要的方向。
-
-3. **善用参考** — 「in the style of 80s synthwave」或「reminiscent of Bon Iver」可以快速传达复杂的美学偏好。
-
-4. **质感词很有用** — warm, crisp, airy, punchy 这类形容词能影响混音和音色的倾向。
-
-5. **不必追求完美描述** — Caption 是起点而非终点。先写一个大致方向，生成后根据结果迭代调整。
-
-6. **描述粒度决定自由度** — 描述越省略，模型发挥空间越大，随机因素影响越多；描述越细致，模型越受约束。根据你的需求决定具体程度——想要惊喜就写少点，想要可控就写详细点。
-
-7. **避免冲突词汇** — 冲突的风格组合容易导致劣化输出。比如同时要「古典弦乐」和「硬核金属」，模型会尝试融合但通常不理想。尤其开启 `thinking` 模式时，LM 在 caption 泛化性上弱于 DiT。当你prompting不合理时，出来惊喜的概率更小。
-
-   **解决冲突的方法：**
-   - **重复强化** — 通过重复某些词来强化混搭风格中你更想要的元素
-   - **冲突变演变** — 把风格冲突转化为时间上的风格演变。比如：「开头是柔和的弦乐，中段变成噪杂动态的金属摇滚，结尾转为 hip-hop」——这样模型有明确的指引，知道如何处理不同风格，而不是把它们混成一团
-
-> 更多 prompting 技巧可参考：[The Complete Guide to Mastering Suno](https://www.notion.so/The-Complete-Guide-to-Mastering-Suno-Advanced-Strategies-for-Professional-Music-Generation-2d6ae744ebdf8024be42f6645f884221)——虽然是针对 Suno 的教程，但 prompting 的思路是通用的。
+| Category | Parameter | Function |
+|----------|-----------|----------|
+| **Task Type** | `task_type` | Determines generation mode: text2music, cover, repaint, lego, extract, complete |
+| **Text Input** | `caption` | Description of overall music elements: style, instruments, emotion, atmosphere, timbre, vocal gender, progression, etc. |
+| | `lyrics` | Temporal element description: lyric content, music structure evolution, vocal changes, vocal/instrument performance style, start/end style, articulation, etc. (use `[Instrumental]` for instrumental music) |
+| **Music Metadata** | `bpm` | Tempo (30–300) |
+| | `keyscale` | Key (e.g., C Major, Am) |
+| | `timesignature` | Time signature (4/4, 3/4, 6/8) |
+| | `vocal_language` | Vocal language |
+| | `duration` | Target duration (seconds) |
+| **Audio Reference** | `reference_audio` | Global reference for timbre or style (for cover, style transfer) |
+| | `src_audio` | Source audio for non-text2music tasks (text2music defaults to silence, no input needed) |
+| | `audio_codes` | Semantic codes input to model in Cover mode (advanced: reuse codes for variants, convert songs to codes for extension, combine like DJ mixing) |
+| **Interval Control** | `repainting_start/end` | Time interval for operations (repaint redraw area / lego new track area) |
 
 ---
 
-#### 关于 Lyrics：时序的脚本
+#### About Caption: The Most Important Input
 
-如果说 Caption 描述的是音乐的「整体画像」——风格、氛围、音色——那么 **Lyrics 就是音乐的「时间脚本」**，它控制着音乐如何随时间展开。
+**Caption is the most important factor affecting generated music.**
 
-Lyrics 不仅仅是歌词内容。它承载着：
-- 歌词文本本身
-- **结构标记**（[Verse]、[Chorus]、[Bridge]...）
-- **演唱方式提示**（[raspy vocal]、[whispered]...）
-- **乐器段落**（[guitar solo]、[drum break]...）
-- **能量变化**（[building energy]、[explosive drop]...）
+It supports multiple input formats: simple style words, comma-separated tags, complex natural language descriptions. We've trained to be compatible with various formats, ensuring text format doesn't significantly affect model performance.
 
-**结构标记是关键**
+**We provide at least 5 ways to help you write good captions:**
 
-结构标记（Meta Tags）是 Lyrics 中最强大的工具。它们告诉模型：「这一段是什么，应该怎么表现。」
+1. **Random Dice** — Click the random button in the UI to see how example captions are written. You can use this standardized caption as a template and have an LLM rewrite it to your desired form.
 
-**常用结构标记：**
+2. **Format Auto-Rewrite** — We support using the `format` feature to automatically expand your handwritten simple caption into complex descriptions.
 
-| 类别 | 标记 | 说明 |
-|------|------|------|
-| **基础结构** | `[Intro]` | 开场，建立氛围 |
-| | `[Verse]` / `[Verse 1]` | 主歌，叙事推进 |
-| | `[Pre-Chorus]` | 导歌，积蓄能量 |
-| | `[Chorus]` | 副歌，情感高潮 |
-| | `[Bridge]` | 桥段，转折或升华 |
-| | `[Outro]` | 结尾，收束 |
-| **动态段落** | `[Build]` | 能量逐渐攀升 |
-| | `[Drop]` | 电子乐的能量释放 |
-| | `[Breakdown]` | 配器减少，留白 |
-| **器乐段落** | `[Instrumental]` | 纯器乐，无人声 |
-| | `[Guitar Solo]` | 吉他独奏 |
-| | `[Piano Interlude]` | 钢琴间奏 |
-| **特殊标记** | `[Fade Out]` | 渐弱结束 |
-| | `[Silence]` | 静默 |
+3. **CoT Rewrite** — If LM is initialized, whether `thinking` mode is enabled or not, we support rewriting and expanding captions through Chain-of-Thought (unless you actively disable it in settings, or LM is not initialized).
 
-**组合标记：适度使用**
+4. **Audio to Caption** — Our LM supports converting your input audio to caption. While precision is limited, the vague direction is correct—enough as a starting point.
 
-结构标记可以用 `-` 符号组合，实现更精细的控制：
+5. **Simple Mode** — Just input a simple song description, and LM will automatically generate complete caption, lyrics, and metas samples—suitable for quick starts.
+
+Regardless of which method, they all solve a real problem: **As ordinary people, our music vocabulary is impoverished.**
+
+If you want generated music to be more interesting and meet expectations, **Prompting is always the optimal option**—it brings the highest marginal returns and surprises.
+
+**Common Dimensions for Caption Writing:**
+
+| Dimension | Examples |
+|-----------|----------|
+| **Style/Genre** | pop, rock, jazz, electronic, hip-hop, R&B, folk, classical, lo-fi, synthwave |
+| **Emotion/Atmosphere** | melancholic, uplifting, energetic, dreamy, dark, nostalgic, euphoric, intimate |
+| **Instruments** | acoustic guitar, piano, synth pads, 808 drums, strings, brass, electric bass |
+| **Timbre Texture** | warm, bright, crisp, muddy, airy, punchy, lush, raw, polished |
+| **Era Reference** | 80s synth-pop, 90s grunge, 2010s EDM, vintage soul, modern trap |
+| **Production Style** | lo-fi, high-fidelity, live recording, studio-polished, bedroom pop |
+| **Vocal Characteristics** | female vocal, male vocal, breathy, powerful, falsetto, raspy, choir |
+| **Speed/Rhythm** | slow tempo, mid-tempo, fast-paced, groovy, driving, laid-back |
+| **Structure Hints** | building intro, catchy chorus, dramatic bridge, fade-out ending |
+
+**Some Practical Principles:**
+
+1. **Specific beats vague** — "sad piano ballad with female breathy vocal" works better than "a sad song."
+
+2. **Combine multiple dimensions** — Single-dimension descriptions give the model too much room to play; combining style+emotion+instruments+timbre can more precisely anchor your desired direction.
+
+3. **Use references well** — "in the style of 80s synthwave" or "reminiscent of Bon Iver" can quickly convey complex aesthetic preferences.
+
+4. **Texture words are useful** — Adjectives like warm, crisp, airy, punchy can influence mixing and timbre tendencies.
+
+5. **Don't pursue perfect descriptions** — Caption is a starting point, not an endpoint. Write a general direction first, then iterate based on results.
+
+6. **Description granularity determines freedom** — More omitted descriptions give the model more room to play, more random factor influence; more detailed descriptions constrain the model more. Decide specificity based on your needs—want surprises? Write less. Want control? Write more details.
+
+7. **Avoid conflicting words** — Conflicting style combinations easily lead to degraded output. For example, wanting both "classical strings" and "hardcore metal" simultaneously—the model will try to fuse but usually not ideal. Especially when `thinking` mode is enabled, LM has weaker caption generalization than DiT. When prompting is unreasonable, the chance of pleasant surprises is smaller.
+
+   **Ways to resolve conflicts:**
+   - **Repetition reinforcement** — Strengthen the elements you want more in mixed styles by repeating certain words
+   - **Conflict to evolution** — Transform style conflicts into temporal style evolution. For example: "Start with soft strings, middle becomes noisy dynamic metal rock, end turns to hip-hop"—this gives the model clear guidance on how to handle different styles, rather than mixing them into a mess
+
+> For more prompting tips, see: [The Complete Guide to Mastering Suno](https://www.notion.so/The-Complete-Guide-to-Mastering-Suno-Advanced-Strategies-for-Professional-Music-Generation-2d6ae744ebdf8024be42f6645f884221)—although it's a Suno tutorial, prompting ideas are universal.
+
+---
+
+#### About Lyrics: The Temporal Script
+
+If Caption describes the music's "overall portrait"—style, atmosphere, timbre—then **Lyrics is the music's "temporal script"**, controlling how music unfolds over time.
+
+Lyrics is not just lyric content. It carries:
+- The lyric text itself
+- **Structure tags** ([Verse], [Chorus], [Bridge]...)
+- **Vocal style hints** ([raspy vocal], [whispered]...)
+- **Instrumental sections** ([guitar solo], [drum break]...)
+- **Energy changes** ([building energy], [explosive drop]...)
+
+**Structure Tags are Key**
+
+Structure tags (Meta Tags) are the most powerful tool in Lyrics. They tell the model: "What is this section, how should it be performed?"
+
+**Common Structure Tags:**
+
+| Category | Tag | Description |
+|----------|-----|-------------|
+| **Basic Structure** | `[Intro]` | Opening, establish atmosphere |
+| | `[Verse]` / `[Verse 1]` | Verse, narrative progression |
+| | `[Pre-Chorus]` | Pre-chorus, build energy |
+| | `[Chorus]` | Chorus, emotional climax |
+| | `[Bridge]` | Bridge, transition or elevation |
+| | `[Outro]` | Ending, conclusion |
+| **Dynamic Sections** | `[Build]` | Energy gradually rising |
+| | `[Drop]` | Electronic music energy release |
+| | `[Breakdown]` | Reduced instrumentation, space |
+| **Instrumental Sections** | `[Instrumental]` | Pure instrumental, no vocals |
+| | `[Guitar Solo]` | Guitar solo |
+| | `[Piano Interlude]` | Piano interlude |
+| **Special Tags** | `[Fade Out]` | Fade out ending |
+| | `[Silence]` | Silence |
+
+**Combining Tags: Use Moderately**
+
+Structure tags can be combined with `-` for finer control:
 
 ```
 [Chorus - anthemic]
-这是副歌的歌词
-梦想在燃烧
+This is the chorus lyrics
+Dreams are burning
 
 [Bridge - whispered]
-轻轻地说出那些话
+Whisper those words softly
 ```
 
-这比单独写 `[Chorus]` 效果好——你同时告诉了模型这段是什么（Chorus）、以及怎么唱（anthemic）。
+This works better than writing `[Chorus]` alone—you're telling the model both what this section is (Chorus) and how to sing it (anthemic).
 
-**⚠️ 注意：不要堆叠太多标记。**
+**⚠️ Note: Don't stack too many tags.**
 
 ```
-❌ 不推荐：
+❌ Not recommended:
 [Chorus - anthemic - stacked harmonies - high energy - powerful - epic]
 
-✅ 推荐：
+✅ Recommended:
 [Chorus - anthemic]
 ```
 
-堆叠过多标记有两个风险：
-1. 模型可能把标记内容错误地当作歌词唱出来
-2. 过多指令会让模型困惑，效果反而变差
+Stacking too many tags has two risks:
+1. The model might mistake tag content as lyrics to sing
+2. Too many instructions confuse the model, making effects worse
 
-**原则**：结构标记保持简洁，复杂的风格描述放在 Caption 中。
+**Principle**: Keep structure tags concise; put complex style descriptions in Caption.
 
-**⚠️ 关键：保持 Caption 和 Lyrics 的一致性**
+**⚠️ Key: Maintain Consistency Between Caption and Lyrics**
 
-**模型不擅长解决冲突。** 如果 Caption 和 Lyrics 中的描述相矛盾，模型会困惑，输出质量下降。
+**Models are not good at resolving conflicts.** If descriptions in Caption and Lyrics contradict, the model gets confused and output quality decreases.
 
 ```
-❌ 冲突示例：
+❌ Conflict example:
 Caption: "violin solo, classical, intimate chamber music"
 Lyrics: [Guitar Solo - electric - distorted]
 
-✅ 一致示例：
+✅ Consistent example:
 Caption: "violin solo, classical, intimate chamber music"
 Lyrics: [Violin Solo - expressive]
 ```
 
-**检查清单**：
-- Caption 中的乐器 ↔ Lyrics 中的器乐段落标记
-- Caption 中的情绪 ↔ Lyrics 中的能量标记
-- Caption 中的人声描述 ↔ Lyrics 中的人声控制标记
+**Checklist:**
+- Instruments in Caption ↔ Instrumental section tags in Lyrics
+- Emotion in Caption ↔ Energy tags in Lyrics
+- Vocal description in Caption ↔ Vocal control tags in Lyrics
 
-把 Caption 想象成「整体设定」，Lyrics 想象成「分镜脚本」——它们应该讲述同一个故事。
+Think of Caption as "overall setting" and Lyrics as "shot script"—they should tell the same story.
 
-**人声控制标记：**
+**Vocal Control Tags:**
 
-| 标记 | 效果 |
-|------|------|
-| `[raspy vocal]` | 沙哑、有质感的人声 |
-| `[whispered]` | 轻声细语 |
-| `[falsetto]` | 假声 |
-| `[powerful belting]` | 高亢有力的演唱 |
-| `[spoken word]` | 说唱/朗诵 |
-| `[harmonies]` | 和声层叠 |
-| `[call and response]` | 一呼一应 |
-| `[ad-lib]` | 即兴装饰音 |
+| Tag | Effect |
+|-----|--------|
+| `[raspy vocal]` | Raspy, textured vocals |
+| `[whispered]` | Whispered |
+| `[falsetto]` | Falsetto |
+| `[powerful belting]` | Powerful, high-pitched singing |
+| `[spoken word]` | Rap/recitation |
+| `[harmonies]` | Layered harmonies |
+| `[call and response]` | Call and response |
+| `[ad-lib]` | Improvised embellishments |
 
-**能量与情绪标记：**
+**Energy and Emotion Tags:**
 
-| 标记 | 效果 |
-|------|------|
-| `[high energy]` | 高能量、激昂 |
-| `[low energy]` | 低能量、内敛 |
-| `[building energy]` | 能量递增 |
-| `[explosive]` | 爆发性能量 |
-| `[melancholic]` | 忧郁 |
-| `[euphoric]` | 欣快 |
-| `[dreamy]` | 梦幻 |
-| `[aggressive]` | 激进 |
+| Tag | Effect |
+|-----|--------|
+| `[high energy]` | High energy, passionate |
+| `[low energy]` | Low energy, restrained |
+| `[building energy]` | Increasing energy |
+| `[explosive]` | Explosive energy |
+| `[melancholic]` | Melancholic |
+| `[euphoric]` | Euphoric |
+| `[dreamy]` | Dreamy |
+| `[aggressive]` | Aggressive |
 
-**歌词文本的写作技巧**
+**Lyric Text Writing Tips**
 
-**1. 控制音节数**
+**1. Control Syllable Count**
 
-每行 **6-10 个音节**通常效果最好。模型会将音节对齐到节拍上——如果一行 6 音节，下一行 14 音节，节奏会变得奇怪。
+**6-10 syllables per line** usually works best. The model aligns syllables to beats—if one line has 6 syllables and the next has 14, rhythm becomes strange.
 
 ```
-❌ 不好的例子：
-我站在窗前看着外面的世界一切都在改变（18 音节）
-你好（2 音节）
+❌ Bad example:
+我站在窗前看着外面的世界一切都在改变（18 syllables）
+你好（2 syllables）
 
-✅ 好的例子：
-我站在窗前（5 音节）
-看着外面世界（6 音节）
-一切都在改变（6 音节）
+✅ Good example:
+我站在窗前（5 syllables）
+看着外面世界（6 syllables）
+一切都在改变（6 syllables）
 ```
 
-**技巧**：同一位置的行（如每段的第一行）保持相近的音节数（±1-2 偏差）。
+**Tip**: Keep similar syllable counts for lines in the same position (e.g., first line of each verse) (±1-2 deviation).
 
-**2. 用大小写控制强度**
+**2. Use Case to Control Intensity**
 
-大写表示更强的演唱力度：
+Uppercase indicates stronger vocal intensity:
 
 ```
 [Verse]
-walking through the empty streets（正常力度）
+walking through the empty streets (normal intensity)
 
 [Chorus]
-WE ARE THE CHAMPIONS!（高强度、呐喊）
+WE ARE THE CHAMPIONS! (high intensity, shouting)
 ```
 
-**3. 用括号表示背景人声**
+**3. Use Parentheses for Background Vocals**
 
 ```
 [Chorus]
@@ -525,55 +530,55 @@ We rise together (together)
 Into the light (into the light)
 ```
 
-括号内的内容会被处理为背景人声或和声。
+Content in parentheses is processed as background vocals or harmonies.
 
-**4. 延长元音**
+**4. Extend Vowels**
 
-可以通过重复元音来延长音：
+You can extend sounds by repeating vowels:
 
 ```
 Feeeling so aliiive
 ```
 
-但要谨慎使用——效果不稳定，有时会被忽略或发音错误。
+But use cautiously—effects are unstable, sometimes ignored or mispronounced.
 
-**5. 段落清晰分隔**
+**5. Clear Section Separation**
 
-每个段落之间用空行分隔：
+Separate each section with blank lines:
 
 ```
 [Verse 1]
-第一段的歌词
-继续第一段
+First verse lyrics
+Continue first verse
 
 [Chorus]
-副歌的歌词
-副歌继续
+Chorus lyrics
+Chorus continues
 ```
 
-**避免「AI 味」歌词**
+**Avoiding "AI-flavored" Lyrics**
 
-以下特征会让歌词显得机械、缺乏人味：
+These characteristics make lyrics seem mechanical and lack human touch:
 
-| 红旗 🚩 | 说明 |
-|---------|------|
-| **形容词堆砌** | 「neon skies, electric hearts, endless dreams」——一段里塞满模糊意象 |
-| **押韵混乱** | 押韵模式不一致，或刻意凑韵导致语义断裂 |
-| **段落边界模糊** | 歌词内容跨越结构标记，Verse 的内容「流」进了 Chorus |
-| **没有呼吸感** | 每行太长，无法一口气唱完 |
-| **隐喻混用** | 第一段用水的意象，第二段突然变成火，第三段又是飞翔——听众无法锚定 |
+| Red Flag 🚩 | Description |
+|-------------|-------------|
+| **Adjective stacking** | "neon skies, electric hearts, endless dreams"—filling a section with vague imagery |
+| **Rhyme chaos** | Inconsistent rhyme patterns, or forced rhymes causing semantic breaks |
+| **Blurred section boundaries** | Lyric content crosses structure tags, Verse content "flows" into Chorus |
+| **No breathing room** | Each line too long, can't sing in one breath |
+| **Mixed metaphors** | First verse uses water imagery, second suddenly becomes fire, third is flying—listeners can't anchor |
 
-**隐喻纪律**：一首歌坚持一个核心隐喻，深入挖掘它的多个方面。比如选择「水」作为隐喻，就可以探索：爱如何像水一样绕过障碍、可以是细雨也可以是洪流、能倒映出对方的样子、无法握住却真实存在。一个意象，多个切面——这让歌词有凝聚力。
+**Metaphor discipline**: Stick to one core metaphor per song, exploring its multiple aspects. For example, choosing "water" as metaphor, you can explore: how love flows around obstacles like water, can be gentle rain or flood, reflects the other's image, can't be grasped but exists. One image, multiple facets—this gives lyrics cohesion.
 
-**纯音乐的写法**
+**Writing Instrumental Music**
 
-如果生成纯器乐无人声：
+If generating pure instrumental music without vocals:
 
 ```
 [Instrumental]
 ```
 
-或者用结构标记描述器乐的展开：
+Or use structure tags to describe instrumental development:
 
 ```
 [Intro - ambient]
@@ -585,9 +590,9 @@ Feeeling so aliiive
 [Outro - fade out]
 ```
 
-**完整示例**
+**Complete Example**
 
-假设 Caption 是：`female vocal, piano ballad, emotional, intimate atmosphere, strings, building to powerful chorus`
+Assuming Caption is: `female vocal, piano ballad, emotional, intimate atmosphere, strings, building to powerful chorus`
 
 ```
 [Intro - piano]
@@ -627,335 +632,335 @@ THIS IS OUR MOMENT!
 [Outro - fade out]
 ```
 
-注意：这个示例中，Lyrics 的标记（piano、powerful、whispered）与 Caption 的描述（piano ballad、building to powerful chorus、intimate）保持一致，没有冲突。
+Note: In this example, Lyrics tags (piano, powerful, whispered) are consistent with Caption descriptions (piano ballad, building to powerful chorus, intimate), with no conflicts.
 
 ---
 
-#### 关于音乐元数据：可选的精细控制
+#### About Music Metadata: Optional Fine Control
 
-**大部分时候，你不需要手动设置元数据。**
+**Most of the time, you don't need to manually set metadata.**
 
-当你开启 `thinking` 模式（或启用 `use_cot_metas`），LM 会根据你的 Caption 和 Lyrics 自动推断合适的 BPM、调性、拍号等。这通常已经足够好了。
+When you enable `thinking` mode (or enable `use_cot_metas`), LM automatically infers appropriate BPM, key, time signature, etc. based on your Caption and Lyrics. This is usually good enough.
 
-但如果你有明确的想法，也可以手动控制它们：
+But if you have clear ideas, you can also manually control them:
 
-| 参数 | 控制范围 | 说明 |
-|------|----------|------|
-| `bpm` | 30–300 | 速度。常见分布：慢歌 60–80，中速 90–120，快歌 130–180 |
-| `keyscale` | 调性 | 如 `C Major`、`Am`、`F# Minor`。影响整体音高和情绪色彩 |
-| `timesignature` | 拍号 | `4/4`（最常见）、`3/4`（华尔兹）、`6/8`（摇摆感） |
-| `vocal_language` | 语言 | 人声的语言。LM 通常能根据歌词自动识别 |
-| `duration` | 秒 | 目标时长。实际生成可能略有偏差 |
+| Parameter | Control Range | Description |
+|-----------|--------------|-------------|
+| `bpm` | 30–300 | Tempo. Common distribution: slow songs 60–80, mid-tempo 90–120, fast songs 130–180 |
+| `keyscale` | Key | e.g., `C Major`, `Am`, `F# Minor`. Affects overall pitch and emotional color |
+| `timesignature` | Time signature | `4/4` (most common), `3/4` (waltz), `6/8` (swing feel) |
+| `vocal_language` | Language | Vocal language. LM usually auto-detects from lyrics |
+| `duration` | Seconds | Target duration. Actual generation may vary slightly |
 
-**理解控制的边界**
+**Understanding Control Boundaries**
 
-这些参数是**引导**而非**精确指令**：
+These parameters are **guidance** rather than **precise commands**:
 
-- **BPM**：常见范围（60–180）控制效果较好；极端值（如 30 或 280）模型见过的数据少，可能不稳定
-- **调性**：常见调（C、G、D、Am、Em）效果稳定；冷门调可能被忽略或偏移
-- **拍号**：`4/4` 最可靠；`3/4`、`6/8` 通常 OK；复杂拍号（如 `5/4`、`7/8`）是高级玩法，效果因风格而异
-- **时长**：短歌（30–60s）和中等长度（2–4min）较稳定；超长生成可能出现重复或结构问题
+- **BPM**: Common range (60–180) works well; extreme values (like 30 or 280) have less training data, may be unstable
+- **Key**: Common keys (C, G, D, Am, Em) are stable; rare keys may be ignored or shifted
+- **Time signature**: `4/4` is most reliable; `3/4`, `6/8` usually OK; complex signatures (like `5/4`, `7/8`) are advanced, effects vary by style
+- **Duration**: Short songs (30–60s) and medium length (2–4min) are stable; very long generation may have repetition or structure issues
 
-**模型的「参考」方式**
+**The Model's "Reference" Approach**
 
-模型并不是机械地执行 `bpm=120`，而是：
-1. 把 `120 BPM` 作为一个**锚点**
-2. 在这个锚点附近的分布中采样
-3. 最终结果可能是 118 或 122，而非精确的 120
+The model doesn't mechanically execute `bpm=120`, but rather:
+1. Uses `120 BPM` as an **anchor point**
+2. Samples from distribution near this anchor
+3. Final result might be 118 or 122, not exactly 120
 
-这就像告诉乐手「大概 120 的速度」——他们会在这个范围内自然演奏，而非死板地跟着节拍器。
+It's like telling a musician "around 120 tempo"—they'll naturally play in this range, not rigidly follow a metronome.
 
-**什么时候需要手动设置？**
+**When Do You Need Manual Settings?**
 
-| 场景 | 建议 |
-|------|------|
-| 日常生成 | 不用管，让 LM 自动推断 |
-| 有明确速度要求 | 手动设 `bpm` |
-| 做特定风格（如华尔兹） | 手动设 `timesignature=3/4` |
-| 要配合其他素材 | 手动设 `bpm` 和 `duration` |
-| 追求特定调性色彩 | 手动设 `keyscale` |
+| Scenario | Suggestion |
+|----------|------------|
+| Daily generation | Don't worry, let LM auto-infer |
+| Clear tempo requirement | Manually set `bpm` |
+| Specific style (e.g., waltz) | Manually set `timesignature=3/4` |
+| Need to match other material | Manually set `bpm` and `duration` |
+| Pursue specific key color | Manually set `keyscale` |
 
-**小贴士**：如果你手动设置了元数据，但生成结果明显不符合——检查一下是否和 Caption/Lyrics 有冲突。比如 Caption 写「slow ballad」但 `bpm=160`，模型会困惑。
+**Tip**: If you manually set metadata but generation results clearly don't match—check if there's conflict with Caption/Lyrics. For example, Caption says "slow ballad" but `bpm=160`, the model gets confused.
 
-**推荐做法**：不要在 Caption 中写速度、BPM、调性等元数据信息。这些应该通过专门的元数据参数（`bpm`、`keyscale`、`timesignature` 等）来设置，而不是在 Caption 中描述。Caption 应该专注于风格、情绪、乐器、音色等音乐特征，而元数据信息交给对应的参数控制。
-
----
-
-#### 关于音频控制：用声音控制声音
-
-**文本是降维抽象的，最好的控制还是用音频去控制。**
-
-用音频控制生成的方式有三种，它们各有不同的控制范围和用途：
+**Recommended Practice**: Don't write tempo, BPM, key, and other metadata information in Caption. These should be set through dedicated metadata parameters (`bpm`, `keyscale`, `timesignature`, etc.), not described in Caption. Caption should focus on style, emotion, instruments, timbre, and other musical characteristics, while metadata information is handled by corresponding parameters.
 
 ---
 
-##### 1. 参考音频（Reference Audio）：全局声学特征控制
+#### About Audio Control: Controlling Sound with Sound
 
-参考音频（`reference_audio`）用于控制生成音乐的**声学特征**——音色、混音风格、演奏风格等。它**平均了时间维度的信息**，是**作用全局**的。
+**Text is dimensionally reduced abstraction; the best control is still controlling with audio.**
 
-**参考音频控制什么？**
-
-参考音频主要控制生成音乐的**声学特征**，包括：
-- **音色质感**：人声的音色、乐器的音色
-- **混音风格**：空间感、动态范围、频率分布
-- **演奏风格**：演唱技巧、演奏技法、表达方式
-- **整体氛围**：通过参考音频传递的「感觉」
-
-**后台如何处理参考音频？**
-
-当你提供参考音频时，系统会进行以下处理：
-
-1. **音频预处理**：
-   - 加载音频文件，统一标准化为**立体声 48kHz** 格式
-   - 检测静音，如果音频完全静音则忽略
-   - 如果音频长度不足 30 秒，会重复填充到至少 30 秒
-   - 从前、中、后三个位置各随机选择 10 秒片段，拼接成 30 秒的参考片段
-
-2. **编码转换**：
-   - 使用 **VAE（变分自编码器）** 的 `tiled_encode` 方法将音频编码为**潜在表示（latents）**
-   - 这些 latents 包含了音频的声学特征信息，但去除了具体的旋律、节奏等结构信息
-   - 编码后的 latents 会作为条件输入到 DiT 的生成过程中，**平均时间维度信息，全局作用于整个生成过程**
+There are three ways to control generation with audio, each with different control ranges and uses:
 
 ---
 
-##### 2. 源音频（Source Audio）：语义结构控制
+##### 1. Reference Audio: Global Acoustic Feature Control
 
-源音频（`src_audio`）用于 **Cover 任务**，进行**旋律结构控制**。它的原理是将你输入的源音频量化成语义结构化的信息。
+Reference audio (`reference_audio`) is used to control the **acoustic features** of generated music—timbre, mixing style, performance style, etc. It **averages temporal dimension information** and acts **globally**.
 
-**源音频控制什么？**
+**What Does Reference Audio Control?**
 
-源音频会被转换为**语义结构化的信息**，包括：
-- **旋律**：音符的走向和音高
-- **节奏**：节拍、重音、律动
-- **和弦**：和声进行和变化
-- **配器**：乐器的编排和层次
-- **少许音色**：部分音色信息
+Reference audio mainly controls the **acoustic features** of generated music, including:
+- **Timbre texture**: Vocal timbre, instrument timbre
+- **Mixing style**: Spatial sense, dynamic range, frequency distribution
+- **Performance style**: Vocal techniques, playing techniques, expression
+- **Overall atmosphere**: The "feeling" conveyed through reference audio
 
-**你可以用它做什么？**
+**How Does the Backend Process Reference Audio?**
 
-1. **控制风格**：保持源音频的结构，改变风格和细节
-2. **迁移风格**：将源音频的结构应用到不同的风格中
-3. **Retake 抽卡**：生成相似结构但不同的变体，通过多次生成获得不同的演绎
-4. **控制影响程度**：通过 `audio_cover_strength` 参数（0.0–1.0）控制源音频的影响强度
-   - 强度越高，生成结果越严格遵循源音频的结构
-   - 强度越低，生成结果有更多自由发挥的空间
+When you provide reference audio, the system performs the following processing:
 
-**Cover 的高级用法**
+1. **Audio Preprocessing**:
+   - Load audio file, normalize to **stereo 48kHz** format
+   - Detect silence, ignore if audio is completely silent
+   - If audio length is less than 30 seconds, repeat to fill to at least 30 seconds
+   - Randomly select 10-second segments from front, middle, and back positions, concatenate into 30-second reference segment
 
-你可以用 Cover 去 **Remix 一首歌**，且支持更改 Caption 和 Lyrics：
-
-- **Remix 创作**：输入一首歌作为源音频，通过修改 Caption 和 Lyrics 来重新诠释它
-  - 改变风格：用不同的 Caption 描述（如从 pop 改为 rock）
-  - 改变歌词：用新的 Lyrics 重新填词，保持原有的旋律结构
-  - 改变情绪：通过 Caption 调整整体氛围（如从悲伤改为欢快）
-
-- **构建复杂的音乐结构**：根据你需要的结构影响程度来构建复杂的音乐旋律走向、层次和律动
-  - 通过 `audio_cover_strength` 精细控制结构遵循程度
-  - 结合 Caption 和 Lyrics 的修改，在保持核心结构的同时创造新的表达
-  - 可以生成多个版本，每个版本在结构、风格、歌词上有不同的侧重
+2. **Encoding Conversion**:
+   - Use **VAE (Variational Autoencoder)** `tiled_encode` method to encode audio into **latent representation (latents)**
+   - These latents contain acoustic feature information but remove specific melody, rhythm, and other structural information
+   - Encoded latents are input as conditions to DiT generation process, **averaging temporal dimension information, acting globally on entire generation process**
 
 ---
 
-##### 3. 基于源音频上下文的控制：局部补全与修改
+##### 2. Source Audio: Semantic Structure Control
 
-这是 **Repaint 任务**，基于源音频的上下文进行补全或修改。
+Source audio (`src_audio`) is used for **Cover tasks**, performing **melodic structure control**. Its principle is to quantize your input source audio into semantically structured information.
 
-**Repaint 的原理**
+**What Does Source Audio Control?**
 
-Repaint 基于**上下文补全**的原理：
-- 可以补全**开头**、**中间局部**、**结尾**，或**任意区域**
-- 操作范围：**3 秒到 90 秒**
-- 模型会参考源音频的上下文信息，在指定区间内进行生成
+Source audio is converted into **semantically structured information**, including:
+- **Melody**: Note direction and pitch
+- **Rhythm**: Beat, accent, groove
+- **Chords**: Harmonic progression and changes
+- **Orchestration**: Instrument arrangement and layers
+- **Some timbre**: Partial timbre information
 
-**你可以用它做什么？**
+**What Can You Do With It?**
 
-1. **局部修改**：修改指定区间的歌词、结构或内容
-2. **改歌词**：保持旋律和配器，只改变歌词内容
-3. **改结构**：在指定区间改变音乐结构（如将 Verse 改为 Chorus）
-4. **续写**：基于上下文续写开头或结尾
-5. **克隆音色**：基于上下文克隆源音频的音色特征
+1. **Control style**: Maintain source audio structure, change style and details
+2. **Transfer style**: Apply source audio structure to different styles
+3. **Retake lottery**: Generate similar structure but different variants, get different interpretations through multiple generations
+4. **Control influence degree**: Control source audio influence strength through `audio_cover_strength` parameter (0.0–1.0)
+   - Higher strength: generation results more strictly follow source audio structure
+   - Lower strength: generation results have more room for free play
 
-**Repaint 的高级用法**
+**Advanced Cover Usage**
 
-你可以用 Repaint 实现更复杂的创作需求：
+You can use Cover to **Remix a song**, and it supports changing Caption and Lyrics:
 
-- **无限时长生成**：
-  - 通过多次 Repaint 操作，可以不断续写音频，实现无限时长的生成
-  - 每次续写都会基于前一段的上下文，保持音乐的自然过渡和连贯性
-  - 可以分段生成，每段 3–90 秒，最终拼接成完整的作品
+- **Remix creation**: Input a song as source audio, reinterpret it by modifying Caption and Lyrics
+  - Change style: Use different Caption descriptions (e.g., change from pop to rock)
+  - Change lyrics: Rewrite lyrics with new Lyrics, maintaining original melody structure
+  - Change emotion: Adjust overall atmosphere through Caption (e.g., change from sad to joyful)
 
-- **智能音频缝合**：
-  - 将两个音频智能地组织缝合在一起
-  - 在第一个音频的结尾使用 Repaint 续写，让过渡自然衔接
-  - 或者用 Repaint 修改两个音频之间的连接部分，实现平滑过渡
-  - 模型会基于上下文自动处理节奏、和声、音色的衔接，让拼接后的音频听起来像一首完整的作品
-
----
-
-##### 4. Base 模型的高级音频控制任务
-
-在 **Base 模型**中，我们还支持更多高级的音频控制任务：
-
-**Lego 任务**：基于已有轨道智能添加新轨道
-- 输入一个已有的音频轨道（如人声）
-- 模型会智能地添加新的轨道（如鼓、吉他、贝斯等）
-- 新轨道会与原有轨道在节奏、和声上协调配合
-
-**Complete 任务**：给单轨添加混合轨道
-- 输入一个单轨音频（如清唱人声）
-- 模型会生成完整的混合伴奏轨道
-- 生成的伴奏会与人声在风格、节奏、和声上匹配
-
-**这些高级上下文补全任务**极大拓展了控制方式，更智能地提供灵感和创意。
+- **Build complex music structures**: Build complex melodic direction, layers, and groove based on your needed structure influence degree
+  - Fine-tune structure adherence through `audio_cover_strength`
+  - Combine Caption and Lyrics modifications to create new expression while maintaining core structure
+  - Can generate multiple versions, each with different emphasis on structure, style, lyrics
 
 ---
 
-这些参数的组合，决定了你「想要什么」。后面我们会详细讲解输入控制的**原则**与**技巧**。
+##### 3. Source Audio Context-Based Control: Local Completion and Modification
 
-### 二、推理超参：模型怎么生成？
+This is the **Repaint task**, performing completion or modification based on source audio context.
 
-这是影响「生成过程行为」的部分——不改变你要什么，但改变模型怎么做。
+**Repaint Principle**
 
-**DiT（扩散模型）超参：**
+Repaint is based on **context completion** principle:
+- Can complete **beginning**, **middle local**, **ending**, or **any region**
+- Operation range: **3 seconds to 90 seconds**
+- Model references source audio context information, generating within specified interval
 
-| 参数 | 作用 | 默认值 | 调参建议 |
-|------|------|--------|----------|
-| `inference_steps` | 扩散步数 | 8 (turbo) | 越多越精细，但越慢。Turbo 用 8，Base 用 32–100 |
-| `guidance_scale` | CFG 强度 | 7.0 | 越高越遵循 prompt，但可能过拟合。仅 Base 模型有效 |
-| `use_adg` | 自适应双重引导 | False | 开启后动态调整 CFG，仅 Base 模型 |
-| `cfg_interval_start/end` | CFG 生效区间 | 0.0–1.0 | 控制在哪个阶段应用 CFG |
-| `shift` | 时间步偏移 | 1.0 | 调整去噪轨迹，影响生成风格 |
-| `infer_method` | 推理方法 | "ode" | `ode` 确定性，`sde` 引入随机性 |
-| `timesteps` | 自定义时间步 | None | 高级用法，覆盖 steps 和 shift |
-| `audio_cover_strength` | 参考音频/codes 的影响强度 | 1.0 | 0.0–1.0，越高越接近参考，越低越自由发挥 |
+**What Can You Do With It?**
 
-**5Hz LM（语言模型）超参：**
+1. **Local modification**: Modify lyrics, structure, or content in specified interval
+2. **Change lyrics**: Maintain melody and orchestration, only change lyric content
+3. **Change structure**: Change music structure in specified interval (e.g., change Verse to Chorus)
+4. **Continue writing**: Continue writing beginning or ending based on context
+5. **Clone timbre**: Clone source audio timbre characteristics based on context
 
-| 参数 | 作用 | 默认值 | 调参建议 |
-|------|------|--------|----------|
-| `thinking` | 启用 CoT 推理 | True | 开启让 LM 推理元数据和 codes |
-| `lm_temperature` | 采样温度 | 0.85 | 越高越随机/创意，越低越保守/确定 |
-| `lm_cfg_scale` | LM 的 CFG 强度 | 2.0 | 越高越遵循正向 prompt |
-| `lm_top_k` | Top-K 采样 | 0 | 0 表示禁用，限制候选词数量 |
-| `lm_top_p` | Top-P 采样 | 0.9 | 核采样，限制累积概率 |
-| `lm_negative_prompt` | 负面提示 | "NO USER INPUT" | 告诉 LM 不要生成什么 |
-| `use_cot_metas` | CoT 推理元数据 | True | 让 LM 自动推断 BPM、调性等 |
-| `use_cot_caption` | CoT 重写 caption | True | 让 LM 优化你的描述 |
-| `use_cot_language` | CoT 检测语言 | True | 让 LM 自动识别人声语言 |
-| `use_constrained_decoding` | 约束解码 | True | 确保输出格式正确 |
+**Advanced Repaint Usage**
 
-这些参数的组合，决定了模型「怎么做」。
+You can use Repaint for more complex creative needs:
 
-**关于调参的说明**
+- **Infinite duration generation**:
+  - Through multiple Repaint operations, can continuously extend audio, achieving infinite duration generation
+  - Each continuation is based on previous segment's context, maintaining natural transitions and coherence
+  - Can generate in segments, each 3–90 seconds, finally concatenate into complete work
 
-需要强调的是，**调参因素和随机因素有时候影响相当**。当你调整某个参数时，可能很难判断是参数本身的影响，还是随机性带来的变化。
-
-因此，**推荐固定随机因素去调参**——通过设置固定的 `seed` 值，确保每次生成都从相同的初始噪声开始，这样你才能准确感受到参数对生成音频的真实影响。否则，参数变化的效果可能会被随机性掩盖，让你误判参数的作用。
-
-### 三、随机因素：不确定性的来源
-
-即使所有输入和超参完全相同，两次生成的结果也可能不同。这是因为：
-
-**1. DiT 的初始噪声**
-- 扩散模型从随机噪声开始逐步去噪
-- `seed` 参数控制这个初始噪声
-- 不同的 seed → 不同的起点 → 不同的终点
-
-**2. LM 的采样随机性**
-- 当 `lm_temperature > 0`，采样过程本身带有随机性
-- 同样的 prompt，每次采样可能选择不同的 token
-
-**3. `infer_method = "sde"` 时的额外噪声**
-- SDE 方法在去噪过程中注入额外随机性
+- **Intelligent audio stitching**:
+  - Intelligently organize and stitch two audios together
+  - Use Repaint at first audio's end to continue, making transitions naturally connect
+  - Or use Repaint to modify connection part between two audios for smooth transitions
+  - Model automatically handles rhythm, harmony, timbre connections based on context, making stitched audio sound like a complete work
 
 ---
 
-#### 随机因素的利弊
+##### 4. Base Model Advanced Audio Control Tasks
 
-随机性是一把双刃剑。
+In the **Base model**, we also support more advanced audio control tasks:
 
-**随机性的好处**：
-- **探索创作空间**：同样的输入可以产生不同的变体，给你更多选择
-- **发现意外惊喜**：有时候随机性会带来你意想不到的优秀结果
-- **避免重复**：每次生成都有所不同，不会陷入单一模式的循环
+**Lego Task**: Intelligently add new tracks based on existing tracks
+- Input an existing audio track (e.g., vocals)
+- Model intelligently adds new tracks (e.g., drums, guitar, bass, etc.)
+- New tracks coordinate with original tracks in rhythm and harmony
 
-**随机性的挑战**：
-- **结果不可控**：你无法精确预测生成结果，可能多次生成都不满意
-- **难以复现**：即使输入完全相同，也很难复现某个特定的好结果
-- **调参困难**：当你调整参数时，很难判断是参数的影响还是随机性的变化
-- **筛选成本**：需要生成多个版本才能找到满意的，增加了时间成本
+**Complete Task**: Add mixed tracks to single track
+- Input a single-track audio (e.g., a cappella vocals)
+- Model generates complete mixed accompaniment tracks
+- Generated accompaniment matches vocals in style, rhythm, and harmony
 
-#### 用怎样的心态面对随机因素？
-
-**1. 接受不确定性**
-- 随机性是 AI 音乐生成的本质特征，不是 bug，而是 feature
-- 不要期望每次生成都完美，把随机性当作探索的工具
-
-**2. 拥抱探索过程**
-- 把生成过程看作「抽卡」或「挖宝」——多试几次，总能找到惊喜
-- 享受发现意外好结果的过程，而不是执着于一次成功
-
-**3. 善用固定 seed**
-- 当你想要**理解参数影响**时，固定 `seed` 来消除随机性干扰
-- 当你想要**探索创作空间**时，让 `seed` 随机变化
-
-**4. 批量生成 + 智能筛选**
-- 不要依赖单次生成，而是批量生成多个版本
-- 利用自动打分机制进行初步筛选，提高效率
-
-#### 我们的解决方案：大 Batch + 自动打分
-
-因为我们推理速度极快，如果你的显卡显存足够，你可以通过**大 batch 去探索随机空间**：
-
-- **批量生成**：一次生成多个版本（如 batch_size=2,4,8），快速探索随机空间
-- **自动打分机制**：我们提供自动打分机制，可以帮助你初步筛选，做 **test time scaling**
-
-**自动打分机制**
-
-我们提供了多种打分指标，其中**我最喜欢的是 DiT Lyrics Alignment Score**：
-
-- **DiT Lyrics Alignment Score**：这个分数隐式地影响了歌词的准确性
-  - 它评估生成音频中歌词与音频的对齐程度
-  - 分数越高，说明歌词在音频中的位置越准确，演唱与歌词的匹配度越好
-  - 这对于有歌词的音乐生成特别重要，可以帮助你筛选出歌词准确性更高的版本
-
-- **其他打分指标**：还包括其他质量评估指标，可以从多个维度评估生成结果
-
-**工作流程建议**：
-
-1. **批量生成**：设置较大的 `batch_size`（如 2、4、8），一次生成多个版本
-2. **开启 AutoGen**：启用自动生成功能，让系统在后台持续生成新的批次
-   - **AutoGen 的机制**：AutoGen 会在你查看当前批次结果时，自动在后台使用相同的参数（但使用随机 seed）生成下一批次
-   - 这样你可以持续探索随机空间，而不需要手动点击生成按钮
-   - 每个新批次都会使用新的随机 seed，确保结果的多样性
-3. **自动打分**：开启自动打分功能，让系统自动为每个版本打分
-4. **初步筛选**：根据 DiT Lyrics Alignment Score 等指标，筛选出分数较高的版本
-5. **人工精挑**：在筛选出的版本中，人工选择最符合你需求的最终版本
-
-这样既能充分利用随机性探索创作空间，又能通过自动化工具提高效率，避免在大量生成结果中盲目寻找。AutoGen 让你可以「边听边生成」，在浏览当前结果的同时，下一批次已经在后台准备好了。
+**These advanced context completion tasks** greatly expand control methods, more intelligently providing inspiration and creativity.
 
 ---
 
-## 结语
+The combination of these parameters determines what you "want." We'll explain input control **principles** and **techniques** in detail later.
 
-这篇教程目前涵盖了 ACE-Step 1.5 的核心概念和使用方法：
+### II. Inference Hyperparameters: How Does the Model Generate?
 
-- **心智模型**：理解以人为中心的生成设计哲学
-- **模型架构**：认识 LM 和 DiT 的协同工作方式
-- **输入控制**：掌握文本（Caption、Lyrics、元数据）和音频（参考音频、源音频）的控制方法
-- **推理超参**：了解影响生成过程的参数
-- **随机因素**：学会利用随机性探索创作空间，并通过大 Batch + AutoGen + 自动打分提高效率
+This is the part that affects "generation process behavior"—doesn't change what you want, but changes how the model does it.
 
-这只是一个开始。还有很多内容我们想分享给你：
+**DiT (Diffusion Model) Hyperparameters:**
 
-- 更多 Prompting 技巧和实战案例
-- 不同任务类型的详细使用指南
-- 高级玩法和创意工作流
-- 常见问题与解决方案
-- 性能优化建议
+| Parameter | Function | Default | Tuning Advice |
+|-----------|----------|---------|---------------|
+| `inference_steps` | Diffusion steps | 8 (turbo) | More steps = finer but slower. Turbo uses 8, Base uses 32–100 |
+| `guidance_scale` | CFG strength | 7.0 | Higher = more prompt adherence, but may overfit. Only Base model effective |
+| `use_adg` | Adaptive Dual Guidance | False | After enabling, dynamically adjusts CFG, Base model only |
+| `cfg_interval_start/end` | CFG effective interval | 0.0–1.0 | Controls which stage to apply CFG |
+| `shift` | Timestep offset | 1.0 | Adjusts denoising trajectory, affects generation style |
+| `infer_method` | Inference method | "ode" | `ode` deterministic, `sde` introduces randomness |
+| `timesteps` | Custom timesteps | None | Advanced usage, overrides steps and shift |
+| `audio_cover_strength` | Reference audio/codes influence strength | 1.0 | 0.0–1.0, higher = closer to reference, lower = more freedom |
 
-**这篇教程会持续更新和完善。** 如果你在使用过程中有任何问题或建议，欢迎反馈。让我们一起让 ACE-Step 成为你口袋里的创作伙伴。
+**5Hz LM (Language Model) Hyperparameters:**
+
+| Parameter | Function | Default | Tuning Advice |
+|-----------|----------|---------|---------------|
+| `thinking` | Enable CoT reasoning | True | Enable to let LM reason metadata and codes |
+| `lm_temperature` | Sampling temperature | 0.85 | Higher = more random/creative, lower = more conservative/deterministic |
+| `lm_cfg_scale` | LM CFG strength | 2.0 | Higher = more positive prompt adherence |
+| `lm_top_k` | Top-K sampling | 0 | 0 means disabled, limits candidate word count |
+| `lm_top_p` | Top-P sampling | 0.9 | Nucleus sampling, limits cumulative probability |
+| `lm_negative_prompt` | Negative prompt | "NO USER INPUT" | Tells LM what not to generate |
+| `use_cot_metas` | CoT reason metadata | True | Let LM auto-infer BPM, key, etc. |
+| `use_cot_caption` | CoT rewrite caption | True | Let LM optimize your description |
+| `use_cot_language` | CoT detect language | True | Let LM auto-detect vocal language |
+| `use_constrained_decoding` | Constrained decoding | True | Ensures correct output format |
+
+The combination of these parameters determines how the model "does it."
+
+**About Parameter Tuning**
+
+It's important to emphasize that **tuning factors and random factors sometimes have comparable influence**. When you adjust a parameter, it may be hard to tell if it's the parameter's effect or randomness causing the change.
+
+Therefore, **we recommend fixing random factors when tuning**—by setting a fixed `seed` value, ensuring each generation starts from the same initial noise, so you can accurately feel the parameter's real impact on generated audio. Otherwise, parameter change effects may be masked by randomness, causing you to misjudge the parameter's role.
+
+### III. Random Factors: Sources of Uncertainty
+
+Even with identical inputs and hyperparameters, two generations may produce different results. This is because:
+
+**1. DiT's Initial Noise**
+- Diffusion models start from random noise and gradually denoise
+- `seed` parameter controls this initial noise
+- Different seed → different starting point → different endpoint
+
+**2. LM's Sampling Randomness**
+- When `lm_temperature > 0`, the sampling process itself has randomness
+- Same prompt, each sampling may choose different tokens
+
+**3. Additional Noise When `infer_method = "sde"`**
+- SDE method injects additional randomness during denoising
 
 ---
 
-*未完待续...*
+#### Pros and Cons of Random Factors
+
+Randomness is a double-edged sword.
+
+**Benefits of Randomness:**
+- **Explore creative space**: Same input can produce different variants, giving you more choices
+- **Discover unexpected surprises**: Sometimes randomness brings excellent results you didn't expect
+- **Avoid repetition**: Each generation is different, won't fall into single-pattern loops
+
+**Challenges of Randomness:**
+- **Uncontrollable results**: You can't precisely predict generation results, may generate multiple times without satisfaction
+- **Hard to reproduce**: Even with identical inputs, hard to reproduce a specific good result
+- **Tuning difficulty**: When adjusting parameters, hard to tell if it's parameter effect or randomness change
+- **Screening cost**: Need to generate multiple versions to find satisfactory ones, increasing time cost
+
+#### What Mindset to Face Random Factors?
+
+**1. Accept Uncertainty**
+- Randomness is an essential characteristic of AI music generation, not a bug, but a feature
+- Don't expect every generation to be perfect; treat randomness as an exploration tool
+
+**2. Embrace the Exploration Process**
+- Treat generation process as "gacha" or "treasure hunting"—try multiple times, always find surprises
+- Enjoy discovering unexpectedly good results, rather than obsessing over one-time success
+
+**3. Use Fixed Seed Wisely**
+- When you want to **understand parameter effects**, fix `seed` to eliminate randomness interference
+- When you want to **explore creative space**, let `seed` vary randomly
+
+**4. Batch Generation + Intelligent Screening**
+- Don't rely on single generation; batch generate multiple versions
+- Use automatic scoring mechanisms for initial screening to improve efficiency
+
+#### Our Solution: Large Batch + Automatic Scoring
+
+Because our inference is extremely fast, if your GPU VRAM is sufficient, you can explore random space through **large batch**:
+
+- **Batch generation**: Generate multiple versions at once (e.g., batch_size=2,4,8), quickly explore random space
+- **Automatic scoring mechanism**: We provide automatic scoring mechanisms that can help you initially screen, doing **test time scaling**
+
+**Automatic Scoring Mechanism**
+
+We provide multiple scoring metrics, among which **my favorite is DiT Lyrics Alignment Score**:
+
+- **DiT Lyrics Alignment Score**: This score implicitly affects lyric accuracy
+  - It evaluates the alignment degree between lyrics and audio in generated audio
+  - Higher score means lyrics are more accurately positioned in audio, better match between singing and lyrics
+  - This is particularly important for music generation with lyrics, can help you screen versions with higher lyric accuracy
+
+- **Other scoring metrics**: Also include other quality assessment metrics, can evaluate generation results from multiple dimensions
+
+**Recommended Workflow:**
+
+1. **Batch generation**: Set larger `batch_size` (e.g., 2, 4, 8), generate multiple versions at once
+2. **Enable AutoGen**: Enable automatic generation, let system continuously generate new batches in background
+   - **AutoGen mechanism**: AutoGen automatically uses same parameters (but random seed) to generate next batch in background while you're viewing current batch results
+   - This lets you continuously explore random space without manually clicking generate button
+   - Each new batch uses new random seed, ensuring result diversity
+3. **Automatic scoring**: Enable automatic scoring, let system automatically score each version
+4. **Initial screening**: Screen versions with higher scores based on DiT Lyrics Alignment Score and other metrics
+5. **Manual selection**: Manually select the final version that best meets your needs from screened versions
+
+This fully utilizes randomness to explore creative space while improving efficiency through automation tools, avoiding blind searching in large generation results. AutoGen lets you "generate while listening"—while browsing current results, the next batch is already prepared in the background.
+
+---
+
+## Conclusion
+
+This tutorial currently covers Empath 1.5's core concepts and usage methods:
+
+- **Mental Models**: Understanding human-centered generation design philosophy
+- **Model Architecture**: Understanding how LM and DiT work together
+- **Input Control**: Mastering text (Caption, Lyrics, metadata) and audio (reference audio, source audio) control methods
+- **Inference Hyperparameters**: Understanding parameters affecting generation process
+- **Random Factors**: Learning to use randomness to explore creative space, improving efficiency through Large Batch + AutoGen + Automatic Scoring
+
+This is just the beginning. There's much more content we want to share with you:
+
+- More Prompting tips and practical cases
+- Detailed usage guides for different task types
+- Advanced techniques and creative workflows
+- Common issues and solutions
+- Performance optimization suggestions
+
+**This tutorial will continue to be updated and improved.** If you have any questions or suggestions during use, feedback is welcome. Let's make Empath your creative partner in your pocket together.
+
+---
+
+*To be continued...*

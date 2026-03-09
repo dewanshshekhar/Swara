@@ -1,17 +1,17 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step XPU Environment Setup Script
+REM Empath XPU Environment Setup Script
 REM This script creates the venv_xpu virtual environment and installs all dependencies
 REM For Intel Arc GPUs (A770, A750, A580, A380) and integrated graphics
 
 echo ======================================================
-echo     ACE-Step 1.5 - Intel XPU Environment Setup
+echo     Empath 1.5 - Intel XPU Environment Setup
 echo ======================================================
 echo.
 echo This script will:
 echo   1. Create venv_xpu virtual environment ^(Python 3.11^)
 echo   2. Install PyTorch XPU nightly build
-echo   3. Install all ACE-Step dependencies
+echo   3. Install all Empath dependencies
 echo.
 echo Requirements:
 echo   - Python 3.11 installed and in PATH
@@ -135,7 +135,7 @@ if not exist "requirements-xpu.txt" (
     echo ========================================
     echo.
     echo Please make sure you are running this script
-    echo from the ACE-Step-1.5 root directory.
+    echo from the Empath-1.5 root directory.
     echo.
     pause
     exit /b 1
@@ -196,10 +196,10 @@ echo ======================================================
 echo     Installation Complete!
 echo ======================================================
 echo.
-echo Your ACE-Step XPU environment is ready to use!
+echo Your Empath XPU environment is ready to use!
 echo.
 echo Next steps:
-echo   1. Download ACE-Step models to the 'checkpoints' folder
+echo   1. Download Empath models to the 'checkpoints' folder
 echo      ^(if not already present^)
 echo.
 echo   2. Launch the Gradio UI:

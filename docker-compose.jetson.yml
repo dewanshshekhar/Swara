@@ -1,5 +1,5 @@
 # =============================================================================
-# ACE-Step 1.5 — Docker Compose for NVIDIA Jetson
+# Empath 1.5 — Docker Compose for NVIDIA Jetson
 # =============================================================================
 #
 # Prerequisites:
@@ -11,7 +11,7 @@
 #   docker compose -f docker-compose.jetson.yml up
 #
 #   # Start REST API server instead:
-#   ACESTEP_MODE=api docker compose -f docker-compose.jetson.yml up
+#   EMPATH_MODE=api docker compose -f docker-compose.jetson.yml up
 #
 #   # Build and start:
 #   docker compose -f docker-compose.jetson.yml up --build
@@ -31,33 +31,33 @@
 # =============================================================================
 
 services:
-  acestep:
+  empath:
     build:
       context: .
       dockerfile: Dockerfile.jetson
       args:
         L4T_VERSION: ${L4T_VERSION:-r36.4.0}
-    image: acestep-jetson:latest
-    container_name: acestep-jetson
+    image: empath-jetson:latest
+    container_name: empath-jetson
 
     # ---- GPU access ----
     runtime: nvidia
 
     # ---- Mode: "gradio" (web UI) or "api" (REST API) ----
-    # Override from shell:  ACESTEP_MODE=api docker compose ... up
+    # Override from shell:  EMPATH_MODE=api docker compose ... up
     env_file:
       - path: .env
         required: false
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
-      - ACESTEP_MODE=${ACESTEP_MODE:-gradio}
+      - EMPATH_MODE=${EMPATH_MODE:-gradio}
       # vllm with 4B LM = best quality (README recommendation for ≥24GB).
       # CUDA graph capture is auto-disabled on Jetson (enforce_eager).
-      - ACESTEP_LLM_BACKEND=${ACESTEP_LLM_BACKEND:-vllm}
-      - ACESTEP_INIT_SERVICE=${ACESTEP_INIT_SERVICE:-true}
-      - ACESTEP_CONFIG_PATH=${ACESTEP_CONFIG_PATH:-acestep-v15-turbo}
-      - ACESTEP_LM_MODEL_PATH=${ACESTEP_LM_MODEL_PATH:-acestep-5Hz-lm-4B}
-      - ACESTEP_EXTRA_ARGS=${ACESTEP_EXTRA_ARGS:-}
+      - EMPATH_LLM_BACKEND=${EMPATH_LLM_BACKEND:-vllm}
+      - EMPATH_INIT_SERVICE=${EMPATH_INIT_SERVICE:-true}
+      - EMPATH_CONFIG_PATH=${EMPATH_CONFIG_PATH:-empath-v15-turbo}
+      - EMPATH_LM_MODEL_PATH=${EMPATH_LM_MODEL_PATH:-empath-5Hz-lm-4B}
+      - EMPATH_EXTRA_ARGS=${EMPATH_EXTRA_ARGS:-}
       - TOKENIZERS_PARALLELISM=false
 
     # ---- Ports ----
@@ -78,8 +78,8 @@ services:
       - ./gradio_outputs:/app/gradio_outputs
       # LoRA training output — persists trained adapters across rebuilds
       - ./lora_output:/app/lora_output
-      # ACE-Step generation output
-      - ./acestep_output:/app/acestep_output
+      # Empath generation output
+      - ./empath_output:/app/empath_output
 
     # ---- Resource management ----
     # Shared memory — needed for PyTorch DataLoader workers

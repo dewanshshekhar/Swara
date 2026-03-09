@@ -1,102 +1,102 @@
-# ACE-Step OpenRouter API 文档
+# Empath OpenRouter API Documentation
 
-> 兼容 OpenAI Chat Completions 格式的 AI 音乐生成接口
+> OpenAI Chat Completions-compatible API for AI music generation
 
-**Base URL:** `http://{host}:{port}` (默认 `http://127.0.0.1:8002`)
-
----
-
-## 目录
-
-- [认证](#认证)
-- [接口列表](#接口列表)
-  - [POST /v1/chat/completions - 生成音乐](#1-生成音乐)
-  - [GET /v1/models - 模型列表](#2-模型列表)
-  - [GET /health - 健康检查](#3-健康检查)
-- [输入模式](#输入模式)
-- [音频输入](#音频输入)
-- [流式响应](#流式响应)
-- [完整示例](#完整示例)
-- [错误码](#错误码)
+**Base URL:** `http://{host}:{port}` (default `http://127.0.0.1:8002`)
 
 ---
 
-## 认证
+## Table of Contents
 
-如果服务端配置了 API Key（环境变量 `OPENROUTER_API_KEY` 或启动参数 `--api-key`），所有请求需在 Header 中携带：
+- [Authentication](#authentication)
+- [Endpoints](#endpoints)
+  - [POST /v1/chat/completions - Generate Music](#1-generate-music)
+  - [GET /v1/models - List Models](#2-list-models)
+  - [GET /health - Health Check](#3-health-check)
+- [Input Modes](#input-modes)
+- [Audio Input](#audio-input)
+- [Streaming Responses](#streaming-responses)
+- [Examples](#examples)
+- [Error Codes](#error-codes)
+
+---
+
+## Authentication
+
+If the server is configured with an API key (via the `OPENROUTER_API_KEY` environment variable or `--api-key` CLI flag), all requests must include the following header:
 
 ```
 Authorization: Bearer <your-api-key>
 ```
 
-未配置 API Key 时无需认证。
+No authentication is required when no API key is configured.
 
 ---
 
-## 接口列表
+## Endpoints
 
-### 1. 生成音乐
+### 1. Generate Music
 
 **POST** `/v1/chat/completions`
 
-通过聊天消息生成音乐，返回音频数据和 LM 生成的元信息。
+Generates music from chat messages and returns audio data along with LM-generated metadata.
 
-#### 请求参数
+#### Request Parameters
 
-| 字段 | 类型 | 必填 | 默认值 | 说明 |
+| Field | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `model` | string | 否 | 自动 | 模型 ID（从 `/v1/models` 获取） |
-| `messages` | array | **是** | - | 聊天消息列表，见 [输入模式](#输入模式) |
-| `stream` | boolean | 否 | `false` | 是否启用流式返回，见 [流式响应](#流式响应) |
-| `audio_config` | object | 否 | `null` | 音频生成配置，见下方 |
-| `temperature` | float | 否 | `0.85` | LM 采样温度 |
-| `top_p` | float | 否 | `0.9` | LM nucleus sampling |
-| `seed` | int \| string | 否 | `null` | 随机种子。`batch_size > 1` 时可用逗号分隔指定多个，如 `"42,123,456"` |
-| `lyrics` | string | 否 | `""` | 直接传入歌词（优先级高于 messages 中解析的歌词），此时 messages 文本作为 prompt |
-| `sample_mode` | boolean | 否 | `false` | 启用 LLM sample 模式，messages 文本作为 sample_query 由 LLM 自动生成 prompt/lyrics |
-| `thinking` | boolean | 否 | `false` | 是否启用 LLM thinking 模式（更深度推理） |
-| `use_format` | boolean | 否 | `false` | 当用户提供 prompt/lyrics 时，是否先通过 LLM 格式化增强 |
-| `use_cot_caption` | boolean | 否 | `true` | 是否通过 CoT 改写/增强音乐描述 |
-| `use_cot_language` | boolean | 否 | `true` | 是否通过 CoT 自动检测歌词语言 |
-| `guidance_scale` | float | 否 | `7.0` | Classifier-free guidance scale |
-| `batch_size` | int | 否 | `1` | 生成音频数量 |
-| `task_type` | string | 否 | `"text2music"` | 任务类型，见 [音频输入](#音频输入) |
-| `repainting_start` | float | 否 | `0.0` | repaint 区域起始位置（秒） |
-| `repainting_end` | float | 否 | `null` | repaint 区域结束位置（秒） |
-| `audio_cover_strength` | float | 否 | `1.0` | cover 强度 (0.0~1.0) |
+| `model` | string | No | auto | Model ID (obtain from `/v1/models`) |
+| `messages` | array | **Yes** | - | Chat message list. See [Input Modes](#input-modes) |
+| `stream` | boolean | No | `false` | Enable streaming response. See [Streaming Responses](#streaming-responses) |
+| `audio_config` | object | No | `null` | Audio generation configuration. See below |
+| `temperature` | float | No | `0.85` | LM sampling temperature |
+| `top_p` | float | No | `0.9` | LM nucleus sampling parameter |
+| `seed` | int \| string | No | `null` | Random seed. When `batch_size > 1`, use comma-separated values, e.g. `"42,123,456"` |
+| `lyrics` | string | No | `""` | Lyrics passed directly (takes priority over lyrics parsed from messages). When set, messages text becomes the prompt |
+| `sample_mode` | boolean | No | `false` | Enable LLM sample mode. Messages text becomes sample_query for LLM to auto-generate prompt/lyrics |
+| `thinking` | boolean | No | `false` | Enable LLM thinking mode for deeper reasoning |
+| `use_format` | boolean | No | `false` | When user provides prompt/lyrics, enhance them via LLM formatting |
+| `use_cot_caption` | boolean | No | `true` | Rewrite/enhance the music description via Chain-of-Thought |
+| `use_cot_language` | boolean | No | `true` | Auto-detect vocal language via Chain-of-Thought |
+| `guidance_scale` | float | No | `7.0` | Classifier-free guidance scale |
+| `batch_size` | int | No | `1` | Number of audio samples to generate |
+| `task_type` | string | No | `"text2music"` | Task type. See [Audio Input](#audio-input) |
+| `repainting_start` | float | No | `0.0` | Repaint region start position (seconds) |
+| `repainting_end` | float | No | `null` | Repaint region end position (seconds) |
+| `audio_cover_strength` | float | No | `1.0` | Cover strength (0.0~1.0) |
 
-#### audio_config 对象
+#### audio_config Object
 
-| 字段 | 类型 | 默认值 | 说明 |
+| Field | Type | Default | Description |
 |---|---|---|---|
-| `duration` | float | `null` | 音频时长（秒），不传由 LM 自动决定 |
-| `bpm` | integer | `null` | 每分钟节拍数，不传由 LM 自动决定 |
-| `vocal_language` | string | `"en"` | 歌词语言代码（如 `"zh"`, `"en"`, `"ja"`） |
-| `instrumental` | boolean | `null` | 是否为纯器乐（无人声）。不传时根据歌词自动判断 |
-| `format` | string | `"mp3"` | 输出音频格式 |
-| `key_scale` | string | `null` | 调号（如 `"C major"`） |
-| `time_signature` | string | `null` | 拍号（如 `"4/4"`） |
+| `duration` | float | `null` | Audio duration in seconds. If omitted, determined automatically by the LM |
+| `bpm` | integer | `null` | Beats per minute. If omitted, determined automatically by the LM |
+| `vocal_language` | string | `"en"` | Vocal language code (e.g. `"zh"`, `"en"`, `"ja"`) |
+| `instrumental` | boolean | `null` | Whether to generate instrumental-only (no vocals). If omitted, auto-determined from lyrics |
+| `format` | string | `"mp3"` | Output audio format |
+| `key_scale` | string | `null` | Musical key (e.g. `"C major"`) |
+| `time_signature` | string | `null` | Time signature (e.g. `"4/4"`) |
 
-> **messages 文本含义取决于模式：**
-> - 设置了 `lyrics` → messages 文本 = caption
-> - 设置了 `sample_mode: true` → messages 文本 = sample_query（交给 LLM 生成一切）
-> - 均未设置 → 自动检测：有标签走标签模式，像歌词走歌词模式，否则作为 caption 直接传入生成
+> **Messages text meaning depends on the mode:**
+> - If `lyrics` is set → messages text = caption
+> - If `sample_mode: true` is set → messages text = sample_query (let LLM generate everything)
+> - Neither set → auto-detect: tags → tag mode, lyrics-like → lyrics mode, otherwise used as caption directly for generation
 
-#### messages 格式
+#### messages Format
 
-支持纯文本和多模态（文本 + 音频）两种格式：
+Supports both plain text and multimodal (text + audio) formats:
 
-**纯文本：**
+**Plain text:**
 
 ```json
 {
   "messages": [
-    {"role": "user", "content": "你的输入内容"}
+    {"role": "user", "content": "Your input content"}
   ]
 }
 ```
 
-**多模态（含音频输入）：**
+**Multimodal (with audio input):**
 
 ```json
 {
@@ -104,11 +104,11 @@ Authorization: Bearer <your-api-key>
     {
       "role": "user",
       "content": [
-        {"type": "text", "text": "翻唱这首歌"},
+        {"type": "text", "text": "Cover this song"},
         {
           "type": "input_audio",
           "input_audio": {
-            "data": "<base64 音频数据>",
+            "data": "<base64 audio data>",
             "format": "mp3"
           }
         }
@@ -120,14 +120,14 @@ Authorization: Bearer <your-api-key>
 
 ---
 
-#### 非流式响应 (`stream: false`)
+#### Non-Streaming Response (`stream: false`)
 
 ```json
 {
   "id": "chatcmpl-a1b2c3d4e5f6g7h8",
   "object": "chat.completion",
   "created": 1706688000,
-  "model": "acemusic/acestep-v15-turbo",
+  "model": "acemusic/empath-v15-turbo",
   "choices": [
     {
       "index": 0,
@@ -154,25 +154,25 @@ Authorization: Bearer <your-api-key>
 }
 ```
 
-**响应字段说明：**
+**Response Fields:**
 
-| 字段 | 说明 |
+| Field | Description |
 |---|---|
-| `choices[0].message.content` | LM 生成的文本信息，包含 Metadata（Caption/BPM/Duration/Key/Time Signature/Language）和 Lyrics。如果 LM 未参与，返回 `"Music generated successfully."` |
-| `choices[0].message.audio` | 音频数据数组，每项包含 `type` (`"audio_url"`) 和 `audio_url.url`（Base64 Data URL，格式 `data:audio/mpeg;base64,...`） |
-| `choices[0].finish_reason` | `"stop"` 表示正常完成 |
+| `choices[0].message.content` | Text information generated by the LM, including Metadata (Caption/BPM/Duration/Key/Time Signature/Language) and Lyrics. Returns `"Music generated successfully."` if LM was not involved |
+| `choices[0].message.audio` | Audio data array. Each item contains `type` (`"audio_url"`) and `audio_url.url` (Base64 Data URL in format `data:audio/mpeg;base64,...`) |
+| `choices[0].finish_reason` | `"stop"` indicates normal completion |
 
-**音频解码格式：**
+**Decoding Audio:**
 
-`audio_url.url` 值为 Data URL 格式：`data:audio/mpeg;base64,<base64_data>`
+The `audio_url.url` value is a Data URL: `data:audio/mpeg;base64,<base64_data>`
 
-客户端提取 base64 数据部分后解码即可得到 MP3 文件：
+Extract the base64 portion after the comma and decode it to get the MP3 file:
 
 ```python
 import base64
 
 url = response["choices"][0]["message"]["audio"][0]["audio_url"]["url"]
-# 去掉 "data:audio/mpeg;base64," 前缀
+# Strip the "data:audio/mpeg;base64," prefix
 b64_data = url.split(",", 1)[1]
 audio_bytes = base64.b64decode(b64_data)
 
@@ -184,27 +184,27 @@ with open("output.mp3", "wb") as f:
 const url = response.choices[0].message.audio[0].audio_url.url;
 const b64Data = url.split(",")[1];
 const audioBytes = atob(b64Data);
-// 或直接用于 <audio> 标签
+// Or use the Data URL directly in an <audio> element
 const audio = new Audio(url);
 audio.play();
 ```
 
 ---
 
-### 2. 模型列表
+### 2. List Models
 
 **GET** `/v1/models`
 
-返回可用模型信息。
+Returns available model information.
 
-#### 响应
+#### Response
 
 ```json
 {
   "data": [
     {
-      "id": "acemusic/acestep-v15-turbo",
-      "name": "ACE-Step",
+      "id": "acemusic/empath-v15-turbo",
+      "name": "Empath",
       "created": 1706688000,
       "description": "High-performance text-to-music generation model. Supports multiple styles, lyrics input, and various audio durations.",
       "input_modalities": ["text", "audio"],
@@ -219,29 +219,29 @@ audio.play();
 
 ---
 
-### 3. 健康检查
+### 3. Health Check
 
 **GET** `/health`
 
-#### 响应
+#### Response
 
 ```json
 {
   "status": "ok",
-  "service": "ACE-Step OpenRouter API",
+  "service": "Empath OpenRouter API",
   "version": "1.0"
 }
 ```
 
 ---
 
-## 输入模式
+## Input Modes
 
-系统根据 `messages` 中最后一条 `user` 消息的内容自动选择输入模式。也可通过 `lyrics` 或 `sample_mode` 字段显式指定。
+The system automatically selects the input mode based on the content of the last `user` message. You can also explicitly specify via the `lyrics` or `sample_mode` fields.
 
-### 模式 1: 标签模式（推荐）
+### Mode 1: Tagged Mode (Recommended)
 
-使用 `<prompt>` 和 `<lyrics>` 标签明确指定音乐描述和歌词：
+Use `<prompt>` and `<lyrics>` tags to explicitly specify the music description and lyrics:
 
 ```json
 {
@@ -258,32 +258,32 @@ audio.play();
 }
 ```
 
-- `<prompt>...</prompt>` — 音乐风格/场景描述（即 caption）
-- `<lyrics>...</lyrics>` — 歌词内容
-- 两个标签可以只传其中一个
-- 当 `use_format: true` 时，LLM 会自动增强 prompt 和 lyrics
+- `<prompt>...</prompt>` — Music style/scene description (caption)
+- `<lyrics>...</lyrics>` — Lyrics content
+- Either tag can be used alone
+- When `use_format: true`, the LLM automatically enhances both prompt and lyrics
 
-### 模式 2: 自然语言模式（Sample 模式）
+### Mode 2: Natural Language Mode (Sample Mode)
 
-直接用自然语言描述想要的音乐，系统自动通过 LLM 生成 prompt 和 lyrics：
+Describe the desired music in natural language. The system uses LLM to generate the prompt and lyrics automatically:
 
 ```json
 {
   "messages": [
-    {"role": "user", "content": "帮我生成一首欢快的中文流行歌曲，关于夏天和旅行"}
+    {"role": "user", "content": "Generate an upbeat pop song about summer and travel"}
   ],
   "sample_mode": true,
   "audio_config": {
-    "vocal_language": "zh"
+    "vocal_language": "en"
   }
 }
 ```
 
-触发条件：`sample_mode: true`，或消息内容不包含标签且不像歌词时自动触发。
+Trigger condition: `sample_mode: true`, or message content contains no tags and does not resemble lyrics.
 
-### 模式 3: 纯歌词模式
+### Mode 3: Lyrics-Only Mode
 
-直接传入带结构标记的歌词，系统自动识别：
+Pass in lyrics with structural markers directly. The system identifies them automatically:
 
 ```json
 {
@@ -297,11 +297,11 @@ audio.play();
 }
 ```
 
-触发条件：消息内容包含 `[Verse]`、`[Chorus]` 等标记，或有多行短文本结构。
+Trigger condition: Message content contains `[Verse]`, `[Chorus]`, or similar markers, or has a multi-line short-text structure.
 
-### 模式 4: 歌词 + Prompt 分离
+### Mode 4: Lyrics + Prompt Separation
 
-通过 `lyrics` 字段直接传入歌词，messages 文本自动作为 prompt：
+Use the `lyrics` field to pass lyrics directly, and messages text automatically becomes the prompt:
 
 ```json
 {
@@ -316,9 +316,9 @@ audio.play();
 }
 ```
 
-### 器乐模式
+### Instrumental Mode
 
-设置 `audio_config.instrumental: true`：
+Set `audio_config.instrumental: true`:
 
 ```json
 {
@@ -334,33 +334,33 @@ audio.play();
 
 ---
 
-## 音频输入
+## Audio Input
 
-支持通过多模态 messages 传入音频文件（base64 编码），用于 cover、repaint 等任务。
+Audio files can be passed via multimodal messages (base64 encoded) for cover, repaint, and other tasks.
 
-### task_type 类型
+### task_type Types
 
-| task_type | 说明 | 需要音频输入 |
+| task_type | Description | Audio Input Required |
 |---|---|---|
-| `text2music` | 文本生成音乐（默认） | 可选（作为 reference） |
-| `cover` | 翻唱/风格迁移 | 需要 src_audio |
-| `repaint` | 局部重绘 | 需要 src_audio |
-| `lego` | 音频拼接 | 需要 src_audio |
-| `extract` | 音频提取 | 需要 src_audio |
-| `complete` | 音频续写 | 需要 src_audio |
+| `text2music` | Text to music (default) | Optional (as reference) |
+| `cover` | Cover/style transfer | Requires src_audio |
+| `repaint` | Partial repaint | Requires src_audio |
+| `lego` | Audio splicing | Requires src_audio |
+| `extract` | Audio extraction | Requires src_audio |
+| `complete` | Audio continuation | Requires src_audio |
 
-### 音频路由规则
+### Audio Routing Rules
 
-多个 `input_audio` 块按顺序路由到不同参数（类似多图片上传）：
+Multiple `input_audio` blocks are routed to different parameters in order (similar to multi-image upload):
 
 | task_type | audio[0] | audio[1] |
 |---|---|---|
-| `text2music` | reference_audio（风格参考） | - |
-| `cover/repaint/lego/extract/complete` | src_audio（待编辑音频） | reference_audio（可选风格参考） |
+| `text2music` | reference_audio (style reference) | - |
+| `cover/repaint/lego/extract/complete` | src_audio (audio to edit) | reference_audio (optional style reference) |
 
-### 音频输入示例
+### Audio Input Examples
 
-**Cover 任务（翻唱）：**
+**Cover Task:**
 
 ```json
 {
@@ -371,7 +371,7 @@ audio.play();
         {"type": "text", "text": "<prompt>Jazz style cover with saxophone</prompt>"},
         {
           "type": "input_audio",
-          "input_audio": {"data": "<base64 原始音频>", "format": "mp3"}
+          "input_audio": {"data": "<base64 source audio>", "format": "mp3"}
         }
       ]
     }
@@ -382,7 +382,7 @@ audio.play();
 }
 ```
 
-**Repaint 任务（局部重绘）：**
+**Repaint Task:**
 
 ```json
 {
@@ -393,7 +393,7 @@ audio.play();
         {"type": "text", "text": "<prompt>Replace with guitar solo</prompt>"},
         {
           "type": "input_audio",
-          "input_audio": {"data": "<base64 原始音频>", "format": "mp3"}
+          "input_audio": {"data": "<base64 source audio>", "format": "mp3"}
         }
       ]
     }
@@ -407,55 +407,55 @@ audio.play();
 
 ---
 
-## 流式响应
+## Streaming Responses
 
-设置 `"stream": true` 启用 SSE（Server-Sent Events）流式返回。
+Set `"stream": true` to enable SSE (Server-Sent Events) streaming.
 
-### 事件格式
+### Event Format
 
-每个事件以 `data: ` 开头，后跟 JSON，以双换行 `\n\n` 结尾：
-
-```
-data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{...},"finish_reason":null}]}
+Each event starts with `data: `, followed by JSON, ending with a double newline `\n\n`:
 
 ```
+data: {"id":"chatcmpl-xxx","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{...},"finish_reason":null}]}
 
-### 流式事件顺序
+```
 
-| 阶段 | delta 内容 | 说明 |
+### Streaming Event Sequence
+
+| Phase | Delta Content | Description |
 |---|---|---|
-| 1. 初始化 | `{"role":"assistant","content":""}` | 建立连接 |
-| 2. LM 内容 | `{"content":"\n\n## Metadata\n..."}` | LM 参与时推送 metadata 和 lyrics |
-| 3. 心跳 | `{"content":"."}` | 音频生成期间每 2 秒发送，保持连接 |
-| 4. 音频数据 | `{"audio":[{"type":"audio_url","audio_url":{"url":"data:..."}}]}` | 音频 base64 |
-| 5. 结束 | `finish_reason: "stop"` | 生成完成 |
-| 6. 终止 | `data: [DONE]` | 流结束标记 |
+| 1. Initialization | `{"role":"assistant","content":""}` | Establishes the connection |
+| 2. LM Content | `{"content":"\n\n## Metadata\n..."}` | Metadata and lyrics pushed after LM generation (if LM was used) |
+| 3. Heartbeat | `{"content":"."}` | Sent every 2 seconds during audio generation to keep the connection alive |
+| 4. Audio Data | `{"audio":[{"type":"audio_url","audio_url":{"url":"data:..."}}]}` | Audio base64 data |
+| 5. Finish | `finish_reason: "stop"` | Generation complete |
+| 6. Termination | `data: [DONE]` | End-of-stream marker |
 
-### 流式响应示例
+### Streaming Response Example
 
 ```
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"content":"\n\n## Metadata\n**Caption:** Upbeat pop\n**BPM:** 120"},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"content":"\n\n## Metadata\n**Caption:** Upbeat pop\n**BPM:** 120"},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"content":"."},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"content":"."},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{"audio":[{"type":"audio_url","audio_url":{"url":"data:audio/mpeg;base64,..."}}]},"finish_reason":null}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{"audio":[{"type":"audio_url","audio_url":{"url":"data:audio/mpeg;base64,..."}}]},"finish_reason":null}]}
 
-data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/acestep-v15-turbo","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1706688000,"model":"acemusic/empath-v15-turbo","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
 
 data: [DONE]
 
 ```
 
-### 客户端处理流式响应
+### Client-Side Streaming Handling
 
 ```python
 import json
 import httpx
 
 with httpx.stream("POST", "http://127.0.0.1:8002/v1/chat/completions", json={
-    "messages": [{"role": "user", "content": "生成一首轻快的吉他曲"}],
+    "messages": [{"role": "user", "content": "Generate a cheerful guitar piece"}],
     "sample_mode": True,
     "stream": True,
     "audio_config": {"instrumental": True}
@@ -494,7 +494,7 @@ const response = await fetch("http://127.0.0.1:8002/v1/chat/completions", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    messages: [{ role: "user", content: "生成一首轻快的吉他曲" }],
+    messages: [{ role: "user", content: "Generate a cheerful guitar piece" }],
     sample_mode: true,
     stream: true,
     audio_config: { instrumental: true }
@@ -522,28 +522,28 @@ while (true) {
   }
 }
 
-// audioUrl 可直接用于 <audio src="...">
+// audioUrl can be used directly as <audio src="...">
 ```
 
 ---
 
-## 完整示例
+## Examples
 
-### 示例 1: 自然语言生成（最简用法）
+### Example 1: Natural Language Generation (Simplest Usage)
 
 ```bash
 curl -X POST http://127.0.0.1:8002/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [
-      {"role": "user", "content": "一首温柔的中文民谣，关于故乡和回忆"}
+      {"role": "user", "content": "A soft folk song about hometown and memories"}
     ],
     "sample_mode": true,
-    "audio_config": {"vocal_language": "zh"}
+    "audio_config": {"vocal_language": "en"}
   }'
 ```
 
-### 示例 2: 标签模式 + 指定参数
+### Example 2: Tagged Mode with Specific Parameters
 
 ```bash
 curl -X POST http://127.0.0.1:8002/v1/chat/completions \
@@ -563,7 +563,7 @@ curl -X POST http://127.0.0.1:8002/v1/chat/completions \
   }'
 ```
 
-### 示例 3: 纯器乐 + 关闭 LM 增强
+### Example 3: Instrumental with LM Enhancement Disabled
 
 ```bash
 curl -X POST http://127.0.0.1:8002/v1/chat/completions \
@@ -583,7 +583,7 @@ curl -X POST http://127.0.0.1:8002/v1/chat/completions \
   }'
 ```
 
-### 示例 4: 流式请求
+### Example 4: Streaming Request
 
 ```bash
 curl -X POST http://127.0.0.1:8002/v1/chat/completions \
@@ -598,7 +598,7 @@ curl -X POST http://127.0.0.1:8002/v1/chat/completions \
   }'
 ```
 
-### 示例 5: 多种子批量生成
+### Example 5: Multi-Seed Batch Generation
 
 ```bash
 curl -X POST http://127.0.0.1:8002/v1/chat/completions \
@@ -618,39 +618,39 @@ curl -X POST http://127.0.0.1:8002/v1/chat/completions \
 
 ---
 
-## 错误码
+## Error Codes
 
-| HTTP 状态码 | 说明 |
+| HTTP Status | Description |
 |---|---|
-| 400 | 请求格式错误或缺少有效输入 |
-| 401 | API Key 缺失或无效 |
-| 429 | 服务繁忙，队列已满 |
-| 500 | 音乐生成过程中发生内部错误 |
-| 503 | 模型尚未初始化完成 |
-| 504 | 生成超时 |
+| 400 | Invalid request format or missing valid input |
+| 401 | Missing or invalid API key |
+| 429 | Service busy, queue full |
+| 500 | Internal error during music generation |
+| 503 | Model not yet initialized |
+| 504 | Generation timeout |
 
-错误响应格式：
+Error response format:
 
 ```json
 {
-  "detail": "错误描述信息"
+  "detail": "Error description message"
 }
 ```
 
 ---
 
-## 环境变量配置
+## Server Configuration (Environment Variables)
 
-以下环境变量可用于配置服务端（供运维参考）：
+The following environment variables can be used to configure the server (for operations reference):
 
-| 变量名 | 默认值 | 说明 |
+| Variable | Default | Description |
 |---|---|---|
-| `OPENROUTER_API_KEY` | 无 | API 认证密钥 |
-| `OPENROUTER_HOST` | `127.0.0.1` | 监听地址 |
-| `OPENROUTER_PORT` | `8002` | 监听端口 |
-| `ACESTEP_CONFIG_PATH` | `acestep-v15-turbo` | DiT 模型配置路径 |
-| `ACESTEP_DEVICE` | `auto` | 推理设备 |
-| `ACESTEP_LM_MODEL_PATH` | `acestep-5Hz-lm-0.6B` | LLM 模型路径 |
-| `ACESTEP_LM_BACKEND` | `vllm` | LLM 推理后端 |
-| `ACESTEP_QUEUE_MAXSIZE` | `200` | 任务队列最大容量 |
-| `ACESTEP_GENERATION_TIMEOUT` | `600` | 非流式请求超时（秒） |
+| `OPENROUTER_API_KEY` | None | API authentication key |
+| `OPENROUTER_HOST` | `127.0.0.1` | Listen address |
+| `OPENROUTER_PORT` | `8002` | Listen port |
+| `EMPATH_CONFIG_PATH` | `empath-v15-turbo` | DiT model configuration path |
+| `EMPATH_DEVICE` | `auto` | Inference device |
+| `EMPATH_LM_MODEL_PATH` | `empath-5Hz-lm-0.6B` | LLM model path |
+| `EMPATH_LM_BACKEND` | `vllm` | LLM inference backend |
+| `EMPATH_QUEUE_MAXSIZE` | `200` | Task queue max capacity |
+| `EMPATH_GENERATION_TIMEOUT` | `600` | Non-streaming request timeout (seconds) |

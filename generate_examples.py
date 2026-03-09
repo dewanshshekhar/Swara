@@ -12,7 +12,7 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from acestep.llm_inference import LLMHandler
+from empath.llm_inference import LLMHandler
 from loguru import logger
 from tqdm import tqdm
 
@@ -39,8 +39,8 @@ def generate_examples(num_examples=50, output_dir="examples/text2music", start_i
         logger.error("No 5Hz LM models found in checkpoints directory")
         return
     
-    # Prefer acestep-5Hz-lm-0.6B if available
-    lm_model = "acestep-5Hz-lm-0.6B" if "acestep-5Hz-lm-0.6B" in available_models else available_models[0]
+    # Prefer empath-5Hz-lm-0.6B if available
+    lm_model = "empath-5Hz-lm-0.6B" if "empath-5Hz-lm-0.6B" in available_models else available_models[0]
     logger.info(f"Using LM model: {lm_model}")
     
     # Initialize LM

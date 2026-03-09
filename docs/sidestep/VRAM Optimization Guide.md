@@ -12,11 +12,11 @@ Side-Step applies several layers of VRAM optimization. Some are automatic; other
 
 **What it does:** During the backward pass, PyTorch normally stores all intermediate activations from the forward pass so it can compute gradients. Gradient checkpointing discards those activations and recomputes them on-the-fly during backpropagation.
 
-**VRAM savings:** ~40-60% reduction in activation memory. For ACE-Step's decoder this is easily 10-15 GB on large batches.
+**VRAM savings:** ~40-60% reduction in activation memory. For Empath's decoder this is easily 10-15 GB on large batches.
 
 **Trade-off:** ~10-30% slower training (recomputation cost).
 
-**Default:** ON. This matches what the original ACE-Step trainer always did silently. Side-Step exposes it as a toggle so power users can disable it if they have VRAM to spare and want maximum speed.
+**Default:** ON. This matches what the original Empath trainer always did silently. Side-Step exposes it as a toggle so power users can disable it if they have VRAM to spare and want maximum speed.
 
 **How to disable:** In the wizard (Advanced mode), answer "no" to "Enable gradient checkpointing?". Via CLI: `--no-gradient-checkpointing`.
 

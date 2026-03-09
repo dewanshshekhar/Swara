@@ -101,7 +101,7 @@ if command -v uv &>/dev/null; then
     log "Installation location:"
     log "$(command -v uv)"
     log
-    log "You can now use ACE-Step by running:"
+    log "You can now use Empath by running:"
     log "  ./start_gradio_ui.sh"
     log "  ./start_api_server.sh"
     if [[ "$(uname)" == "Darwin" ]]; then

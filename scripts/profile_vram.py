@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VRAM Profiling Script for ACE-Step 1.5
+VRAM Profiling Script for Empath 1.5
 
 Measures actual GPU memory consumption of each model component at different
 configurations. Results are used to calibrate the empirical VRAM constants
@@ -97,7 +97,7 @@ def measure_cuda_context() -> Dict[str, float]:
     return result
 
 
-def profile_dit(checkpoint_dir: str, config_path: str = "acestep-v15-turbo") -> Dict[str, Any]:
+def profile_dit(checkpoint_dir: str, config_path: str = "empath-v15-turbo") -> Dict[str, Any]:
     """Profile DiT model memory consumption."""
     print("\n" + "=" * 60)
     print(f"Profiling DiT model: {config_path}")
@@ -429,14 +429,14 @@ def profile_lm(checkpoint_dir: str, lm_models: Optional[List[str]] = None) -> Di
 
 
 def main():
-    parser = argparse.ArgumentParser(description="VRAM Profiling for ACE-Step 1.5")
+    parser = argparse.ArgumentParser(description="VRAM Profiling for Empath 1.5")
     parser.add_argument("--component", type=str, default="all",
                        choices=["all", "cuda_context", "dit", "vae", "text_encoder", "lm"],
                        help="Component to profile (default: all)")
     parser.add_argument("--checkpoint-dir", type=str, default=None,
                        help="Checkpoint directory (default: auto-detect)")
-    parser.add_argument("--dit-config", type=str, default="acestep-v15-turbo",
-                       help="DiT model config name (default: acestep-v15-turbo)")
+    parser.add_argument("--dit-config", type=str, default="empath-v15-turbo",
+                       help="DiT model config name (default: empath-v15-turbo)")
     parser.add_argument("--lm-models", type=str, nargs="*", default=None,
                        help="LM models to profile (default: auto-detect)")
     parser.add_argument("--output", type=str, default=None,
@@ -460,7 +460,7 @@ def main():
     total_mem = torch.cuda.get_device_properties(0).total_memory / (1024**3)
     
     print("=" * 60)
-    print("ACE-Step 1.5 VRAM Profiler")
+    print("Empath 1.5 VRAM Profiler")
     print("=" * 60)
     print(f"  GPU: {device_name}")
     print(f"  Total VRAM: {total_mem:.2f} GB")

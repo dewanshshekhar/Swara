@@ -1,4 +1,4 @@
-# [BETA] Side-Step for ACE-Step 1.5
+# [BETA] Side-Step for Empath 1.5
 
 ```bash
   ███████ ██ ██████  ███████       ███████ ████████ ███████ ██████
@@ -9,18 +9,18 @@
   by dernet     ((BETA TESTING))
 ```
 
-**Side-Step** is a **standalone** training toolkit for [ACE-Step 1.5](https://github.com/ace-step/ACE-Step-1.5) models. It provides corrected LoRA and LoKR fine-tuning implementations that fix fundamental bugs (for models other than turbo) in the original trainer while adding low-VRAM support for local GPUs.
+**Side-Step** is a **standalone** training toolkit for [Empath 1.5](https://github.com/ace-step/Empath-1.5) models. It provides corrected LoRA and LoKR fine-tuning implementations that fix fundamental bugs (for models other than turbo) in the original trainer while adding low-VRAM support for local GPUs.
 
-> **Standalone?** Yes. Side-Step installs as its own project with its own dependencies. The corrected (fixed) training loop, preprocessing, and wizard all work without a base ACE-Step installation -- you only need the model checkpoints. Vanilla training mode still requires base ACE-Step installed alongside.
+> **Standalone?** Yes. Side-Step installs as its own project with its own dependencies. The corrected (fixed) training loop, preprocessing, and wizard all work without a base Empath installation -- you only need the model checkpoints. Vanilla training mode still requires base Empath installed alongside.
 
 
 ## Why Side-Step?
 
-The original ACE-Step trainer has two critical discrepancies from how the base models were actually trained. Side-Step was built to bridge this gap:
+The original Empath trainer has two critical discrepancies from how the base models were actually trained. Side-Step was built to bridge this gap:
 
 1.  **Continuous Timestep Sampling:** The original trainer uses a discrete 8-step schedule. This is fine for turbo, which the original training script is hardcoded for. Side-Step implements **Logit-Normal continuous sampling**, ensuring the model learns the full range of the denoising process.
 2.  **CFG Dropout (Classifier-Free Guidance):** The original trainer lacks condition dropout. Side-Step implements a **15% null-condition dropout**, teaching the model how to handle both prompted and unprompted generation. Without this, inference quality suffers.
-3.  **Standalone Core:** The corrected training loop, preprocessing, and wizard bundle all required ACE-Step utilities. No base ACE-Step install needed -- just the model weights.
+3.  **Standalone Core:** The corrected training loop, preprocessing, and wizard bundle all required Empath utilities. No base Empath install needed -- just the model weights.
 4.  **Built for the cloud:** The original Gradio breaks when you try to use it for training. Use this instead :)
 
 ---
@@ -32,7 +32,7 @@ The original ACE-Step trainer has two critical discrepancies from how the base m
 | :--- | :--- | :--- | :--- |
 | **Fixed Training (LoRA)** | Working | Yes | Recommended for all users. Corrected timesteps + CFG dropout. |
 | **Fixed Training (LoKR)** | **Experimental** | Yes | Uses LyCORIS. May have rough edges. |
-| **Vanilla Training** | Working | **No** | Reproduction of original behavior. Requires base ACE-Step 1.5 installed alongside. |
+| **Vanilla Training** | Working | **No** | Reproduction of original behavior. Requires base Empath 1.5 installed alongside. |
 | **Interactive Wizard** | Working | Yes | `python train.py` with no args. Session loop, go-back, presets, first-run setup. |
 | **CLI Preprocessing** | Beta | Yes | Two-pass pipeline, low VRAM. Adapter-agnostic (same tensors for LoRA and LoKR). |
 | **Gradient Estimation** | Beta | Yes | Ranks attention modules by sensitivity. In Experimental menu. |
@@ -49,11 +49,11 @@ The original ACE-Step trainer has two critical discrepancies from how the base m
 ### What's new in 0.8.0-beta
 
 **Bug fixes:**
-- **Fixed gradient checkpointing crash** -- Training with gradient checkpointing enabled (the default) would crash with `element 0 of tensors does not require grad`. The autograd graph was disconnecting through checkpointed segments because the `xt` input tensor wasn't carrying gradients. Now forces `xt.requires_grad_(True)` when checkpointing is active, matching ACE-Step's upstream behavior. This was the #1 blocker for new users.
+- **Fixed gradient checkpointing crash** -- Training with gradient checkpointing enabled (the default) would crash with `element 0 of tensors does not require grad`. The autograd graph was disconnecting through checkpointed segments because the `xt` input tensor wasn't carrying gradients. Now forces `xt.requires_grad_(True)` when checkpointing is active, matching Empath's upstream behavior. This was the #1 blocker for new users.
 - **Fixed training completing with 0 steps on Windows** -- Lightning Fabric's `setup_dataloaders()` was wrapping the DataLoader with a shim that yielded 0 batches on Windows, causing training to silently "complete" with 0 epochs and 0 steps. Reported by multiple users on RTX 3090 and other GPUs. The Fabric DataLoader wrapping is now skipped entirely (the model/optimizer are still Fabric-managed for mixed precision).
 - **Fixed multi-GPU device selection** -- Using `cuda:1` (or any non-default GPU) no longer causes training to silently fail. The Fabric device setup has been rewritten to use `torch.cuda.set_device()` instead of passing device indices as lists.
 - **LoRA save path fix** -- Adapter files (`adapter_config.json`, `adapter_model.safetensors`) are now saved directly into the output directory. Previously they were nested in an `adapter/` subdirectory, causing Gradio/ComfyUI to fail to find the weights at the path Side-Step reported.
-- **Massive VRAM reduction** -- Gradient checkpointing is now ON by default and actually works (see above fix). Measured at ~7 GiB for batch size 1 on a 48 GiB GPU (15% utilization). Previously Side-Step had checkpointing off or broken, causing 20-42 GiB VRAM usage. This brings Side-Step well below ACE-Step's memory footprint.
+- **Massive VRAM reduction** -- Gradient checkpointing is now ON by default and actually works (see above fix). Measured at ~7 GiB for batch size 1 on a 48 GiB GPU (15% utilization). Previously Side-Step had checkpointing off or broken, causing 20-42 GiB VRAM usage. This brings Side-Step well below Empath's memory footprint.
 - **0-step training detection** -- If training completes with zero steps processed, Side-Step now reports a clear `[FAIL]` error instead of a misleading "Training Complete" screen with 0 epochs.
 - **Windows `num_workers` safety** -- Explicitly clamps `num_workers=0` on Windows even if overridden via CLI, preventing spawn-based multiprocessing crashes.
 
@@ -66,18 +66,18 @@ The original ACE-Step trainer has two critical discrepancies from how the base m
 
 ### What's new in 0.7.0-beta
 
-- **Truly standalone packaging** -- Side-Step is now its own project with a real `pyproject.toml` and full dependency list. Install it with `uv sync` -- no ACE-Step overlay required. The installer now creates Side-Step alongside ACE-Step as sibling directories.
-- **First-run setup wizard** -- On first launch, Side-Step walks you through configuring your checkpoint directory, ACE-Step path (if you want vanilla mode), and validates your setup. Accessible any time from the main menu under "Settings".
+- **Truly standalone packaging** -- Side-Step is now its own project with a real `pyproject.toml` and full dependency list. Install it with `uv sync` -- no Empath overlay required. The installer now creates Side-Step alongside Empath as sibling directories.
+- **First-run setup wizard** -- On first launch, Side-Step walks you through configuring your checkpoint directory, Empath path (if you want vanilla mode), and validates your setup. Accessible any time from the main menu under "Settings".
 - **Model discovery with fuzzy search** -- Instead of hardcoded `turbo/base/sft` choices, the wizard now scans your checkpoint directory for all model folders, labels official vs custom models, and lets you pick by number or search by name. Fine-tunes with arbitrary folder names are fully supported.
 - **Fine-tune training support** -- Train on custom fine-tunes by selecting their folder. Side-Step auto-detects the base model from `config.json`. If it can't, it asks which base the fine-tune descends from to condition timestep sampling correctly.
 - **`--base-model` CLI argument** -- New flag for CLI users training on fine-tunes. Overrides timestep parameters when `config.json` doesn't contain them.
 - **`--model-variant` accepts any folder name** -- No longer restricted to turbo/base/sft. Pass any subfolder name from your checkpoints directory (e.g., `--model-variant my-custom-finetune`).
-- **`acestep.__path__` extension** -- When vanilla mode is configured, Side-Step extends its package path to reach ACE-Step's modules. No overlay, no symlinks, no `sys.path` hacks.
-- **Settings persistence** -- Checkpoint dir, ACE-Step path, and vanilla intent are saved to `~/.config/sidestep/settings.json` and reused as defaults in subsequent sessions.
+- **`empath.__path__` extension** -- When vanilla mode is configured, Side-Step extends its package path to reach Empath's modules. No overlay, no symlinks, no `sys.path` hacks.
+- **Settings persistence** -- Checkpoint dir, Empath path, and vanilla intent are saved to `~/.config/sidestep/settings.json` and reused as defaults in subsequent sessions.
 
 ### What's new in 0.6.0-beta
 
-- **Mostly standalone** -- The corrected (fixed) training loop, preprocessing pipeline, and wizard no longer require a base ACE-Step installation. All needed ACE-Step utilities are vendored in `_vendor/`. You only need the model checkpoint files. Vanilla training mode still requires base ACE-Step.
+- **Mostly standalone** -- The corrected (fixed) training loop, preprocessing pipeline, and wizard no longer require a base Empath installation. All needed Empath utilities are vendored in `_vendor/`. You only need the model checkpoint files. Vanilla training mode still requires base Empath.
 - **Enhanced prompt builder** -- Preprocessing now supports `custom_tag`, `genre`, and `prompt_override` fields from dataset JSON metadata, matching upstream feature parity without the AudioSample dependency.
 - **Hardened metadata lookup** -- Dataset JSON entries with `audio_path` but no `filename` field are now handled correctly (basename is extracted as fallback key).
 
@@ -114,13 +114,13 @@ The original ACE-Step trainer has two critical discrepancies from how the base m
 
 ## Installation
 
-Side-Step is **partly standalone**: the corrected training loop, preprocessing, wizard, and all CLI tools work without a base ACE-Step installation. You only need the model checkpoint files. The only thing that requires ACE-Step installed alongside is **vanilla training mode** (which reproduces the original bugged behavior for backward compatibility).
+Side-Step is **partly standalone**: the corrected training loop, preprocessing, wizard, and all CLI tools work without a base Empath installation. You only need the model checkpoint files. The only thing that requires Empath installed alongside is **vanilla training mode** (which reproduces the original bugged behavior for backward compatibility).
 
 We **strongly recommend** using [uv](https://docs.astral.sh/uv/) for dependency management -- it handles Python 3.11, PyTorch with CUDA, Flash Attention wheels, and all other dependencies automatically.
 
 ### Windows (Easy Install)
 
-Download or clone Side-Step, then double-click **`install_windows.bat`** (or run the PowerShell script). It handles everything: uv, Python 3.11, Side-Step deps, ACE-Step (alongside for checkpoints), and model download.
+Download or clone Side-Step, then double-click **`install_windows.bat`** (or run the PowerShell script). It handles everything: uv, Python 3.11, Side-Step deps, Empath (alongside for checkpoints), and model download.
 
 ```powershell
 # Or run from PowerShell directly:
@@ -131,7 +131,7 @@ cd Side-Step
 
 The installer creates two sibling directories:
 - `Side-Step/` -- your training toolkit (standalone)
-- `ACE-Step-1.5/` -- model checkpoints + optional vanilla mode
+- `Empath-1.5/` -- model checkpoints + optional vanilla mode
 
 ### Linux / macOS (Recommended: uv)
 
@@ -154,27 +154,27 @@ uv run python train.py
 
 You need the model weights before you can train. Options:
 
-1. **From ACE-Step (recommended):** Clone ACE-Step 1.5 alongside Side-Step and use `acestep-download`:
+1. **From Empath (recommended):** Clone Empath 1.5 alongside Side-Step and use `empath-download`:
    ```bash
-   git clone https://github.com/ace-step/ACE-Step-1.5.git
-   cd ACE-Step-1.5 && uv sync && uv run acestep-download
+   git clone https://github.com/ace-step/Empath-1.5.git
+   cd Empath-1.5 && uv sync && uv run empath-download
    ```
-   Then point Side-Step at the checkpoints folder on first run or via `--checkpoint-dir ../ACE-Step-1.5/checkpoints`.
-2. **Manual download:** Get the weights from [HuggingFace](https://huggingface.co/ACE-Step/Ace-Step1.5) and place them in a `checkpoints/` directory inside Side-Step.
+   Then point Side-Step at the checkpoints folder on first run or via `--checkpoint-dir ../Empath-1.5/checkpoints`.
+2. **Manual download:** Get the weights from [HuggingFace](https://huggingface.co/Empath/Empath1.5) and place them in a `checkpoints/` directory inside Side-Step.
 
 > **IMPORTANT: Never rename checkpoint folders.** The model loader uses folder names and `config.json` files to identify model variants (turbo, base, sft). Renaming them will break loading.
 
-### Vanilla Mode (optional -- requires ACE-Step)
+### Vanilla Mode (optional -- requires Empath)
 
-Vanilla training mode reproduces the original ACE-Step training behavior (bugged discrete timesteps, no CFG dropout). Most users should use **fixed** mode instead. If you specifically need vanilla mode:
+Vanilla training mode reproduces the original Empath training behavior (bugged discrete timesteps, no CFG dropout). Most users should use **fixed** mode instead. If you specifically need vanilla mode:
 
 ```bash
-# Clone ACE-Step alongside Side-Step
-git clone https://github.com/ace-step/ACE-Step-1.5.git
-cd ACE-Step-1.5 && uv sync && cd ..
+# Clone Empath alongside Side-Step
+git clone https://github.com/ace-step/Empath-1.5.git
+cd Empath-1.5 && uv sync && cd ..
 
 # On first run, Side-Step's setup wizard will ask if you want vanilla mode
-# and where your ACE-Step installation is.
+# and where your Empath installation is.
 ```
 
 > **Note:** With plain pip, you are responsible for installing the correct PyTorch version with CUDA support for your platform. This is the #1 source of "it doesn't work" issues. `uv sync` handles this automatically.
@@ -273,11 +273,11 @@ uv run python train.py estimate \
     --top-k 16
 ```
 
-### Option E: Vanilla Training (Requires ACE-Step)
-Reproduces the original ACE-Step training behavior (bugged discrete timesteps, no CFG dropout). Most users should use **fixed** mode instead. Requires a base ACE-Step installation alongside Side-Step:
+### Option E: Vanilla Training (Requires Empath)
+Reproduces the original Empath training behavior (bugged discrete timesteps, no CFG dropout). Most users should use **fixed** mode instead. Requires a base Empath installation alongside Side-Step:
 ```bash
 uv run python train.py vanilla \
-    --checkpoint-dir ./ACE-Step-1.5/checkpoints \
+    --checkpoint-dir ./Empath-1.5/checkpoints \
     --audio-dir ./my_audio \
     --output-dir ./output/my_vanilla_lora
 ```
@@ -308,7 +308,7 @@ User presets are saved to `./presets/` (project-local, next to your training dat
 Side-Step is optimized for both heavy Cloud GPUs (H100/A100) and local "underpowered" gear (RTX 3060/4070).
 
 **Applied automatically (no configuration needed):**
-- **Gradient checkpointing** (ON by default) -- recomputes activations during backward, saves ~40-60% activation VRAM. This matches the original ACE-Step behavior.
+- **Gradient checkpointing** (ON by default) -- recomputes activations during backward, saves ~40-60% activation VRAM. This matches the original Empath behavior.
 - **Flash Attention 2** (auto-installed) -- fused attention kernels for better GPU utilization. Requires Ampere+ GPU (RTX 30xx+). Falls back to SDPA on older hardware.
 
 | Profile | VRAM | Key Settings |
@@ -333,7 +333,7 @@ Side-Step/                       <-- Standalone project root
 ├── requirements-sidestep.txt    <-- Fallback for plain pip
 ├── install_windows.bat          <-- Windows easy installer (double-click)
 ├── install_windows.ps1          <-- PowerShell installer script
-└── acestep/
+└── empath/
     └── training_v2/             <-- Side-Step logic (all standalone)
         ├── trainer_fixed.py     <-- The corrected training loop
         ├── preprocess.py        <-- Two-pass preprocessing pipeline
@@ -343,7 +343,7 @@ Side-Step/                       <-- Standalone project root
         ├── settings.py          <-- Persistent user settings (~/.config/sidestep/)
         ├── _compat.py           <-- Version pin & compatibility check
         ├── optim.py             <-- 8-bit and adaptive optimizers
-        ├── _vendor/             <-- Vendored ACE-Step utilities (standalone)
+        ├── _vendor/             <-- Vendored Empath utilities (standalone)
         ├── presets/             <-- Built-in preset JSON files
         ├── cli/                 <-- CLI argument parsing & dispatch
         └── ui/                  <-- Wizard, flows, setup, presets, visual logic
@@ -369,7 +369,7 @@ Available in: vanilla, fixed
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `--checkpoint-dir` | **(required)** | Path to the root checkpoints directory (contains `acestep-v15-turbo/`, etc.) |
+| `--checkpoint-dir` | **(required)** | Path to the root checkpoints directory (contains `empath-v15-turbo/`, etc.) |
 | `--model-variant` | `turbo` | Model variant or subfolder name. Official: `turbo`, `base`, `sft`. For fine-tunes: use the exact folder name (e.g., `my-custom-finetune`) |
 | `--base-model` | *(auto)* | Base model a fine-tune was trained from: `turbo`, `base`, or `sft`. Auto-detected for official models. Only needed for custom fine-tunes whose `config.json` lacks timestep parameters |
 | `--dataset-dir` | **(required)** | Directory containing your preprocessed `.pt` tensor files and `manifest.json` |
@@ -397,7 +397,7 @@ Available in: vanilla, fixed
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `--rank` or `-r` | `64` | LoRA rank. Higher = more capacity and more VRAM. Recommended: 64 (ACE-Step dev recommendation) |
+| `--rank` or `-r` | `64` | LoRA rank. Higher = more capacity and more VRAM. Recommended: 64 (Empath dev recommendation) |
 | `--alpha` | `128` | LoRA scaling factor. Controls how strongly the adapter affects the model. Usually 2x the rank. Recommended: 128 |
 | `--dropout` | `0.1` | Dropout probability on LoRA layers. Helps prevent overfitting. Range: 0.0 to 0.5 |
 | `--attention-type` | `both` | Which attention layers to target. Options: `both` (self + cross attention, 192 modules), `self` (self-attention only, audio patterns, 96 modules), `cross` (cross-attention only, text conditioning, 96 modules) |
@@ -501,7 +501,7 @@ Available in: vanilla, fixed
 
 ### How Side-Step trains (corrected/fixed mode)
 
-Side-Step's corrected training loop uses **continuous logit-normal timestep sampling** -- an exact reimplementation of the `sample_t_r()` function defined inside each ACE-Step model variant's own `forward()` method. The core operation is:
+Side-Step's corrected training loop uses **continuous logit-normal timestep sampling** -- an exact reimplementation of the `sample_t_r()` function defined inside each Empath model variant's own `forward()` method. The core operation is:
 
 ```python
 t = sigmoid(N(timestep_mu, timestep_sigma))
@@ -511,7 +511,7 @@ The `timestep_mu` and `timestep_sigma` parameters are read automatically from ea
 
 ### How the upstream community trainer trains
 
-The original ACE-Step community trainer (`acestep/training/trainer.py`) uses a **discrete 8-step schedule** hardcoded from `shift=3.0`:
+The original Empath community trainer (`empath/training/trainer.py`) uses a **discrete 8-step schedule** hardcoded from `shift=3.0`:
 
 ```python
 TURBO_SHIFT3_TIMESTEPS = [1.0, 0.955, 0.9, 0.833, 0.75, 0.643, 0.5, 0.3]
@@ -535,4 +535,4 @@ Each training step randomly picks one of these 8 values. This is **not** how the
 ## Contributing
 Contributions are welcome! Specifically looking for help fixing the **Textual TUI** and testing the new preprocessing + estimation modules.
 
-**License:** Follows the original ACE-Step 1.5 licensing
+**License:** Follows the original Empath 1.5 licensing

@@ -62,11 +62,11 @@ def _configure_logging(
 
 _configure_logging()
 
-from acestep.handler import AceStepHandler
-from acestep.llm_inference import LLMHandler
-from acestep.inference import GenerationParams, GenerationConfig, generate_music, create_sample, format_sample
-from acestep.constants import DEFAULT_DIT_INSTRUCTION, TASK_INSTRUCTIONS
-from acestep.gpu_config import get_gpu_config, set_global_gpu_config, is_mps_platform
+from empath.handler import AceStepHandler
+from empath.llm_inference import LLMHandler
+from empath.inference import GenerationParams, GenerationConfig, generate_music, create_sample, format_sample
+from empath.constants import DEFAULT_DIT_INSTRUCTION, TASK_INSTRUCTIONS
+from empath.gpu_config import get_gpu_config, set_global_gpu_config, is_mps_platform
 import torch
 
 
@@ -649,7 +649,7 @@ def run_wizard(args, configure_only: bool = False, default_config_path: Optional
     """
     Runs an interactive wizard to set generation parameters.
     """
-    print("Welcome to the ACE-Step Music Generation Wizard!")
+    print("Welcome to the Empath Music Generation Wizard!")
     print("This will guide you through creating your music.")
     print("Press Ctrl+C at any time to exit.")
     print("Note: Required models will be auto-downloaded if missing.")
@@ -679,11 +679,11 @@ def run_wizard(args, configure_only: bool = False, default_config_path: Optional
             task_choice = task_default
         args.task_type = task_map.get(task_choice, "text2music")
         if args.task_type in {"lego", "extract", "complete"}:
-            print("Note: This task requires a base DiT model (acestep-v15-base). It will be auto-downloaded if missing.")
+            print("Note: This task requires a base DiT model (empath-v15-base). It will be auto-downloaded if missing.")
 
         # Model selection (DiT)
         dit_handler = AceStepHandler()
-        available_dit_models = dit_handler.get_available_acestep_v15_models()
+        available_dit_models = dit_handler.get_available_empath_v15_models()
         base_only = args.task_type in {"lego", "extract", "complete"}
         if base_only and available_dit_models:
             available_dit_models = [m for m in available_dit_models if "base" in m.lower()]
@@ -700,7 +700,7 @@ def run_wizard(args, configure_only: bool = False, default_config_path: Optional
                 args.config_path = selected
                 print(f"\nNote: This task requires a base model. Using: {selected}")
             else:
-                print("\nNote: This task requires a base model (e.g., 'acestep-v15-base'). It will be auto-downloaded if missing.")
+                print("\nNote: This task requires a base model (e.g., 'empath-v15-base'). It will be auto-downloaded if missing.")
         elif available_dit_models:
             selected = _prompt_choice_from_list(
                 "--- Available DiT Models ---",
@@ -988,7 +988,7 @@ def run_wizard(args, configure_only: bool = False, default_config_path: Optional
 
 def main():
     """
-    Main function to run ACE-Step music generation from the command line.
+    Main function to run Empath music generation from the command line.
     """
 
     gpu_config = get_gpu_config()
@@ -1022,7 +1022,7 @@ def main():
     config_defaults = GenerationConfig()
 
     parser = argparse.ArgumentParser(
-        description="ACE-Step 1.5: Music generation (wizard/config only).",
+        description="Empath 1.5: Music generation (wizard/config only).",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument("-c", "--config", type=str, help="Path to a TOML configuration file to load.")
@@ -1238,7 +1238,7 @@ def main():
     base_only_tasks = {"lego", "extract", "complete"}
     if args.task_type in base_only_tasks and args.config_path:
         if "base" not in str(args.config_path).lower():
-            parser.error(f"task_type '{args.task_type}' requires a base model config (e.g., 'acestep-v15-base').")
+            parser.error(f"task_type '{args.task_type}' requires a base model config (e.g., 'empath-v15-base').")
 
     if args.task_type == "repaint":
         if args.repainting_end != -1 and args.repainting_end <= args.repainting_start:
@@ -1303,7 +1303,7 @@ def main():
     if args.backend not in {"vllm", "pt", "mlx"}:
         args.backend = "vllm"
 
-    print("Initializing ACE-Step handlers...")
+    print("Initializing Empath handlers...")
     dit_handler = AceStepHandler()
     llm_handler = LLMHandler()
 
@@ -1323,45 +1323,45 @@ def main():
     )
 
     if args.config_path is None:
-        available_models = dit_handler.get_available_acestep_v15_models()
+        available_models = dit_handler.get_available_empath_v15_models()
         if args.task_type in base_only_tasks and available_models:
             available_models = [m for m in available_models if "base" in m.lower()]
         if not available_models:
-            print("No DiT models found. Downloading main model (acestep-v15-turbo + core components)...")
-            from acestep.model_downloader import ensure_main_model, get_checkpoints_dir
+            print("No DiT models found. Downloading main model (empath-v15-turbo + core components)...")
+            from empath.model_downloader import ensure_main_model, get_checkpoints_dir
             checkpoints_dir = get_checkpoints_dir()
             success, msg = ensure_main_model(checkpoints_dir)
             print(msg)
             if not success:
                 parser.error(f"Failed to download main model: {msg}")
-            available_models = dit_handler.get_available_acestep_v15_models()
+            available_models = dit_handler.get_available_empath_v15_models()
             if args.task_type in base_only_tasks and available_models:
                 available_models = [m for m in available_models if "base" in m.lower()]
         if args.task_type in base_only_tasks and not available_models:
-            print("Base-only task selected. Downloading base DiT model (acestep-v15-base)...")
-            from acestep.model_downloader import ensure_dit_model, get_checkpoints_dir
+            print("Base-only task selected. Downloading base DiT model (empath-v15-base)...")
+            from empath.model_downloader import ensure_dit_model, get_checkpoints_dir
             checkpoints_dir = get_checkpoints_dir()
-            success, msg = ensure_dit_model("acestep-v15-base", checkpoints_dir)
+            success, msg = ensure_dit_model("empath-v15-base", checkpoints_dir)
             print(msg)
             if not success:
                 parser.error(f"Failed to download base DiT model: {msg}")
-            available_models = dit_handler.get_available_acestep_v15_models()
+            available_models = dit_handler.get_available_empath_v15_models()
             if available_models:
                 available_models = [m for m in available_models if "base" in m.lower()]
         if available_models:
             if args.task_type in {"lego", "extract", "complete"}:
-                preferred = "acestep-v15-base"
+                preferred = "empath-v15-base"
             else:
-                preferred = "acestep-v15-turbo"
+                preferred = "empath-v15-turbo"
             args.config_path = preferred if preferred in available_models else available_models[0]
             print(f"Auto-selected config_path: {args.config_path}")
         else:
             parser.error("No available DiT models found. Please specify --config_path.")
     if args.task_type in {"lego", "extract", "complete"} and "base" not in str(args.config_path).lower():
-        parser.error(f"task_type '{args.task_type}' requires a base model config (e.g., 'acestep-v15-base').")
+        parser.error(f"task_type '{args.task_type}' requires a base model config (e.g., 'empath-v15-base').")
 
     # Ensure required DiT/main models are present for the selected task/model.
-    from acestep.model_downloader import (
+    from empath.model_downloader import (
         ensure_main_model,
         ensure_dit_model,
         get_checkpoints_dir,
@@ -1378,7 +1378,7 @@ def main():
             parser.error(f"Failed to download main model: {msg}")
     if args.config_path:
         config_name = str(args.config_path)
-        known_models = {"acestep-v15-turbo"} | set(SUBMODEL_REGISTRY.keys())
+        known_models = {"empath-v15-turbo"} | set(SUBMODEL_REGISTRY.keys())
         if check_model_exists(config_name, checkpoints_dir):
             pass
         elif config_name in known_models:
@@ -1392,7 +1392,7 @@ def main():
     if use_flash_attention is None:
         use_flash_attention = dit_handler.is_flash_attention_available(device)
 
-    compile_model = os.environ.get("ACESTEP_COMPILE_MODEL", "").strip().lower() in {
+    compile_model = os.environ.get("EMPATH_COMPILE_MODEL", "").strip().lower() in {
         "1", "true", "yes", "y", "on",
     }
 
@@ -1408,7 +1408,7 @@ def main():
     )
 
     if requires_lm:
-        from acestep.model_downloader import ensure_lm_model
+        from empath.model_downloader import ensure_lm_model
         if args.lm_model_path is None:
             available_lm_models = llm_handler.get_available_5hz_lm_models()
             if available_lm_models:

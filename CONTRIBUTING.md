@@ -6,7 +6,7 @@ Hopefully this will provide a simple, easy to understand guide to making safe co
 This project supports **many hardware and runtime combinations**.
 A change that works perfectly on one setup can unintentionally break another if scope is not tightly controlled.
 
-The project has kind of gone viral, and has thousands of users, amateur, semi professional and professional, technical and none technical, it is important that Ace-Step has reliable builds to maintain user trust and engagement.
+The project has kind of gone viral, and has thousands of users, amateur, semi professional and professional, technical and none technical, it is important that Empath has reliable builds to maintain user trust and engagement.
 
 Recent PR patterns have shown avoidable regressions, for example:
 
@@ -158,7 +158,7 @@ This keeps discussion **objective, fast, and easy to follow**.
 - Known pre-existing issues not addressed
 - Follow-up items (if any)
 
-Your PR description should look something like [this](https://github.com/ace-step/ACE-Step-1.5/pull/309), demonstrating care and rigor applied by the author before hitting the PR button. If you have multiple Coderabbit/copilot responses to your PR, its probably a good idea to revoke the PR, fix the issues raised by the review bot, and resubmit.
+Your PR description should look something like [this](https://github.com/ace-step/Empath-1.5/pull/309), demonstrating care and rigor applied by the author before hitting the PR button. If you have multiple Coderabbit/copilot responses to your PR, its probably a good idea to revoke the PR, fix the issues raised by the review bot, and resubmit.
 
 ---
 

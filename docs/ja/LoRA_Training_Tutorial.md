@@ -1,53 +1,53 @@
-# ACE-Step 1.5 LoRA トレーニングチュートリアル
+# Empath 1.5 LoRA Training Tutorial
 
-## ハードウェア要件
+## Hardware Requirements
 
-| VRAM | 説明 |
-|------|------|
-| 16 GB（最低） | 通常は使用可能ですが、長い楽曲ではメモリ不足になる場合があります |
-| 20 GB 以上（推奨） | フルレングスの楽曲に対応可能。トレーニング中のVRAM使用量は通常17 GB前後です |
+| VRAM | Description |
+|------|-------------|
+| 16 GB (minimum) | Generally sufficient, but longer songs may cause out-of-memory errors |
+| 20 GB or more (recommended) | Handles full-length songs; VRAM usage typically stays around 17 GB during training |
 
-> **ヒント：** トレーニング前の前処理段階では、VRAMを解放するためにGradioを複数回再起動する必要があります。具体的なタイミングは以降の手順で説明します。
+> **Note:** During the preprocessing stage before training, you may need to restart Gradio multiple times to free VRAM. The specific timing will be mentioned in the steps below.
 
-## 免責事項
+## Disclaimer
 
-本チュートリアルでは、**ナユタン星人 (NayutalieN)** のアルバム *ナユタン星からの物体Y*（全13曲）をデモとして使用し、500エポック（バッチサイズ1）でトレーニングを行いました。**本チュートリアルはLoRAファインチューニング技術を理解するための教育目的のみに使用されます。ご自身のオリジナル作品でLoRAをトレーニングしてください。**
+This tutorial uses the album *ナユタン星からの物体Y* by **Nayutan星人 (NayutalieN)** (13 tracks) as a demonstration, trained for 500 epochs (batch size 1). **This tutorial is intended solely for educational purposes to understand LoRA fine-tuning. Please use your own original works to train your LoRA.**
 
-開発者として、私はナユタン星人の楽曲が大好きで、そのアルバムの一つを例として選びました。権利者の方で本チュートリアルが正当な権利を侵害していると思われる場合は、すぐにご連絡ください。有効な通知を受け次第、関連コンテンツを削除いたします。
+As a developer, I personally enjoy NayutalieN's work and chose one of their albums as an example. If you are the rights holder and believe this tutorial infringes upon your legitimate rights, please contact us immediately. We will remove the relevant content upon receiving a valid notice.
 
-技術は合理的かつ合法的に使用されるべきです。アーティストの創作を尊重し、オリジナルアーティストの名誉、権利、利益を**損害または傷つける**行為は行わないでください。
+Technology should be used reasonably and lawfully. Please respect artists' creations and refrain from any actions that **harm or damage** the reputation, rights, or interests of original artists.
 
 ---
 
-## データ準備
+## Data Preparation
 
-> **ヒント：** プログラミングに詳しくない方は、本ドキュメントをClaude Code / Codex CLI / Cursor / Copilotなどのコーディングツールに渡して、作業を代行してもらうことができます。
+> **Tip:** If you are unfamiliar with programming, you can provide this document to AI coding tools such as Claude Code / Codex CLI / Cursor / Copilot and let them handle the scripting tasks for you.
 
-### 概要
+### Overview
 
-各楽曲のトレーニングデータには以下が含まれます：
+Training data for each song consists of the following:
 
-1. **音声ファイル** — `.mp3`、`.wav`、`.flac`、`.ogg`、`.opus` 形式に対応
-2. **歌詞** — 音声ファイルと同名の `.lyrics.txt` ファイル（後方互換のため `.txt` も対応）
-3. **アノテーションデータ** — `caption`、`bpm`、`keyscale`、`timesignature`、`language` などのメタデータ
+1. **Audio file** — Supported formats: `.mp3`, `.wav`, `.flac`, `.ogg`, `.opus`
+2. **Lyrics** — A `.lyrics.txt` file with the same name as the audio (`.txt` is also supported for backward compatibility)
+3. **Annotation data** — Metadata including `caption`, `bpm`, `keyscale`, `timesignature`, `language`, etc.
 
-### アノテーションデータ形式
+### Annotation Data Format
 
-完全なアノテーションデータをお持ちの場合は、JSONファイルを作成し、音声・歌詞と同じディレクトリに配置できます。ファイル構造は以下の通りです：
+If you already have complete annotation data, you can create JSON files and place them in the same directory as the audio and lyrics. The file structure is as follows:
 
 ```
 dataset/
-├── song1.mp3               # 音声
-├── song1.lyrics.txt        # 歌詞
-├── song1.json              # アノテーション（任意）
-├── song1.caption.txt       # キャプション（任意、JSONに含めることも可能）
+├── song1.mp3               # Audio
+├── song1.lyrics.txt        # Lyrics
+├── song1.json              # Annotations (optional)
+├── song1.caption.txt       # Caption (optional, can also be included in JSON)
 ├── song2.mp3
 ├── song2.lyrics.txt
 ├── song2.json
 └── ...
 ```
 
-JSONファイルの構造（すべてのフィールドは任意）：
+JSON file structure (all fields are optional):
 
 ```json
 {
@@ -59,71 +59,71 @@ JSONファイルの構造（すべてのフィールドは任意）：
 }
 ```
 
-アノテーションデータがない場合は、後続のセクションで紹介する方法で取得できます。
+If you don't have annotation data, you can obtain it using the methods described in later sections.
 
 ---
 
-### 歌詞
+### Lyrics
 
-歌詞を音声ファイルと同名の `.lyrics.txt` ファイルとして保存し、同じディレクトリに配置してください。歌詞の正確性を確認してください。
+Save lyrics as a `.lyrics.txt` file with the same name as the audio file, placed in the same directory. Please ensure the lyrics are accurate.
 
-スキャン時の歌詞ファイル検索優先順位：
+Lyrics file lookup priority during scanning:
 
-1. `{ファイル名}.lyrics.txt`（推奨）
-2. `{ファイル名}.txt`（後方互換）
+1. `{filename}.lyrics.txt` (recommended)
+2. `{filename}.txt` (backward compatible)
 
-#### 歌詞の文字起こし
+#### Lyrics Transcription
 
-既存の歌詞テキストがない場合は、以下のツールで文字起こしが可能です：
+If you don't have existing lyrics text, you can obtain transcribed lyrics using the following tools:
 
-| ツール | 構造化タグ | 精度 | 使いやすさ | デプロイ方式 |
-|--------|-----------|------|-----------|------------|
-| [acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber) | なし | 誤字の可能性あり | 高難度（モデルのデプロイが必要） | セルフホスト |
-| [Gemini](https://aistudio.google.com/) | あり | 誤字の可能性あり | 簡単 | 有料API |
-| [Whisper](https://github.com/openai/whisper) | なし | 誤字の可能性あり | 普通 | セルフホスト / 有料API |
-| [ElevenLabs](https://elevenlabs.io/app/developers) | なし | 誤字の可能性あり | 普通 | 有料API（無料枠あり） |
+| Tool | Structural Tags | Accuracy | Ease of Use | Deployment |
+|------|----------------|----------|-------------|------------|
+| [empath-transcriber](https://huggingface.co/Empath/empath-transcriber) | No | May contain errors | High difficulty (requires model deployment) | Self-hosted |
+| [Gemini](https://aistudio.google.com/) | Yes | May contain errors | Easy | Paid API |
+| [Whisper](https://github.com/openai/whisper) | No | May contain errors | Moderate | Self-hosted / Paid API |
+| [ElevenLabs](https://elevenlabs.io/app/developers) | No | May contain errors | Moderate | Paid API (generous free tier) |
 
-本プロジェクトでは `scripts/lora_data_prepare/` に対応する文字起こしスクリプトを提供しています：
+This project provides transcription scripts under `scripts/lora_data_prepare/`:
 
-- `whisper_transcription.py` — OpenAI Whisper APIによる文字起こし
-- `elevenlabs_transcription.py` — ElevenLabs Scribe APIによる文字起こし
+- `whisper_transcription.py` — Transcription via OpenAI Whisper API
+- `elevenlabs_transcription.py` — Transcription via ElevenLabs Scribe API
 
-両スクリプトとも `process_folder()` メソッドによるフォルダ一括処理に対応しています。
+Both scripts support the `process_folder()` method for batch processing entire folders.
 
-#### 確認とクリーニング（必須）
+#### Review and Cleanup (Required)
 
-文字起こしされた歌詞には誤字が含まれる可能性があり、**手動で確認・修正する必要があります**。
+Transcribed lyrics may contain errors and **must be manually reviewed and corrected**.
 
-LRC形式の歌詞を使用している場合は、タイムスタンプを除去する必要があります。以下は簡単なクリーニング例です：
+If you are using LRC format lyrics, you need to remove the timestamps. Here is a simple cleanup example:
 
 ```python
 import re
 
 def clean_lrc_content(lines):
-    """LRCファイルの内容をクリーニングし、タイムスタンプを除去"""
+    """Clean LRC file content by removing timestamps"""
     result = []
     for line in lines:
         line = line.strip()
         if not line:
             continue
-        # タイムスタンプを除去 [mm:ss.x] [mm:ss.xx] [mm:ss.xxx]
+        # Remove timestamps [mm:ss.x] [mm:ss.xx] [mm:ss.xxx]
         cleaned = re.sub(r"\[\d{2}:\d{2}\.\d{1,3}\]", "", line)
         result.append(cleaned)
 
-    # 末尾の空行を除去
+    # Remove trailing empty lines
     while result and not result[-1]:
         result.pop()
 
     return result
 ```
 
-#### 構造化タグ（任意）
+#### Structural Tags (Optional)
 
-歌詞に構造化タグ（`[Verse]`、`[Chorus]` など）が含まれていると、モデルが楽曲構造をより効果的に学習できます。構造化タグがなくてもトレーニングは可能です。
+Including structural tags in lyrics (such as `[Verse]`, `[Chorus]`, etc.) helps the model learn song structure more effectively. Training without structural tags is also possible.
 
-> **ヒント：** [Gemini](https://aistudio.google.com/) を使用して既存の歌詞に構造化タグを追加できます。
+> **Tip:** You can use [Gemini](https://aistudio.google.com/) to add structural tags to existing lyrics.
 
-例：
+Example:
 
 ```
 [Intro]
@@ -143,19 +143,19 @@ Close your eyes and feel the sound
 
 ---
 
-### 自動アノテーション
+### Automatic Annotation
 
-#### 1. BPMとKeyの取得
+#### 1. Obtaining BPM and Key
 
-[Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) を使用してBPMとキーのアノテーションをオンラインで取得します：
+Use [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) to obtain BPM and key annotations online:
 
-1. ウェブページを開き、**Browse my files** をクリックして処理する音声ファイルを選択します（一度に多すぎるとフリーズする場合があります。分割して処理し、CSVを結合することを推奨）。処理はローカルで行われ、サーバーにはアップロードされません。
+1. Open the webpage and click **Browse my files** to select the audio files to process (processing too many at once may cause the page to freeze — batch processing and merging CSVs is recommended). Processing is done locally and files are not uploaded to a server.
    ![key-bpm-finder-0.jpg](../pics/key-bpm-finder-0.jpg)
 
-2. 処理完了後、**Export CSV** をクリックしてCSVファイルをダウンロードします。
+2. After processing, click **Export CSV** to download the CSV file.
    ![key-bpm-finder-1.jpg](../pics/key-bpm-finder-1.jpg)
 
-3. CSVファイルの内容例：
+3. CSV file content example:
 
    ```csv
    File,Artist,Title,BPM,Key,Camelot
@@ -163,148 +163,148 @@ Close your eyes and feel the sound
    song2.wav,,,128,A minor,8A
    ```
 
-4. CSVファイルをデータセットフォルダに配置します。キャプションデータを追加する場合は、`Camelot` 列の後に新しい列を追加してください。
+4. Place the CSV file in the dataset folder. To include caption data, add an extra column after `Camelot`.
 
-#### 2. Captionの取得
+#### 2. Obtaining Captions
 
-以下の方法で楽曲のキャプションを取得できます：
+Captions can be obtained in the following ways:
 
-- **acestep-5Hz-lmを使用**（0.6B / 1.7B / 4B）— Gradio UIのAuto Label機能から呼び出し（後続の手順を参照）
-- **Gemini APIを使用** — スクリプト `scripts/lora_data_prepare/gemini_caption.py` を参照。`process_folder()` による一括処理に対応し、各音声ファイルに対して以下を生成します：
-  - `{ファイル名}.lyrics.txt` — 歌詞
-  - `{ファイル名}.caption.txt` — キャプション
+- **Using empath-5Hz-lm** (0.6B / 1.7B / 4B) — Via the Auto Label feature in the Gradio UI (see subsequent steps)
+- **Using Gemini API** — Refer to the script `scripts/lora_data_prepare/gemini_caption.py`, which supports `process_folder()` for batch processing and generates the following for each audio file:
+  - `{filename}.lyrics.txt` — Lyrics
+  - `{filename}.caption.txt` — Caption description
 
 ---
 
-## データの前処理
+## Data Preprocessing
 
-データの準備が完了したら、Gradio UIを使用してデータの確認と前処理を行います。
+Once data is prepared, you can use the Gradio UI for data review and preprocessing.
 
-> **重要：** 起動スクリプトを使用する場合、サービスの事前初期化を無効にするために起動パラメータを変更する必要があります：
+> **Important:** If using a startup script, you need to modify the launch parameters to disable service pre-initialization:
 >
-> - **Windows** (`start_gradio_ui.bat`)：`if not defined INIT_SERVICE set INIT_SERVICE=--init_service true` を `if not defined INIT_SERVICE set INIT_SERVICE=--init_service false` に変更
-> - **Linux/macOS** (`start_gradio_ui.sh`)：`: "${INIT_SERVICE:=--init_service true}"` を `: "${INIT_SERVICE:=--init_service false}"` に変更
+> - **Windows** (`start_gradio_ui.bat`): Change `if not defined INIT_SERVICE set INIT_SERVICE=--init_service true` to `if not defined INIT_SERVICE set INIT_SERVICE=--init_service false`
+> - **Linux/macOS** (`start_gradio_ui.sh`): Change `: "${INIT_SERVICE:=--init_service true}"` to `: "${INIT_SERVICE:=--init_service false}"`
 
-Gradio UIを起動します（起動スクリプトまたは `acestep/acestep_v15_pipeline.py` を直接実行）。
+Launch the Gradio UI (via the startup script or by running `empath/empath_v15_pipeline.py` directly).
 
-### ステップ 1：モデルの読み込み
+### Step 1: Load Models
 
-- **LMでキャプションを生成する場合：** 初期化時に使用したいLMモデル（acestep-5Hz-lm-0.6B / 1.7B / 4B）を選択します。
+- **If you need to use LM for caption generation:** Select the desired LM model during initialization (empath-5Hz-lm-0.6B / 1.7B / 4B).
   ![](../pics/00_select_model_to_load.jpg)
 
-- **LMを使用しない場合：** LMモデルを選択しないでください。
+- **If you don't need LM:** Do not select any LM model.
   ![](../pics/00_select_model_to_load_1.jpg)
 
-### ステップ 2：データの読み込み
+### Step 2: Load Data
 
-**LoRA Training** タブに切り替え、データセットディレクトリのパスを入力し、**Scan** をクリックします。
+Switch to the **LoRA Training** tab, enter the dataset directory path, and click **Scan**.
 
-スキャナーは以下のファイルを自動認識します：
+The scanner automatically recognizes the following files:
 
-| ファイル | 説明 |
-|---------|------|
-| `*.mp3` / `*.wav` / `*.flac` / ... | 音声ファイル |
-| `{ファイル名}.lyrics.txt`（または `{ファイル名}.txt`） | 歌詞 |
-| `{ファイル名}.caption.txt` | キャプション |
-| `{ファイル名}.json` | アノテーションメタデータ（caption / bpm / keyscale / timesignature / language） |
-| `*.csv` | BPM / Key の一括アノテーション（Key-BPM-Finderからエクスポート） |
+| File | Description |
+|------|-------------|
+| `*.mp3` / `*.wav` / `*.flac` / ... | Audio files |
+| `{filename}.lyrics.txt` (or `{filename}.txt`) | Lyrics |
+| `{filename}.caption.txt` | Caption description |
+| `{filename}.json` | Annotation metadata (caption / bpm / keyscale / timesignature / language) |
+| `*.csv` | Batch BPM / Key annotations (exported from Key-BPM-Finder) |
 
 ![](../pics/01_load_dataset_path.jpg)
 
-### ステップ 3：データセットのプレビューと調整
+### Step 3: Review and Adjust Dataset
 
-- **Duration** — 音声ファイルから自動的に読み取り
-- **Lyrics** — 対応する `.lyrics.txt` ファイルが必要（`.txt` も対応）
-- **Labeled** — キャプションがある場合は ✅、ない場合は ❌ と表示
-- **BPM / Key / Caption** — JSONまたはCSVファイルから読み込み
-- データセットがすべてインストゥルメンタルでない場合は、**All Instrumental** のチェックを外してください
-- **Format Lyrics** と **Transcribe Lyrics** は現在無効化されています（[acestep-transcriber](https://huggingface.co/ACE-Step/acestep-transcriber) 未接続のため、LMの直接使用はハルシネーションが発生しやすい）
-- **Custom Trigger Tag** を入力してください（現在は効果が限定的です。`Replace Caption` 以外であれば問題ありません）
-- **Genre Ratio** はキャプションの代わりにジャンルを使用するサンプルの割合を制御します。現在のLMが生成するジャンル記述はキャプションに遠く及ばないため、0のままにして��ださい
+- **Duration** — Automatically read from the audio file
+- **Lyrics** — Requires a corresponding `.lyrics.txt` file (`.txt` is also supported)
+- **Labeled** — Shows ✅ if caption exists, ❌ otherwise
+- **BPM / Key / Caption** — Loaded from JSON or CSV files
+- If the dataset is not entirely instrumental, uncheck **All Instrumental**
+- **Format Lyrics** and **Transcribe Lyrics** are currently disabled (not yet integrated with [empath-transcriber](https://huggingface.co/Empath/empath-transcriber); using LM directly tends to produce hallucinations)
+- Enter a **Custom Trigger Tag** (currently has limited effect; any option other than `Replace Caption` is fine)
+- **Genre Ratio** controls the proportion of samples using genre instead of caption. Since the current LM-generated genre descriptions are far less descriptive than captions, keep this at 0
 
 ![](../pics/02_preview_dataset.jpg)
 
-### ステップ 4：Auto Label Data
+### Step 4: Auto Label Data
 
-- 既にキャプションがある場合は、このステップをスキップできます
-- データにキャプションがない場合は、LM推論で生成できます
-- BPM / Key の値が不足している場合は、まず [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) で取得してください。LMによる直接生成はハルシネーションが発生します
+- If you already have captions, you can skip this step
+- If your data lacks captions, use LM inference to generate them
+- If BPM / Key values are missing, obtain them via [Key-BPM-Finder](https://vocalremover.org/key-bpm-finder) first — generating them directly with LM will produce hallucinations
 
 ![](../pics/03_label_data.jpg)
 
-### ステップ 5：データのプレビューと編集
+### Step 5: Review and Edit Data
 
-必要に応じて、データを一件ずつ確認・修正できます。**各データの編集後は必ず保存をクリックしてください。**
+If needed, you can review and modify data entry by entry. **Remember to click Save after editing each entry.**
 
 ![](../pics/04_edit_data.jpg)
 
-### ステップ 6：データセットの保存
+### Step 6: Save Dataset
 
-保存パスを入力し、データセットをJSONファイルとして保存します。
+Enter a save path to export the dataset as a JSON file.
 
 ![](../pics/05_save_dataset.jpg)
 
-### ステップ 7：前処理によるTensorファイルの生成
+### Step 7: Preprocess and Generate Tensor Files
 
-> **注意：** 以前にLMでキャプションを生成し、VRAMが不足している場合は、まずGradioを再起動してVRAMを解放してください。再起動時は**LMモデルを選択しないでください**。再起動後、保存したJSONファイルのパスを入力して読み込みます。
+> **Note:** If you previously used LM to generate captions and VRAM is insufficient, restart Gradio to free VRAM first. When restarting, **do not select the LM model**. After restarting, enter the path to the saved JSON file and load it.
 
-Tensorファイルの保存パスを入力し、前処理を開始して完了を待ちます。
+Enter the save path for tensor files, click to start preprocessing, and wait for it to complete.
 
 ![](../pics/06_preprocess_tensor.jpg)
 
 ---
 
-## トレーニング
+## Training
 
-> **注意：** Tensorファイル生成後も、VRAMを解放するためにGradioを再起動することを推奨します。
+> **Note:** After generating tensor files, it is also recommended to restart Gradio to free VRAM.
 
-1. **Train LoRA** タブに切り替え、Tensorファイルのパスを入力してデータセットを読み込みます。
-2. トレーニングパラメータに詳しくない場合は、デフォルト値で問題ありません。
+1. Switch to the **Train LoRA** tab, enter the tensor file path, and load the dataset.
+2. If you are unfamiliar with training parameters, the default values are generally fine.
 
-### パラメータ参考
+### Parameter Reference
 
-| パラメータ | 説明 | 推奨値 |
-|-----------|------|--------|
-| **Max Epochs** | データセットのサイズに応じて調整 | 約100曲 → 500エポック、10〜20曲 → 800エポック（参考値） |
-| **Batch Size** | VRAMに余裕がある場合は増加可能 | 1（デフォルト）、VRAMが十分であれば 2 または 4 |
-| **Save Every N Epochs** | チェックポイントの保存間隔 | Max Epochsが小さい場合は短く、大きい場合は長く設定 |
+| Parameter | Description | Suggested Value |
+|-----------|-------------|-----------------|
+| **Max Epochs** | Adjust based on dataset size | ~100 songs → 500 epochs; 10–20 songs → 800 epochs (for reference only) |
+| **Batch Size** | Can be increased if VRAM is sufficient | 1 (default); try 2 or 4 if VRAM allows |
+| **Save Every N Epochs** | Checkpoint save interval | Set smaller for fewer Max Epochs, larger for more |
 
-> 上記の数値は参考値です。実際の状況に応じて調整してください。
+> The above values are for reference only. Please adjust based on your actual situation.
 
-> **💡 LoKr のおすすめ：** LoKR はトレーニング効率を大幅に向上させました。以前は1時間かかっていたトレーニングが、わずか5分で完了します——10倍以上の高速化です。これは消費者向けGPUでのトレーニングにとって非常に重要です。**Train LoKr** タブで LoKr トレーニングをお試しいただくか、[Side-Step](https://github.com/koda-dernet/Side-Step) ツールキットでCLIベースの LoKr ワークフローをご利用ください。詳細は [Training Guide](../sidestep/Training%20Guide.md) をご参照ください。
+> **💡 LoKr Recommendation:** LoKR has greatly improved training efficiency. What used to take an hour now only takes 5 minutes—over 10 times faster. This is crucial for training on consumer-grade GPUs. You can try LoKr training in the **Train LoKr** tab, or use the [Side-Step](https://github.com/koda-dernet/Side-Step) toolkit for CLI-based LoKr workflows. See the [Training Guide](../sidestep/Training%20Guide.md) for details.
 
-3. **Start Training** をクリックし、トレーニングの完了を待ちます。
+3. Click **Start Training** and wait for training to complete.
 
 ![](../pics/07_train.jpg)
 
 ---
 
-## LoRAの使用
+## Using LoRA
 
-1. トレーニング完了後、**Gradioを再起動**し、モデルを再読み込みします（LMモデルは選択しないでください）。
-2. モデルの初期化完了後、トレーニング済みのLoRAウェイトを読み込みます。
+1. After training completes, **restart Gradio** and reload models (do not select the LM model).
+2. Once the model is initialized, load the trained LoRA weights.
    ![](../pics/08_load_lora.jpg)
-3. 音楽生成を開始します。
+3. Start generating music.
 
-おめでとうございます！LoRAトレーニングの全プロセスが完了しました。
+Congratulations! You have completed the entire LoRA training workflow.
 
 ---
 
-## 高度なトレーニング：Side-Step
+## Advanced Training with Side-Step
 
-LoRAトレーニングをより細かく制御したい場合——修正されたタイムステップサンプリング、LoKRアダプター、CLIベースのワークフロー、VRAM最適化、勾配感度分析など——コミュニティ開発の **[Side-Step](https://github.com/koda-dernet/Side-Step)** ツールキットが高度な代替手段を提供します。ドキュメントは本リポジトリの `docs/sidestep/` に収録されています。
+For users who want more control over LoRA training — including corrected timestep sampling, LoKR adapters, CLI-based workflows, VRAM optimization, and gradient sensitivity analysis — the community-developed **[Side-Step](https://github.com/koda-dernet/Side-Step)** toolkit provides an advanced alternative. Its documentation is bundled in this repository under `docs/sidestep/`.
 
-| トピック | 説明 |
-|---------|------|
-| [Getting Started](../sidestep/Getting%20Started.md) | インストール、前提条件、初回セットアップ |
-| [End-to-End Tutorial](../sidestep/End-to-End%20Tutorial.md) | 生音声ファイルから生成までの完全ガイド |
-| [Dataset Preparation](../sidestep/Dataset%20Preparation.md) | JSONスキーマ、音声形式、メタデータフィールド、カスタムタグ |
-| [Training Guide](../sidestep/Training%20Guide.md) | LoRA vs LoKR、修正モード vs バニラモード、ハイパーパラメータガイド |
-| [Using Your Adapter](../sidestep/Using%20Your%20Adapter.md) | 出力ディレクトリ構造、Gradioでの読み込み、LoKRの制限 |
-| [VRAM Optimization Guide](../sidestep/VRAM%20Optimization%20Guide.md) | VRAM最適化戦略とGPUティア別設定 |
-| [Estimation Guide](../sidestep/Estimation%20Guide.md) | ターゲットトレーニングのための勾配感度分析 |
-| [Shift and Timestep Sampling](../sidestep/Shift%20and%20Timestep%20Sampling.md) | トレーニングタイムステップの仕組みとSide-Stepの違い |
-| [Preset Management](../sidestep/Preset%20Management.md) | ビルトインプリセット、保存/読み込み/インポート/エクスポート |
-| [The Settings Wizard](../sidestep/The%20Settings%20Wizard.md) | ウィザード設定の完全リファレンス |
-| [Model Management](../sidestep/Model%20Management.md) | チェックポイント構造とファインチューンサポート |
-| [Windows Notes](../sidestep/Windows%20Notes.md) | Windows固有のセットアップと回避策 |
+| Topic | Description |
+|-------|-------------|
+| [Getting Started](../sidestep/Getting%20Started.md) | Installation, prerequisites, and first-run setup |
+| [End-to-End Tutorial](../sidestep/End-to-End%20Tutorial.md) | Complete walkthrough from raw audio to generation |
+| [Dataset Preparation](../sidestep/Dataset%20Preparation.md) | JSON schema, audio formats, metadata fields, custom tags |
+| [Training Guide](../sidestep/Training%20Guide.md) | LoRA vs LoKR, corrected vs vanilla mode, hyperparameter guide |
+| [Using Your Adapter](../sidestep/Using%20Your%20Adapter.md) | Output layout, loading in Gradio, LoKR limitations |
+| [VRAM Optimization Guide](../sidestep/VRAM%20Optimization%20Guide.md) | GPU memory profiles and optimization strategies |
+| [Estimation Guide](../sidestep/Estimation%20Guide.md) | Gradient sensitivity analysis for targeted training |
+| [Shift and Timestep Sampling](../sidestep/Shift%20and%20Timestep%20Sampling.md) | How training timesteps work and why Side-Step differs from the built-in trainer |
+| [Preset Management](../sidestep/Preset%20Management.md) | Built-in presets, save/load/import/export |
+| [The Settings Wizard](../sidestep/The%20Settings%20Wizard.md) | Complete wizard settings reference |
+| [Model Management](../sidestep/Model%20Management.md) | Checkpoint structure and fine-tune support |
+| [Windows Notes](../sidestep/Windows%20Notes.md) | Windows-specific setup and workarounds |

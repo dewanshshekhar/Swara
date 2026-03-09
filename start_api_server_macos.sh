@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ACE-Step REST API Server Launcher - macOS (Apple Silicon / MLX)
+# Empath REST API Server Launcher - macOS (Apple Silicon / MLX)
 # This script launches the REST API server using the MLX backend
 # for native Apple Silicon acceleration.
 #
@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ==================== MLX Configuration ====================
 # Force MLX backend for native Apple Silicon acceleration
-export ACESTEP_LM_BACKEND="mlx"
+export EMPATH_LM_BACKEND="mlx"
 
 # Disable tokenizer parallelism warning
 export TOKENIZERS_PARALLELISM="false"
@@ -31,13 +31,13 @@ DOWNLOAD_SOURCE=""
 
 # LLM initialization settings
 # Values: auto (default), true (force enable), false (force disable)
-export ACESTEP_INIT_LLM=auto
-# export ACESTEP_INIT_LLM=true
-# export ACESTEP_INIT_LLM=false
+export EMPATH_INIT_LLM=auto
+# export EMPATH_INIT_LLM=true
+# export EMPATH_INIT_LLM=false
 
 # LM model path (value only)
 LM_MODEL_PATH=""
-# LM_MODEL_PATH="acestep-5Hz-lm-0.6B"
+# LM_MODEL_PATH="empath-5Hz-lm-0.6B"
 
 # Update check on startup (set to "false" to disable)
 CHECK_UPDATE="true"
@@ -45,8 +45,8 @@ CHECK_UPDATE="true"
 
 # Skip model loading at startup (models will be lazy-loaded on first request)
 # Set to "true" to start server quickly without loading models
-# export ACESTEP_NO_INIT=false
-# export ACESTEP_NO_INIT=true
+# export EMPATH_NO_INIT=false
+# export EMPATH_NO_INIT=true
 
 # ==================== Launch ====================
 
@@ -62,7 +62,7 @@ if [[ "$ARCH" != "arm64" ]]; then
     echo "WARNING: MLX backend requires Apple Silicon (arm64)."
     echo "Detected architecture: $ARCH"
     echo "Falling back to PyTorch backend."
-    unset ACESTEP_LM_BACKEND
+    unset EMPATH_LM_BACKEND
 fi
 
 # ==================== Startup Update Check ====================
@@ -131,7 +131,7 @@ _startup_update_check() {
 _startup_update_check
 
 echo "============================================"
-echo "  ACE-Step 1.5 API - macOS Apple Silicon (MLX)"
+echo "  Empath 1.5 API - macOS Apple Silicon (MLX)"
 echo "============================================"
 echo
 echo "API will be available at: http://${HOST}:${PORT}"
@@ -156,7 +156,7 @@ if [[ -f "$SCRIPT_DIR/python_embedded/bin/python3.11" ]]; then
     if "$SCRIPT_DIR/python_embedded/bin/python3.11" -c "pass" 2>/dev/null; then
         echo "[Environment] Using embedded Python."
         PYTHON_EXE="$SCRIPT_DIR/python_embedded/bin/python3.11"
-        SCRIPT_PATH="$SCRIPT_DIR/acestep/api_server.py"
+        SCRIPT_PATH="$SCRIPT_DIR/empath/api_server.py"
 
         # On Apple Silicon, verify MLX packages work with this macOS version.
         # python_embedded may ship wheels built for a different macOS; pip
@@ -176,7 +176,7 @@ if [[ -f "$SCRIPT_DIR/python_embedded/bin/python3.11" ]]; then
             fi
         fi
 
-        echo "Starting ACE-Step API Server..."
+        echo "Starting Empath API Server..."
         echo
 
         # Build command with optional parameters
@@ -210,7 +210,7 @@ if ! command -v uv &>/dev/null; then
     echo "uv package manager not found!"
     echo "========================================"
     echo
-    echo "ACE-Step requires the uv package manager."
+    echo "Empath requires the uv package manager."
     echo
     read -rp "Install uv now? (Y/N): " INSTALL_UV
 
@@ -274,23 +274,23 @@ if [[ ! -d "$SCRIPT_DIR/.venv" ]]; then
     echo
 fi
 
-echo "Starting ACE-Step API Server (MLX backend)..."
+echo "Starting Empath API Server (MLX backend)..."
 echo
 
 # Build command with optional parameters
-ACESTEP_ARGS=(acestep-api --host "$HOST" --port "$PORT")
-[[ -n "$API_KEY" ]] && ACESTEP_ARGS+=(--api-key "$API_KEY")
-[[ -n "$DOWNLOAD_SOURCE" ]] && ACESTEP_ARGS+=(--download-source "$DOWNLOAD_SOURCE")
-[[ -n "$LM_MODEL_PATH" ]] && ACESTEP_ARGS+=(--lm-model-path "$LM_MODEL_PATH")
+EMPATH_ARGS=(empath-api --host "$HOST" --port "$PORT")
+[[ -n "$API_KEY" ]] && EMPATH_ARGS+=(--api-key "$API_KEY")
+[[ -n "$DOWNLOAD_SOURCE" ]] && EMPATH_ARGS+=(--download-source "$DOWNLOAD_SOURCE")
+[[ -n "$LM_MODEL_PATH" ]] && EMPATH_ARGS+=(--lm-model-path "$LM_MODEL_PATH")
 
-cd "$SCRIPT_DIR" && uv run "${ACESTEP_ARGS[@]}" || {
+cd "$SCRIPT_DIR" && uv run "${EMPATH_ARGS[@]}" || {
     echo
     echo "[Retry] Online dependency resolution failed, retrying in offline mode..."
     echo
-    uv run --offline "${ACESTEP_ARGS[@]}" || {
+    uv run --offline "${EMPATH_ARGS[@]}" || {
         echo
         echo "========================================"
-        echo "[Error] Failed to start ACE-Step API Server"
+        echo "[Error] Failed to start Empath API Server"
         echo "========================================"
         echo
         echo "Both online and offline modes failed."

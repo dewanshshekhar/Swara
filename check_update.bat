@@ -12,7 +12,7 @@ set REPO_PATH=%~dp0
 set PROXY_CONFIG_FILE=%~dp0proxy_config.txt
 
 echo ========================================
-echo ACE-Step Update Check
+echo Empath Update Check
 echo ========================================
 echo.
 
@@ -105,7 +105,7 @@ if %ERRORLEVEL% EQU 0 (
 if !FETCH_SUCCESS! EQU 1 goto :FetchDone
 
 REM Try with timeout using a temp marker file
-set TEMP_MARKER=%TEMP%\acestep_git_fetch_%RANDOM%.tmp
+set TEMP_MARKER=%TEMP%\empath_git_fetch_%RANDOM%.tmp
 
 REM Start fetch in background
 set "FETCH_CMD=!GIT_PATH! fetch origin --quiet"
@@ -270,11 +270,11 @@ if "%CURRENT_COMMIT%"=="%REMOTE_COMMIT%" (
                 echo [Info] Checking for potential conflicts...
 
                 REM Get list of locally modified files
-                set TEMP_LOCAL_CHANGES=%TEMP%\acestep_local_changes_%RANDOM%.txt
+                set TEMP_LOCAL_CHANGES=%TEMP%\empath_local_changes_%RANDOM%.txt
                 "!GIT_PATH!" diff --name-only HEAD 2>nul > "!TEMP_LOCAL_CHANGES!"
 
                 REM Get list of files changed in remote
-                set TEMP_REMOTE_CHANGES=%TEMP%\acestep_remote_changes_%RANDOM%.txt
+                set TEMP_REMOTE_CHANGES=%TEMP%\empath_remote_changes_%RANDOM%.txt
                 "!GIT_PATH!" diff --name-only HEAD..origin/%CURRENT_BRANCH% 2>nul > "!TEMP_REMOTE_CHANGES!"
 
                 REM Check for conflicts
@@ -374,7 +374,7 @@ if "%CURRENT_COMMIT%"=="%REMOTE_COMMIT%" (
 
             REM Check for untracked files that could be overwritten
             set STASHED_UNTRACKED=0
-            set TEMP_UNTRACKED=%TEMP%\acestep_untracked_%RANDOM%.txt
+            set TEMP_UNTRACKED=%TEMP%\empath_untracked_%RANDOM%.txt
             "!GIT_PATH!" ls-files --others --exclude-standard 2>nul > "!TEMP_UNTRACKED!"
 
             REM Check if there are any untracked files
@@ -383,7 +383,7 @@ if "%CURRENT_COMMIT%"=="%REMOTE_COMMIT%" (
 
             if !HAS_UNTRACKED! EQU 1 (
                 REM Get files added in remote
-                set TEMP_REMOTE_ADDED=%TEMP%\acestep_remote_added_%RANDOM%.txt
+                set TEMP_REMOTE_ADDED=%TEMP%\empath_remote_added_%RANDOM%.txt
                 "!GIT_PATH!" diff --name-only --diff-filter=A HEAD..origin/%CURRENT_BRANCH% 2>nul > "!TEMP_REMOTE_ADDED!"
 
                 set HAS_UNTRACKED_CONFLICTS=0

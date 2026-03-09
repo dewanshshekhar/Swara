@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ACE-Step Training V2 (Side-Step) -- CLI Entry Point
+Empath Training V2 (Side-Step) -- CLI Entry Point
 
 Usage:
     python train.py <subcommand> [args]
@@ -81,7 +81,7 @@ def _dispatch(args) -> int:
 
     Returns an int exit code (0 = success).
     """
-    from acestep.training_v2.cli.common import validate_paths
+    from empath.training_v2.cli.common import validate_paths
 
     # -- Preprocessing (wizard flow) ----------------------------------------
     if getattr(args, "preprocess", False):
@@ -94,11 +94,11 @@ def _dispatch(args) -> int:
         return 1
 
     if sub == "vanilla":
-        from acestep.training_v2.cli.train_vanilla import run_vanilla
+        from empath.training_v2.cli.train_vanilla import run_vanilla
         return run_vanilla(args)
 
     elif sub == "fixed":
-        from acestep.training_v2.cli.train_fixed import run_fixed
+        from empath.training_v2.cli.train_fixed import run_fixed
         return run_fixed(args)
 
     elif sub == "estimate":
@@ -119,13 +119,13 @@ def main() -> int:
     """
     # -- Direct CLI mode (subcommand given) ---------------------------------
     if _has_subcommand():
-        from acestep.training_v2.cli.common import build_root_parser
+        from empath.training_v2.cli.common import build_root_parser
         parser = build_root_parser()
         args = parser.parse_args()
         return _dispatch(args)
 
     # -- Interactive wizard session loop ------------------------------------
-    from acestep.training_v2.ui.wizard import run_wizard_session
+    from empath.training_v2.ui.wizard import run_wizard_session
 
     last_code = 0
     for args in run_wizard_session():
@@ -147,7 +147,7 @@ def main() -> int:
 
 def _run_preprocess(args) -> int:
     """Run the two-pass preprocessing pipeline."""
-    from acestep.training_v2.preprocess import preprocess_audio_files
+    from empath.training_v2.preprocess import preprocess_audio_files
 
     audio_dir = getattr(args, "audio_dir", None)
     dataset_json = getattr(args, "dataset_json", None)
@@ -205,7 +205,7 @@ def _run_preprocess(args) -> int:
 def _run_estimate(args) -> int:
     """Run gradient sensitivity estimation."""
     import json as _json
-    from acestep.training_v2.estimate import run_estimation
+    from empath.training_v2.estimate import run_estimation
 
     num_batches = getattr(args, "estimate_batches", 5) or 5
 

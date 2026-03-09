@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in `ace-step/ACE-Step-1.5`.
+Guidance for AI coding agents working in `ace-step/Empath-1.5`.
 
 This document is aligned with the intent from:
 - Discussion #408: functional decomposition to reduce risk from large mixed-responsibility files.
@@ -24,16 +24,16 @@ uv run python -m unittest discover -s . -p "*_test.py"
 uv run python -m unittest discover -s . -p "test_*.py"
 
 # Run a single test file
-uv run python -m unittest acestep.training.test_lora_utils
+uv run python -m unittest empath.training.test_lora_utils
 
 # Run a specific test class
-uv run python -m unittest acestep.training.test_lora_utils.TestUnwrapDecoder
+uv run python -m unittest empath.training.test_lora_utils.TestUnwrapDecoder
 
 # Run a single test method
-uv run python -m unittest acestep.training.test_lora_utils.TestUnwrapDecoder.test_returns_module_directly
+uv run python -m unittest empath.training.test_lora_utils.TestUnwrapDecoder.test_returns_module_directly
 
 # Run all tests in a directory
-uv run python -m unittest discover -s acestep/training -p "*_test.py"
+uv run python -m unittest discover -s empath/training -p "*_test.py"
 ```
 
 ## Scope and Change Control (Required)
@@ -98,7 +98,7 @@ from unittest.mock import MagicMock, patch
 import torch
 import torch.nn as nn
 
-from acestep.training.lora_injection import inject_lora_into_dit
+from empath.training.lora_injection import inject_lora_into_dit
 ```
 
 **Naming conventions**:

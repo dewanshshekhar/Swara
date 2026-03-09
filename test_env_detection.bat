@@ -4,7 +4,7 @@ REM Test Environment Auto-Detection
 REM This script tests the environment detection logic
 
 echo ========================================
-echo ACE-Step Environment Detection Test
+echo Empath Environment Detection Test
 echo ========================================
 echo.
 
@@ -41,9 +41,9 @@ if exist "%~dp0pyproject.toml" (
     echo [PASS] pyproject.toml found
     echo.
     echo Available scripts:
-    findstr /C:"acestep = " "%~dp0pyproject.toml"
-    findstr /C:"acestep-api = " "%~dp0pyproject.toml"
-    findstr /C:"acestep-download = " "%~dp0pyproject.toml"
+    findstr /C:"empath = " "%~dp0pyproject.toml"
+    findstr /C:"empath-api = " "%~dp0pyproject.toml"
+    findstr /C:"empath-download = " "%~dp0pyproject.toml"
 ) else (
     echo [FAIL] pyproject.toml not found
 )
@@ -53,12 +53,12 @@ REM Test 4: Determine which environment will be used
 echo [Test 4] Environment selection logic...
 if exist "%~dp0python_embedded\python.exe" (
     echo [RESULT] Will use: Embedded Python ^(python_embedded^)
-    echo Command: python_embedded\python.exe acestep\acestep_v15_pipeline.py
+    echo Command: python_embedded\python.exe empath\empath_v15_pipeline.py
 ) else (
     where uv >nul 2>&1
     if !ERRORLEVEL! EQU 0 (
         echo [RESULT] Will use: uv package manager
-        echo Command: uv run acestep
+        echo Command: uv run empath
     ) else (
         echo [ERROR] Neither python_embedded nor uv found!
         echo Please install uv or extract the portable package.

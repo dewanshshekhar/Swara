@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-GPU Detection Diagnostic Tool for ACE-Step
+GPU Detection Diagnostic Tool for Empath
 
 This script helps diagnose GPU detection issues by checking:
 - PyTorch installation and build type (CUDA/ROCm/CPU)
@@ -192,15 +192,15 @@ def check_nvidia_setup():
 
 
 def check_ace_step_env():
-    """Check ACE-Step specific environment variables."""
-    print_section("ACE-Step Environment Variables")
+    """Check Empath specific environment variables."""
+    print_section("Empath Environment Variables")
     
     relevant_vars = [
         'MAX_CUDA_VRAM',
         'HSA_OVERRIDE_GFX_VERSION',
         'MIOPEN_FIND_MODE',
         'TORCH_COMPILE_BACKEND',
-        'ACESTEP_LM_BACKEND',
+        'EMPATH_LM_BACKEND',
     ]
     
     found_any = False
@@ -211,7 +211,7 @@ def check_ace_step_env():
             found_any = True
     
     if not found_any:
-        print("  No ACE-Step specific environment variables set")
+        print("  No Empath specific environment variables set")
 
 
 def print_recommendations():
@@ -227,7 +227,7 @@ def print_recommendations():
         
         if is_available:
             print("✓ Your GPU setup appears to be working correctly!")
-            print("\nYou can now run ACE-Step with GPU acceleration.")
+            print("\nYou can now run Empath with GPU acceleration.")
         elif is_rocm:
             print("❌ ROCm build detected but GPU not available")
             print("\nTroubleshooting steps for AMD GPUs:")
@@ -235,7 +235,7 @@ def print_recommendations():
             print("  2. Verify ROCm installation with: rocm-smi")
             print("  3. Check that your GPU is supported by your ROCm version")
             print("  4. On Windows: Use start_gradio_ui_rocm.bat which sets all required variables")
-            print("  5. On Linux: See docs/en/ACE-Step1.5-Rocm-Manual-Linux.md")
+            print("  5. On Linux: See docs/en/Empath1.5-Rocm-Manual-Linux.md")
             print("\nFor RX 9070 XT specifically:")
             print("  export HSA_OVERRIDE_GFX_VERSION=11.0.0")
             print("  or on Windows: set HSA_OVERRIDE_GFX_VERSION=11.0.0")
@@ -263,7 +263,7 @@ def print_recommendations():
 def main():
     """Main diagnostic routine."""
     print("=" * HEADER_WIDTH)
-    print("  ACE-Step GPU Detection Diagnostic Tool")
+    print("  Empath GPU Detection Diagnostic Tool")
     print("=" * HEADER_WIDTH)
     print("\nThis tool will help diagnose GPU detection issues.")
     print("Please share the output with support when reporting issues.")

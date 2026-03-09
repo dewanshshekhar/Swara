@@ -1,153 +1,165 @@
-# GPU 互換性ガイド
+# GPU Compatibility Guide
 
-ACE-Step 1.5 は GPU の VRAM に自動的に適応し、生成時間の制限、使用可能な LM モデル、オフロード戦略、UI デフォルト設定を調整します。システムは起動時に GPU メモリを検出し、最適な設定を自動構成します。
+Empath 1.5 automatically adapts to your GPU's available VRAM, adjusting generation limits, LM model availability, offloading strategies, and UI defaults accordingly. The system detects GPU memory at startup and configures optimal settings for your hardware.
 
-## GPU ティア構成
+## GPU Tier Configuration
 
-| VRAM | ティア | LM モデル | 推奨 LM | バックエンド | 最大時間 (LM有 / LM無) | 最大バッチ (LM有 / LM無) | オフロード | 量子化 |
-|------|--------|-----------|---------|-------------|------------------------|--------------------------|------------|--------|
-| ≤4GB | Tier 1 | なし | — | pt | 4分 / 6分 | 1 / 1 | CPU + DiT | INT8 |
-| 4-6GB | Tier 2 | なし | — | pt | 8分 / 10分 | 1 / 1 | CPU + DiT | INT8 |
-| 6-8GB | Tier 3 | 0.6B | 0.6B | pt | 8分 / 10分 | 2 / 2 | CPU + DiT | INT8 |
-| 8-12GB | Tier 4 | 0.6B | 0.6B | vllm | 8分 / 10分 | 2 / 4 | CPU + DiT | INT8 |
-| 12-16GB | Tier 5 | 0.6B, 1.7B | 1.7B | vllm | 8分 / 10分 | 4 / 4 | CPU | INT8 |
-| 16-20GB | Tier 6a | 0.6B, 1.7B | 1.7B | vllm | 8分 / 10分 | 4 / 8 | CPU | INT8 |
-| 20-24GB | Tier 6b | 0.6B, 1.7B, 4B | 1.7B | vllm | 8分 / 8分 | 8 / 8 | なし | なし |
-| ≥24GB | 無制限 | 全モデル (0.6B, 1.7B, 4B) | 4B | vllm | 10分 / 10分 | 8 / 8 | なし | なし |
+| VRAM | Tier | LM Models | Recommended LM | Backend | Max Duration (LM / No LM) | Max Batch (LM / No LM) | Offload | Quantization |
+|------|------|-----------|-----------------|---------|----------------------------|-------------------------|---------|--------------|
+| ≤4GB | Tier 1 | None | — | pt | 4 min / 6 min | 1 / 1 | CPU + DiT | INT8 |
+| 4-6GB | Tier 2 | None | — | pt | 8 min / 10 min | 1 / 1 | CPU + DiT | INT8 |
+| 6-8GB | Tier 3 | 0.6B | 0.6B | pt | 8 min / 10 min | 2 / 2 | CPU + DiT | INT8 |
+| 8-12GB | Tier 4 | 0.6B | 0.6B | vllm | 8 min / 10 min | 2 / 4 | CPU + DiT | INT8 |
+| 12-16GB | Tier 5 | 0.6B, 1.7B | 1.7B | vllm | 8 min / 10 min | 4 / 4 | CPU | INT8 |
+| 16-20GB | Tier 6a | 0.6B, 1.7B | 1.7B | vllm | 8 min / 10 min | 4 / 8 | CPU | INT8 |
+| 20-24GB | Tier 6b | 0.6B, 1.7B, 4B | 1.7B | vllm | 8 min / 8 min | 8 / 8 | None | None |
+| ≥24GB | Unlimited | All (0.6B, 1.7B, 4B) | 4B | vllm | 10 min / 10 min | 8 / 8 | None | None |
 
-### 列の説明
+### Column Descriptions
 
-- **LM モデル**: このティアでロードできる 5Hz 言語モデルのサイズ
-- **推奨 LM**: UI でこのティアにデフォルト選択される LM モデル
-- **バックエンド**: LM 推論バックエンド（`vllm` は十分な VRAM を持つ NVIDIA GPU 向け、`pt` は PyTorch フォールバック、`mlx` は Apple Silicon 向け）
-- **オフロード**:
-  - **CPU + DiT**: すべてのモデル（DiT、VAE、テキストエンコーダー）を未使用時に CPU にオフロード；DiT もステップ間でオフロード
-  - **CPU**: VAE とテキストエンコーダーを CPU にオフロード；DiT は GPU に保持
-  - **なし**: すべてのモデルを GPU に保持
-- **量子化**: VRAM 使用量を削減するため、デフォルトで INT8 重み量子化を有効にするかどうか
+- **LM Models**: Which 5Hz Language Model sizes can be loaded on this tier
+- **Recommended LM**: The default LM model selected in the UI for this tier
+- **Backend**: LM inference backend (`vllm` for NVIDIA GPUs with sufficient VRAM, `pt` for PyTorch fallback, `mlx` for Apple Silicon)
+- **Offload**: Memory offloading strategy
+  - **CPU + DiT**: All models (DiT, VAE, Text Encoder) offloaded to CPU when not in use; DiT also offloaded between steps
+  - **CPU**: VAE and Text Encoder offloaded to CPU; DiT stays on GPU
+  - **None**: All models remain on GPU
+- **Quantization**: Whether INT8 weight quantization is enabled by default to reduce VRAM usage
 
-## アダプティブ UI デフォルト
+## Adaptive UI Defaults
 
-Gradio UI は検出された GPU ティアに基づいて自動的に設定されます：
+The Gradio UI automatically configures itself based on the detected GPU tier:
 
-- **LM 初期化チェックボックス**: LM をサポートするティア（Tier 3+）ではデフォルトでチェック、Tier 1-2 ではチェックなし・無効
-- **LM モデルパス**: ティアの推奨モデルが自動入力；ドロップダウンには互換モデルのみ表示
-- **バックエンドドロップダウン**: Tier 1-3 では `pt`/`mlx` に制限（vllm KV キャッシュがメモリを消費しすぎる）；Tier 4+ ではすべてのバックエンドが利用可能
-- **CPU オフロード / DiT オフロード**: 低ティアではデフォルトで有効、高ティアでは無効
-- **量子化**: Tier 1-6a ではデフォルトで有効、Tier 6b+ では無効（十分な VRAM）
-- **モデルコンパイル**: すべてのティアでデフォルトで有効（量子化に必要）
+- **LM Initialization Checkbox**: Checked by default for tiers that support LM (Tier 3+), unchecked and disabled for Tier 1-2
+- **LM Model Path**: Pre-populated with the recommended model for your tier; dropdown only shows compatible models
+- **Backend Dropdown**: Restricted to `pt`/`mlx` on Tier 1-3 (vllm KV cache is too memory-hungry); all backends available on Tier 4+
+- **CPU Offload / DiT Offload**: Enabled by default on lower tiers, disabled on higher tiers
+- **Quantization**: Enabled by default on Tier 1-6a, disabled on Tier 6b+ (sufficient VRAM)
+- **Compile Model**: Enabled by default on all tiers (required for quantization)
 
-互換性のないオプションを手動で選択した場合（例：6GB GPU で vllm を使用しようとした場合）、システムは警告を表示し、互換性のある設定に自動フォールバックします。
+If you manually select an incompatible option (e.g., trying to use vllm on a 6GB GPU), the system will warn you and automatically fall back to a compatible configuration.
 
-## ランタイム安全機能
+## Runtime Safety Features
 
-- **VRAM ガード**: 各推論前に VRAM 要件を推定し、必要に応じてバッチサイズを自動削減
-- **アダプティブ VAE デコード**: 3 段階フォールバック：GPU タイルデコード → GPU デコード+CPU オフロード → 完全 CPU デコード
-- **自動チャンクサイズ**: VAE デコードチャンクサイズが利用可能な空き VRAM に適応（64/128/256/512/1024/1536）
-- **時間/バッチクランプ**: ティアの制限を超える値を要求した場合、警告とともに自動調整
+- **VRAM Guard**: Before each inference, the system estimates VRAM requirements and automatically reduces batch size if needed
+- **Adaptive VAE Decode**: Three-tier fallback: GPU tiled decode → GPU decode with CPU offload → full CPU decode
+- **Auto Chunk Size**: VAE decode chunk size adapts to available free VRAM (64/128/256/512/1024/1536)
+- **Duration/Batch Clamping**: If you request values exceeding your tier's limits, they are clamped with a warning
 
-## 注意事項
+## Notes
 
-- **デフォルト設定** は検出された GPU メモリに基づいて自動構成されます
-- **LM モード** は Chain-of-Thought 生成とオーディオ理解に使用される言語モデルを指します
-- **Flash Attention** は自動検出され、利用可能な場合に有効化されます
-- **制約付きデコード**: LM が初期化されると、LM の時間生成も GPU ティアの最大時間制限内に制約され、CoT 生成時のメモリ不足エラーを防ぎます
-- VRAM ≤6GB の GPU（Tier 1-2）では、DiT モデル用のメモリを確保するため、デフォルトで LM 初期化が無効になります
-- コマンドライン引数または Gradio UI で設定を手動で上書きできます
+- **Default settings** are automatically configured based on detected GPU memory
+- **LM Mode** refers to the Language Model used for Chain-of-Thought generation and audio understanding
+- **Flash Attention** is auto-detected and enabled when available
+- **Constrained Decoding**: When LM is initialized, the LM's duration generation is also constrained to the GPU tier's maximum duration limit, preventing out-of-memory errors during CoT generation
+- For GPUs with ≤6GB VRAM (Tier 1-2), LM initialization is disabled by default to preserve memory for the DiT model
+- You can manually override settings via command-line arguments or the Gradio UI
 
-> **コミュニティ貢献歓迎**: 上記の GPU ティア構成は一般的なハードウェアでのテストに基づいています。お使いのデバイスの実際のパフォーマンスがこれらのパラメータと異なる場合（例：より長い時間やより大きなバッチサイズを処理できる）、より徹底的なテストを行い、`acestep/gpu_config.py` の構成を最適化する PR を提出することを歓迎します。
+> **Community Contributions Welcome**: The GPU tier configurations above are based on our testing across common hardware. If you find that your device's actual performance differs from these parameters (e.g., can handle longer durations or larger batch sizes), we welcome you to conduct more thorough testing and submit a PR to optimize these configurations in `empath/gpu_config.py`. Your contributions help improve the experience for all users!
 
-## メモリ最適化のヒント
+## Memory Optimization Tips
 
-1. **超低 VRAM (≤6GB)**: LM 初期化なしの DiT のみモードを使用。INT8 量子化と完全 CPU オフロードが必須。VAE デコードは自動的に CPU にフォールバックする場合があります。
-2. **低 VRAM (6-8GB)**: `pt` バックエンドで 0.6B LM モデルを使用可能。オフロードを有効に保ちます。
-3. **中 VRAM (8-16GB)**: 0.6B または 1.7B LM モデルを使用。Tier 4+ では `vllm` バックエンドが良好に動作します。
-4. **高 VRAM (16-24GB)**: より大きな LM モデル（1.7B 推奨）を有効化。20GB+ では量子化はオプションになります。
-5. **超高 VRAM (≥24GB)**: すべてのモデルがオフロードや量子化なしで動作。最高品質のため 4B LM を使用。
+1. **Very Low VRAM (≤6GB)**: Use DiT-only mode without LM initialization. INT8 quantization and full CPU offload are mandatory. VAE decode may fall back to CPU automatically.
+2. **Low VRAM (6-8GB)**: The 0.6B LM model can be used with `pt` backend. Keep offload enabled.
+3. **Medium VRAM (8-16GB)**: Use the 0.6B or 1.7B LM model. `vllm` backend works well on Tier 4+.
+4. **High VRAM (16-24GB)**: Enable larger LM models (1.7B recommended). Quantization becomes optional on 20GB+.
+5. **Very High VRAM (≥24GB)**: All models fit without offloading or quantization. Use 4B LM for best quality.
 
-## デバッグモード：異なる GPU 構成のシミュレーション
+## Debug Mode: Simulating Different GPU Configurations
 
-テストと開発のため、`MAX_CUDA_VRAM` 環境変数を使用して異なる GPU メモリサイズをシミュレートできます：
+For testing and development, you can simulate different GPU memory sizes using the `MAX_CUDA_VRAM` environment variable:
 
 ```bash
-# 4GB GPU (Tier 1) をシミュレート
-MAX_CUDA_VRAM=4 uv run acestep
+# Simulate a 4GB GPU (Tier 1)
+MAX_CUDA_VRAM=4 uv run empath
 
-# 6GB GPU (Tier 2) をシミュレート
-MAX_CUDA_VRAM=6 uv run acestep
+# Simulate a 6GB GPU (Tier 2)
+MAX_CUDA_VRAM=6 uv run empath
 
-# 8GB GPU (Tier 4) をシミュレート
-MAX_CUDA_VRAM=8 uv run acestep
+# Simulate an 8GB GPU (Tier 4)
+MAX_CUDA_VRAM=8 uv run empath
 
-# 12GB GPU (Tier 5) をシミュレート
-MAX_CUDA_VRAM=12 uv run acestep
+# Simulate a 12GB GPU (Tier 5)
+MAX_CUDA_VRAM=12 uv run empath
 
-# 16GB GPU (Tier 6a) をシミュレート
-MAX_CUDA_VRAM=16 uv run acestep
+# Simulate a 16GB GPU (Tier 6a)
+MAX_CUDA_VRAM=16 uv run empath
 ```
 
-`MAX_CUDA_VRAM` を設定すると、システムは `torch.cuda.set_per_process_memory_fraction()` を呼び出して VRAM のハードキャップを強制し、ハイエンド GPU でもリアルなシミュレーションを実現します。
+When `MAX_CUDA_VRAM` is set, the system also calls `torch.cuda.set_per_process_memory_fraction()` to enforce a hard VRAM cap, making the simulation realistic even on high-end GPUs.
 
-### 自動ティアテスト
+### Automated Tier Testing
 
-UI で各ティアを手動テストする代わりに、`profile_inference.py` の `tier-test` モードを使用できます：
+Instead of manually testing each tier through the UI, use the `tier-test` mode of `profile_inference.py`:
 
 ```bash
-# すべてのティアを自動テスト
+# Test all tiers automatically
 python profile_inference.py --mode tier-test
 
-# 特定のティアをテスト
+# Test specific tiers
 python profile_inference.py --mode tier-test --tiers 6 8 16
 
-# LM を有効にしてテスト（サポートされるティアで）
+# Test with LM enabled (where supported)
 python profile_inference.py --mode tier-test --tier-with-lm
 
-# 高速テスト（非量子化ティアで torch.compile をスキップ）
+# Quick test (skip torch.compile for non-quantized tiers)
 python profile_inference.py --mode tier-test --tier-skip-compile
 ```
 
-プロファイリングツールの完全なドキュメントは [BENCHMARK.md](BENCHMARK.md) を参照してください。
+See [BENCHMARK.md](BENCHMARK.md) for full documentation of the profiling tool.
 
-用途：
-- ハイエンドハードウェアで GPU ティア構成をテスト
-- 各ティアの警告と制限が正しく機能することを確認
-- `acestep/gpu_config.py` 変更後の自動回帰テスト
-- CI/CD VRAM 互換性検証
+This is useful for:
+- Testing GPU tier configurations on high-end hardware
+- Verifying that warnings and limits work correctly for each tier
+- Automated regression testing after modifying `empath/gpu_config.py`
+- CI/CD validation of VRAM compatibility
 
-### 境界テスト（最小ティアの特定）
+### Boundary Testing (Finding Minimum Tiers)
 
-`--tier-boundary` を使用すると、INT8 量子化と CPU オフロードを安全に無効化できる最小 VRAM ティアを実験的に特定できます。各ティアに対して最大3つの構成でテストします：
+Use `--tier-boundary` to empirically determine the minimum VRAM tier at which INT8 quantization and CPU offload can be safely disabled. For each tier, this runs up to three configurations:
 
-1. **default** — ティアの標準設定（量子化 + オフロードを設定通りに使用）
-2. **no-quant** — オフロード設定はそのまま、量子化を無効化
-3. **no-offload** — 量子化なし、CPU オフロードなし（すべてのモデルを GPU に保持）
+1. **default** — tier's standard settings (quantization + offload as configured)
+2. **no-quant** — same offload settings, but quantization disabled
+3. **no-offload** — no quantization AND no CPU offload (all models on GPU)
 
 ```bash
-# すべてのティアで境界テストを実行
+# Run boundary tests across all tiers
 python profile_inference.py --mode tier-test --tier-boundary
 
-# 特定のティアの境界テスト
+# Test specific tiers with boundary testing
 python profile_inference.py --mode tier-test --tier-boundary --tiers 8 12 16 20 24
 
-# LM を有効にした境界テスト（サポートされるティアで）
+# Boundary test with LM enabled (where supported)
 python profile_inference.py --mode tier-test --tier-boundary --tier-with-lm
 
-# 結果を JSON に保存
+# Save results to JSON for further analysis
 python profile_inference.py --mode tier-test --tier-boundary --benchmark-output boundary_results.json
 ```
 
-> **注意：** 境界テスト結果は経験的なものであり、DiT モデルバリアント（turbo vs base）、LM の有効化状態、生成時間、flash attention の利用可否によって異なる場合があります。
+The output includes a **Boundary Analysis** section showing the minimum tier for each capability:
 
-### バッチサイズ境界テスト
+```
+BOUNDARY ANALYSIS
+=================
+  Capability                                    Min Tier   VRAM
+  ------------------------------------------------------------
+  No INT8 Quantization                          tier6b      20GB
+  No CPU Offload (all models on GPU)            tier6b      20GB
+  ------------------------------------------------------------
+```
 
-`--tier-batch-boundary` を使用して、バッチサイズ 1、2、4、8 を段階的にテストし、各ティアの最大安全バッチサイズを見つけます：
+> **Note:** Boundary results are empirical and may vary based on DiT model variant (turbo vs base), whether LM is enabled, generation duration, and flash attention availability. Community contributions to refine these boundaries are welcome!
+
+### Batch Size Boundary Testing
+
+Use `--tier-batch-boundary` to find the maximum safe batch size for each tier by progressively testing batch sizes 1, 2, 4, 8:
 
 ```bash
-# LM 有効でバッチ境界テストを実行
+# Run batch boundary tests with LM enabled
 python profile_inference.py --mode tier-test --tier-batch-boundary --tier-with-lm
 
-# 特定のティアをテスト
+# Test specific tiers
 python profile_inference.py --mode tier-test --tier-batch-boundary --tier-with-lm --tiers 8 12 16 24
 ```
 
-LM あり/なしの両方の構成をテストし、各ティアの最大成功バッチサイズを報告します。
+This tests both with-LM and without-LM configurations and reports the maximum successful batch size per tier.

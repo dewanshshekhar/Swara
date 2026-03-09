@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-REM ACE-Step Gradio Web UI Launcher - AMD ROCm 7.2
+REM Empath Gradio Web UI Launcher - AMD ROCm 7.2
 REM For AMD RX 7000/6000 series GPUs on Windows 11
 REM IMPORTANT: Requires Python 3.12 (AMD ROCm 7.2 only provides Python 3.12 wheels)
 REM Requires: ROCm PyTorch from repo.radeon.com
@@ -15,7 +15,7 @@ call :LoadManual
 
 REM ==================== ROCm Configuration ====================
 REM Force PyTorch LM backend (bypasses nano-vllm flash_attn dependency)
-set ACESTEP_LM_BACKEND=pt
+set EMPATH_LM_BACKEND=pt
 
 REM RDNA3 GPU architecture override (RX 7900 XT/XTX, RX 7800 XT, etc.)
 REM Change to 11.0.1 for gfx1101 (RX 7700 XT, RX 7800 XT)
@@ -50,8 +50,8 @@ REM When not specified, defaults to min(2, GPU_max)
 REM set BATCH_SIZE=--batch_size 4
 
 REM ==================== Model Configuration ====================
-if not defined CONFIG_PATH set CONFIG_PATH=--config_path acestep-v15-turbo
-if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-4B
+if not defined CONFIG_PATH set CONFIG_PATH=--config_path empath-v15-turbo
+if not defined LM_MODEL_PATH set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-4B
 
 REM CPU offload: required for 4B LM on GPUs with <=20GB VRAM
 REM Models shuttle between CPU/GPU as needed (DiT stays on GPU, LM/VAE/text_encoder move on demand)
@@ -161,7 +161,7 @@ echo.
 :SkipUpdateCheck
 
 echo ============================================
-echo   ACE-Step 1.5 - AMD ROCm 7.2 Edition
+echo   Empath 1.5 - AMD ROCm 7.2 Edition
 echo ============================================
 echo.
 
@@ -190,7 +190,7 @@ if !ERRORLEVEL! NEQ 0 (
 )
 echo.
 
-echo Starting ACE-Step Gradio Web UI...
+echo Starting Empath Gradio Web UI...
 echo Server will be available at: http://%SERVER_NAME%:%PORT%
 echo.
 
@@ -210,7 +210,7 @@ if not "%API_KEY%"=="" set "CMD=!CMD! %API_KEY%"
 if not "%AUTH_USERNAME%"=="" set "CMD=!CMD! %AUTH_USERNAME%"
 if not "%AUTH_PASSWORD%"=="" set "CMD=!CMD! %AUTH_PASSWORD%"
 
-python -u acestep\acestep_v15_pipeline.py !CMD!
+python -u empath\empath_v15_pipeline.py !CMD!
 
 pause
 endlocal
@@ -238,23 +238,23 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             for /f "tokens=* delims= " %%x in ("!line!") do set "key=%%x"
             
             REM Map .env variable names to batch script variables
-            if /i "!key!"=="ACESTEP_CONFIG_PATH" (
+            if /i "!key!"=="EMPATH_CONFIG_PATH" (
                 if not "!value!"=="" set "CONFIG_PATH=--config_path !value!"
             )
-            if /i "!key!"=="ACESTEP_LM_MODEL_PATH" (
+            if /i "!key!"=="EMPATH_LM_MODEL_PATH" (
                 if not "!value!"=="" set "LM_MODEL_PATH=--lm_model_path !value!"
             )
-            if /i "!key!"=="ACESTEP_INIT_LLM" (
+            if /i "!key!"=="EMPATH_INIT_LLM" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "INIT_LLM=--init_llm !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_DOWNLOAD_SOURCE" (
+            if /i "!key!"=="EMPATH_DOWNLOAD_SOURCE" (
                 if not "!value!"=="" (
                     if not "!value!"=="auto" set "DOWNLOAD_SOURCE=--download-source !value!"
                 )
             )
-            if /i "!key!"=="ACESTEP_API_KEY" (
+            if /i "!key!"=="EMPATH_API_KEY" (
                 if not "!value!"=="" set "API_KEY=--api-key !value!"
             )
             if /i "!key!"=="PORT" (
@@ -266,7 +266,7 @@ for /f "usebackq tokens=1,* delims==" %%a in ("%ENV_FILE%") do (
             if /i "!key!"=="LANGUAGE" (
                 if not "!value!"=="" set "LANGUAGE=!value!"
             )
-            if /i "!key!"=="ACESTEP_BATCH_SIZE" (
+            if /i "!key!"=="EMPATH_BATCH_SIZE" (
                 if not "!value!"=="" set "BATCH_SIZE=--batch_size !value!"
             )
         )
@@ -280,7 +280,7 @@ REM Ask for manual settings
 color 0B
 echo.
 echo ======================================================
-echo             ACE-Step Manual Launch Mode
+echo             Empath Manual Launch Mode
 echo ======================================================
 echo.
 :manual_choice_ask
@@ -317,27 +317,27 @@ echo -------------------- Update Settings --------------------
 
 echo.
 echo -------------------- Select DiT Model --------------------
-echo 1^) acestep-v15-base
-echo 2^) acestep-v15-sft
-echo 3^) acestep-v15-turbo  (Recommended)
-echo 4^) acestep-v15-turbo-rl
+echo 1^) empath-v15-base
+echo 2^) empath-v15-sft
+echo 3^) empath-v15-turbo  (Recommended)
+echo 4^) empath-v15-turbo-rl
 echo.
 :dit_choice_ask
     set /p DIT_CHOICE="Enter selection (1-4): "
     if "%DIT_CHOICE%"=="1" (
-        set CONFIG_PATH=--config_path acestep-v15-base
+        set CONFIG_PATH=--config_path empath-v15-base
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="2" (
-        set CONFIG_PATH=--config_path acestep-v15-sft
+        set CONFIG_PATH=--config_path empath-v15-sft
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="3" (
-        set CONFIG_PATH=--config_path acestep-v15-turbo
+        set CONFIG_PATH=--config_path empath-v15-turbo
         goto dit_choice_done
     )
     if "%DIT_CHOICE%"=="4" (
-        set CONFIG_PATH=--config_path acestep-v15-turbo-rl
+        set CONFIG_PATH=--config_path empath-v15-turbo-rl
         goto dit_choice_done
     )
     echo Invalid input. Please enter a number between 1 and 4.
@@ -346,25 +346,25 @@ echo.
 
 echo.
 echo -------------------- Select LM Model --------------------
-echo 1^) acestep-5Hz-lm-0.6B  (Recommended)
-echo 2^) acestep-5Hz-lm-1.7B
-echo 3^) acestep-5Hz-lm-4B
+echo 1^) empath-5Hz-lm-0.6B  (Recommended)
+echo 2^) empath-5Hz-lm-1.7B
+echo 3^) empath-5Hz-lm-4B
 echo 4^) Launch without LM Model
 echo.
 :lm_choice_ask
     set /p LM_CHOICE="Enter selection (1-4): "
     if "%LM_CHOICE%"=="1" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-0.6B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-0.6B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="2" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-1.7B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-1.7B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )
     if "%LM_CHOICE%"=="3" (
-        set LM_MODEL_PATH=--lm_model_path acestep-5Hz-lm-4B
+        set LM_MODEL_PATH=--lm_model_path empath-5Hz-lm-4B
         set INIT_LLM=--init_llm true
         goto lm_choice_done
     )

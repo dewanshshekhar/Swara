@@ -1,6 +1,6 @@
 # GPU Compatibility Guide
 
-ACE-Step 1.5 automatically adapts to your GPU's available VRAM, adjusting generation limits, LM model availability, offloading strategies, and UI defaults accordingly. The system detects GPU memory at startup and configures optimal settings for your hardware.
+Empath 1.5 automatically adapts to your GPU's available VRAM, adjusting generation limits, LM model availability, offloading strategies, and UI defaults accordingly. The system detects GPU memory at startup and configures optimal settings for your hardware.
 
 ## GPU Tier Configuration
 
@@ -55,7 +55,7 @@ If you manually select an incompatible option (e.g., trying to use vllm on a 6GB
 - For GPUs with ≤6GB VRAM (Tier 1-2), LM initialization is disabled by default to preserve memory for the DiT model
 - You can manually override settings via command-line arguments or the Gradio UI
 
-> **Community Contributions Welcome**: The GPU tier configurations above are based on our testing across common hardware. If you find that your device's actual performance differs from these parameters (e.g., can handle longer durations or larger batch sizes), we welcome you to conduct more thorough testing and submit a PR to optimize these configurations in `acestep/gpu_config.py`. Your contributions help improve the experience for all users!
+> **Community Contributions Welcome**: The GPU tier configurations above are based on our testing across common hardware. If you find that your device's actual performance differs from these parameters (e.g., can handle longer durations or larger batch sizes), we welcome you to conduct more thorough testing and submit a PR to optimize these configurations in `empath/gpu_config.py`. Your contributions help improve the experience for all users!
 
 ## Memory Optimization Tips
 
@@ -71,19 +71,19 @@ For testing and development, you can simulate different GPU memory sizes using t
 
 ```bash
 # Simulate a 4GB GPU (Tier 1)
-MAX_CUDA_VRAM=4 uv run acestep
+MAX_CUDA_VRAM=4 uv run empath
 
 # Simulate a 6GB GPU (Tier 2)
-MAX_CUDA_VRAM=6 uv run acestep
+MAX_CUDA_VRAM=6 uv run empath
 
 # Simulate an 8GB GPU (Tier 4)
-MAX_CUDA_VRAM=8 uv run acestep
+MAX_CUDA_VRAM=8 uv run empath
 
 # Simulate a 12GB GPU (Tier 5)
-MAX_CUDA_VRAM=12 uv run acestep
+MAX_CUDA_VRAM=12 uv run empath
 
 # Simulate a 16GB GPU (Tier 6a)
-MAX_CUDA_VRAM=16 uv run acestep
+MAX_CUDA_VRAM=16 uv run empath
 ```
 
 When `MAX_CUDA_VRAM` is set, the system also calls `torch.cuda.set_per_process_memory_fraction()` to enforce a hard VRAM cap, making the simulation realistic even on high-end GPUs.
@@ -111,7 +111,7 @@ See [BENCHMARK.md](BENCHMARK.md) for full documentation of the profiling tool.
 This is useful for:
 - Testing GPU tier configurations on high-end hardware
 - Verifying that warnings and limits work correctly for each tier
-- Automated regression testing after modifying `acestep/gpu_config.py`
+- Automated regression testing after modifying `empath/gpu_config.py`
 - CI/CD validation of VRAM compatibility
 
 ### Boundary Testing (Finding Minimum Tiers)
