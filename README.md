@@ -1,23 +1,11 @@
 <h1 align="center">Empath 1.5</h1>
 <h1 align="center">Pushing the Boundaries of Open-Source Music Generation</h1>
-
-## Table of Contents
-
-- [✨ Features](#-features)
-- [⚡ Quick Start](#-quick-start)
-- [🚀 Launch Scripts](#-launch-scripts)
-- [📚 Documentation](#-documentation)
-- [📖 Tutorial](#-tutorial)
-- [🏗️ Architecture](#️-architecture)
-- [🦁 Model Zoo](#-model-zoo)
-- [🔬 Benchmark](#-benchmark)
-
 ## 📝 Abstract
-🚀 We present Empath v1.5, a highly efficient open-source music foundation model that brings commercial-grade generation to consumer hardware. On commonly used evaluation metrics, Empath v1.5 achieves quality beyond most commercial music models while remaining extremely fast—under 2 seconds per full song on an A100 and under 10 seconds on an RTX 3090. The model runs locally with less than 4GB of VRAM, and supports lightweight personalization: users can train a LoRA from just a few songs to capture their own style.
+🚀 We present Empath , a highly efficient open-source music foundation model that brings commercial-grade generation to consumer hardware. On commonly used evaluation metrics, Empath   achieves quality beyond most commercial music models while remaining extremely fast—under 2 seconds per full song on an A100 and under 10 seconds on an RTX 3090. The model runs locally with less than 4GB of VRAM, and supports lightweight personalization: users can train a LoRA from just a few songs to capture their own style.
 
 🌉 At its core lies a novel hybrid architecture where the Language Model (LM) functions as an omni-capable planner: it transforms simple user queries into comprehensive song blueprints—scaling from short loops to 10-minute compositions—while synthesizing metadata, lyrics, and captions via Chain-of-Thought to guide the Diffusion Transformer (DiT). ⚡ Uniquely, this alignment is achieved through intrinsic reinforcement learning relying solely on the model's internal mechanisms, thereby eliminating the biases inherent in external reward models or human preferences. 🎚️
 
-🔮 Beyond standard synthesis, Empath v1.5 unifies precise stylistic control with versatile editing capabilities—such as cover generation, repainting, and vocal-to-BGM conversion—while maintaining strict adherence to prompts across 50+ languages. This paves the way for powerful tools that seamlessly integrate into the creative workflows of music artists, producers, and content creators. 🎸
+🔮 Beyond standard synthesis, Empath   unifies precise stylistic control with versatile editing capabilities—such as cover generation, repainting, and vocal-to-BGM conversion—while maintaining strict adherence to prompts across 50+ languages. This paves the way for powerful tools that seamlessly integrate into the creative workflows of music artists, producers, and content creators. 🎸
 
 ## ✨ Features
 
@@ -86,13 +74,15 @@ Open http://localhost:7860 (Gradio) or http://localhost:8001 (API).
 
 ### 💡 Which Model Should I Choose?
 
+## Recommended Language Model Based on GPU VRAM
+
 | Your GPU VRAM | Recommended LM Model | Backend | Notes |
-|---------------|---------------------|---------|-------|
-| **≤6GB** | None (DiT only) | — | LM disabled by default; INT8 quantization + full CPU offload |
-| **6-8GB** | `empath-5Hz-lm-0.6B` | `pt` | Lightweight LM with PyTorch backend |
-| **8-16GB** | `empath-5Hz-lm-0.6B` / `1.7B` | `vllm` | 0.6B for 8-12GB, 1.7B for 12-16GB |
-| **16-24GB** | `empath-5Hz-lm-1.7B` | `vllm` | 4B available on 20GB+; no offload needed on 20GB+ |
-| **≥24GB** | `empath-5Hz-lm-4B` | `vllm` | Best quality, all models fit without offload |
+|---------------|----------------------|--------|------|
+| ≤6GB | None (DiT only) | — | LM disabled by default; INT8 quantization + full CPU offload |
+| 6–8GB | acestep-5Hz-lm-0.6B | pt | Lightweight LM with PyTorch backend |
+| 8–16GB | acestep-5Hz-lm-0.6B / 1.7B | vllm | 0.6B for 8–12GB, 1.7B for 12–16GB |
+| 16–24GB | acestep-5Hz-lm-1.7B | vllm | 4B available on 20GB+; no offload needed on 20GB+ |
+| ≥24GB | acestep-5Hz-lm-4B | vllm | Best quality, all models fit without offload |
 
 The UI automatically selects the best configuration for your GPU. All settings (LM model, backend, offloading, quantization) are tier-aware and pre-configured.
 
@@ -207,35 +197,3 @@ python profile_inference.py                        # Single-run profile
 python profile_inference.py --mode benchmark       # Configuration matrix
 ```
 
-## 📜 License & Disclaimer
-
-This project is licensed under MIT License.
-
-Empath enables original music generation across diverse genres, with applications in creative production, education, and entertainment. While designed to support positive and artistic use cases, we acknowledge potential risks such as unintentional copyright infringement due to stylistic similarity, inappropriate blending of cultural elements, and misuse for generating harmful content. To ensure responsible use, we encourage users to verify the originality of generated works, clearly disclose AI involvement, and obtain appropriate permissions when adapting protected styles or materials. By using Empath, you agree to uphold these principles and respect artistic integrity, cultural diversity, and legal compliance. The authors are not responsible for any misuse of the model, including but not limited to copyright violations, cultural insensitivity, or the generation of harmful content.
-
-🔔 Important Notice  
-The only official website for the Empath project is our GitHub Pages site.    
- We do not operate any other websites.  
-⚠️ Please be cautious. Do not visit, trust, or make payments on any of those sites.
-
-## 🌐 Community & Ecosystem
-
-Check out **Awesome Empath** — a curated list of community projects, alternative UIs, ComfyUI nodes, cloud deployments, training tools, and more built around Empath.
-
-## 🙏 Acknowledgements
-
-This project is co-led by ACE Studio and StepFun.
-
-
-## 📖 Citation
-
-If you find this project useful for your research, please consider citing:
-
-```BibTeX
-@misc{gong2026empath,
-	title={Empath 1.5: Pushing the Boundaries of Open-Source Music Generation},
-	author={Junmin Gong, Yulin Song, Wenxiao Zhao, Sen Wang, Shengyuan Xu, Jing Guo}, 
-	year={2026},
-	note={GitHub repository}
-}
-```
